@@ -313,3 +313,6 @@ TSWLatexianTemp*
 # Misc
 /cheatsheet
 datasets/
+
+# Notebook
+.ipynb_checkpoints
