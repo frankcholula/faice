@@ -19,6 +19,8 @@ scikit-learn = "^1.6.0"
 pillow = "^11.0.0"
 pandas = "^2.2.3"
 diffusers = "^0.32.2"
+torch = "^2.6.0"
+torchvision = "^0.21.0"
 
 
 [tool.poetry.group.dev.dependencies]
