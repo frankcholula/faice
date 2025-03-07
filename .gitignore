@@ -310,9 +310,9 @@ TSWLatexianTemp*
 .DS_Store
 *.zip
 
-# Misc
-/cheatsheet
+# Datasets and outputs
 datasets/
+ddpm-butterflies-128/
 
 # Notebook
 .ipynb_checkpoints
