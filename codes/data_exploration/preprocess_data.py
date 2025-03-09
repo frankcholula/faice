@@ -45,6 +45,7 @@ def get_data(data_path, do_trans=True):
 def inspect_data(data):
     fig, axs = plt.subplots(1, 4, figsize=(16, 4))
     for i, image in enumerate(data[:4]["image"]):
+        # print('image size:', image.size)
         axs[i].imshow(image)
         axs[i].set_axis_off()
         if i == 3:
@@ -54,6 +55,5 @@ def inspect_data(data):
 
 if __name__ == '__main__':
     data_path = BASE_DIR + "/data/celeba_hq_256/"
-    # dataset = get_data(data_path)
-    # image_sample = dataset[0]
-    # print(image_sample.shape)
+    dataset = get_data(data_path, False)
+    inspect_data(dataset)
