@@ -179,7 +179,8 @@ def main_train(data_dir):
     #     device = torch.device("mps")
     model = unet2d_model()
     # Check the shape of input and output
-    sample_image = dataset[0]
+    sample_image = train_dataloader[0]
+    # sample_image = sample_image.reshape(1, 3, 128, 128)
     logger.info("Input shape:", sample_image.shape)
     logger.info("Output shape:", model(sample_image, timestep=0).sample.shape)
 
