@@ -32,7 +32,6 @@ class FaceData(data.Dataset):
         # apply transformation
         if self.transforms:
             image = self.transforms(image)
-            image = image.reshape(1, 3, config.image_size, config.image_size)
         # return the image and class
         return image
 
