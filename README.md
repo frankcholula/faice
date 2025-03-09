@@ -7,7 +7,7 @@ project_name
 ├── LICENSE
 ├── README.md
 ├── Surrey_CSEE_Thesis_Template
-└── code
+└── codes
 ```
 ## LaTeX Setup
 This comes with a University of Surrey Faculty of Engineering and Physical Sciences thesis template created by Aaron and Alireza on [Overleaf](https://www.overleaf.com/latex/templates/surrey-feps-confirmation-report-template/kffgbyxwcrbg). I recommend setting up a local distribution of Tex Live on your machine because Overleaf can time out when compiling large documents.
@@ -23,12 +23,12 @@ brew install --cask mactex
 
 ### 2. Download Visual Studio Code
 ```bash
-brew install --cask visual-studio-code
+brew install --cask visual-studio-codes
 ```
 
 ### 3. Install the LaTeX Workshop Extension in Visual Studio Code
 ```bash
-code --install-extension james-yu.latex-workshop
+codes --install-extension james-yu.latex-workshop
 ```
 ### 4. Edit User Settings in Visual Studio Code
 Press `Cmd + shift + p,` and type `preferences: Open User Settings (JSON)` to open the `settings.json` file. Add the following `latex-workshop` settings:
