@@ -123,7 +123,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         progress_bar.set_description(f"Epoch {epoch}")
 
         for step, batch in enumerate(train_dataloader):
-            clean_images = batch
+            clean_images = batch["images"]
             # Sample noise to add to the images
             noise = torch.randn(clean_images.shape).to(device)
             bs = clean_images.shape[0]
@@ -181,8 +181,8 @@ def main_train(data_dir):
     # Check the shape of input and output
     sample_image = dataset[0]
     sample_image = sample_image.reshape(1, 3, 128, 128)
-    logger.info("Input shape:", sample_image.shape)
-    logger.info("Output shape:", model(sample_image, timestep=0).sample.shape)
+    logger.info(f"Input shape: {sample_image.shape}")
+    logger.info(f"Output shape: {model(sample_image, timestep=0).sample.shape}")
 
     model.to(device)
 
