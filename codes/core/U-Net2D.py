@@ -13,7 +13,7 @@ from diffusers import UNet2DModel
 import torch.nn.functional as F
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from diffusers import DDPMPipeline
-from diffusers import DDPMScheduler
+from diffusers import DDPMScheduler, CosineDPMSolverMultistepScheduler
 from accelerate import Accelerator
 from huggingface_hub import HfFolder, Repository, whoami
 from tqdm.auto import tqdm
@@ -193,7 +193,8 @@ def main_train(data_dir):
         num_training_steps=(len(train_dataloader) * config.num_epochs),
     )
 
-    noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
+    # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
+    noise_scheduler = CosineDPMSolverMultistepScheduler(num_train_timesteps=1000)
     args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
 
     notebook_launcher(train_loop, args, num_processes=1)
