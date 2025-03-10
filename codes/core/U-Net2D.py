@@ -193,8 +193,8 @@ def main_train(data_dir):
         num_training_steps=(len(train_dataloader) * config.num_epochs),
     )
 
-    # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
-    noise_scheduler = CosineDPMSolverMultistepScheduler(num_train_timesteps=1000)
+    noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
+    # noise_scheduler = CosineDPMSolverMultistepScheduler(num_train_timesteps=1000)
     args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
 
     notebook_launcher(train_loop, args, num_processes=1)
