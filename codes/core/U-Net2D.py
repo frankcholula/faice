@@ -24,9 +24,6 @@ from loguru import logger
 from codes.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, config
 
-# ValueError: fp16 mixed precision requires a GPU (not 'mps').
-torch.set_autocast_enabled(True)
-
 
 def unet2d_model():
     model = UNet2DModel(
