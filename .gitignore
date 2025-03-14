@@ -313,6 +313,8 @@ TSWLatexianTemp*
 # Datasets and outputs
 datasets/
 ddpm-butterflies-128/
+!ddpm-butterflies-128/samples/
+!ddpm-butterflies-128/samples/**
 
 # Notebook
 .ipynb_checkpoints
