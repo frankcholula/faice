@@ -1,19 +1,24 @@
-from dataclasses import dataclass
-from datasets import load_dataset
-import matplotlib.pyplot as plt
-import torch
-import torch.nn.functional as F
+# Standard library imports
 import os
 import glob
+from dataclasses import dataclass
+from pathlib import Path
 
+# Deep learning and related imports
+import torch
+import torch.nn.functional as F
 from torchvision import transforms
+from tqdm.auto import tqdm
+
+# Diffusers and Hugging Face imports
+from datasets import load_dataset
 from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
-from PIL import Image
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from accelerate import Accelerator, notebook_launcher
 from huggingface_hub import HfFolder, Repository, whoami
-from tqdm.auto import tqdm
-from pathlib import Path
+
+# Image handling
+from PIL import Image
 
 
 @dataclass
@@ -39,11 +44,6 @@ class TrainingConfig:
 config = TrainingConfig()
 config.dataset_name = "huggan/smithsonian_butterflies_subset"
 dataset = load_dataset(config.dataset_name, split="train")
-fig, axs = plt.subplots(1, 4, figsize=(16, 4))
-for i, image in enumerate(dataset[:4]["image"]):
-    axs[i].imshow(image)
-    axs[i].set_axis_off()
-fig.show()
 
 
 preprocess = transforms.Compose(
@@ -96,22 +96,7 @@ model = UNet2DModel(
         "UpBlock2D",
     ),
 )
-sample_image = dataset[0]["images"].unsqueeze(0)
-print("Input shape:", sample_image.shape)
-print("Output shape:", model(sample_image, timestep=0).sample.shape)
 
-noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
-noise = torch.randn(sample_image.shape)
-timesteps = torch.LongTensor([50])
-noisy_image = noise_scheduler.add_noise(sample_image, noise, timesteps)
-
-Image.fromarray(
-    ((noisy_image.permute(0, 2, 3, 1) + 1.0) * 127.5).type(torch.uint8).numpy()[0]
-)
-
-
-noise_pred = model(noisy_image, timesteps).sample
-loss = F.mse_loss(noise_pred, noise)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 lr_scheduler = get_cosine_schedule_with_warmup(
@@ -156,7 +141,9 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
         return f"{organization}/{model_id}"
 
 
-def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler):
+def train_loop(
+    config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler
+):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
         mixed_precision=config.mixed_precision,
@@ -183,7 +170,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
     # Now you train the model
     for epoch in range(config.num_epochs):
-        progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
+        progress_bar = tqdm(
+            total=len(train_dataloader), disable=not accelerator.is_local_main_process
+        )
         progress_bar.set_description(f"Epoch {epoch}")
 
         for step, batch in enumerate(train_dataloader):
@@ -194,7 +183,10 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
-                0, noise_scheduler.config.num_train_timesteps, (bs,), device=clean_images.device
+                0,
+                noise_scheduler.config.num_train_timesteps,
+                (bs,),
+                device=clean_images.device,
             ).long()
 
             # Add noise to the clean images according to the noise magnitude at each timestep
@@ -213,19 +205,29 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 optimizer.zero_grad()
 
             progress_bar.update(1)
-            logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0], "step": global_step}
+            logs = {
+                "loss": loss.detach().item(),
+                "lr": lr_scheduler.get_last_lr()[0],
+                "step": global_step,
+            }
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
             global_step += 1
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            pipeline = DDPMPipeline(
+                unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+            )
 
-            if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
+            if (
+                epoch + 1
+            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
 
-            if (epoch + 1) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
+            if (
+                epoch + 1
+            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
