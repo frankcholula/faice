@@ -23,15 +23,15 @@ from PIL import Image
 
 @dataclass
 class TrainingConfig:
-    image_size = 256  # CHNAGED: from 128 to 256 for this dataset
-    train_batch_size = 8 # reduced from 16
-    eval_batch_size = 8 # reduced from 16
-    num_epochs = 1 # reduce to 1 epoch just to get something working
+    image_size = 128  # training at lower resolution
+    train_batch_size = 16
+    eval_batch_size = 16
+    num_epochs = 10 # reduce to 1 epoch just to get something working
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
     lr_warmup_steps = 500
     save_image_epochs = 1
-    save_model_epochs = 1
+    save_model_epochs = 5
     mixed_precision = "fp16"
     output_dir = "ddpm-celebhq-256"  # the model name locally and on the HF Hub
 
@@ -78,21 +78,21 @@ model = UNet2DModel(
         256,
         512,
         512,
-        512, # added one more block to capture finer details
-    ),  # the number of output channels for each UNet block
+        # 512, # added one more block to capture finer details
+    ),
     down_block_types=(
-        "DownBlock2D",  # a regular ResNet downsampling block
         "DownBlock2D",
         "DownBlock2D",
         "DownBlock2D",
-        "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
-        "AttnDownBlock2D", # Added additional attention block for the same reason as above
+        "DownBlock2D",
+        "AttnDownBlock2D",
+        # "AttnDownBlock2D", # Added additional attention block for the same reason as above
         "DownBlock2D",
     ),
     up_block_types=(
-        "UpBlock2D",  # a regular ResNet upsampling block
-        "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
-        "AttnUpBlock2D", # Added additional attention block for the same reason as above
+        "UpBlock2D",
+        "AttnUpBlock2D",
+        # "AttnUpBlock2D", # Added additional attention block for the same reason as above
         "UpBlock2D",
         "UpBlock2D",
         "UpBlock2D",
@@ -238,7 +238,7 @@ def train_loop(
                         folder_path = config.output_dir,
                         repo_id = repo_name, 
                         commit_message=f"Epoch {epoch}",
-                        ignoore_patterns=["logs/*"],
+                        ignore_patterns=["logs/*"],
                     )
                 else:
                     pipeline.save_pretrained(config.output_dir)
