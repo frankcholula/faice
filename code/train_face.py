@@ -14,8 +14,8 @@ from tqdm.auto import tqdm
 from datasets import load_dataset
 from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
 from diffusers.optimization import get_cosine_schedule_with_warmup
-from accelerate import Accelerator, notebook_launcher
-from huggingface_hub import HfFolder, Repository, whoami
+from accelerate import Accelerator
+from huggingface_hub import HfFolder, whoami, create_repo, upload_folder
 
 # Image handling
 from PIL import Image
@@ -23,26 +23,26 @@ from PIL import Image
 
 @dataclass
 class TrainingConfig:
-    image_size = 128  # the generated image resolution
+    image_size = 128  # training at lower resolution
     train_batch_size = 16
-    eval_batch_size = 16  # how many images to sample during evaluation
-    num_epochs = 50
+    eval_batch_size = 16
+    num_epochs = 10 # reduce to 1 epoch just to get something working
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
     lr_warmup_steps = 500
-    save_image_epochs = 10
-    save_model_epochs = 25
-    mixed_precision = "fp16"  # `no` for float32, `fp16` for automatic mixed precision
-    output_dir = "ddpm-butterflies-128"  # the model name locally and on the HF Hub
+    save_image_epochs = 1
+    save_model_epochs = 5
+    mixed_precision = "fp16"
+    output_dir = "ddpm-celebhq-256"  # the model name locally and on the HF Hub
 
-    push_to_hub = False  # whether to upload the saved model to the HF Hub
+    push_to_hub = True
     hub_private_repo = False
-    overwrite_output_dir = True  # overwrite the old model when re-running the notebook
+    overwrite_output_dir = True
     seed = 0
 
 
 config = TrainingConfig()
-config.dataset_name = "huggan/smithsonian_butterflies_subset"
+config.dataset_name = "korexyz/celeba-hq-256x256"
 dataset = load_dataset(config.dataset_name, split="train")
 
 
@@ -78,18 +78,21 @@ model = UNet2DModel(
         256,
         512,
         512,
-    ),  # the number of output channels for each UNet block
+        # 512, # added one more block to capture finer details
+    ),
     down_block_types=(
-        "DownBlock2D",  # a regular ResNet downsampling block
         "DownBlock2D",
         "DownBlock2D",
         "DownBlock2D",
-        "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
+        "DownBlock2D",
+        "AttnDownBlock2D",
+        # "AttnDownBlock2D", # Added additional attention block for the same reason as above
         "DownBlock2D",
     ),
     up_block_types=(
-        "UpBlock2D",  # a regular ResNet upsampling block
-        "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
+        "UpBlock2D",
+        "AttnUpBlock2D",
+        # "AttnUpBlock2D", # Added additional attention block for the same reason as above
         "UpBlock2D",
         "UpBlock2D",
         "UpBlock2D",
@@ -156,7 +159,7 @@ def train_loop(
     if accelerator.is_main_process:
         if config.push_to_hub:
             repo_name = get_full_repo_name(Path(config.output_dir).name)
-            repo = Repository(config.output_dir, clone_from=repo_name)
+            create_repo(repo_name, exist_ok=True)
         elif config.output_dir is not None:
             os.makedirs(config.output_dir, exist_ok=True)
         accelerator.init_trackers("train_example")
@@ -231,14 +234,19 @@ def train_loop(
                 epoch + 1
             ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
                 if config.push_to_hub:
-                    repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
+                    upload_folder(
+                        folder_path = config.output_dir,
+                        repo_id = repo_name, 
+                        commit_message=f"Epoch {epoch}",
+                        ignore_patterns=["logs/*"],
+                    )
                 else:
                     pipeline.save_pretrained(config.output_dir)
 
 
 args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
 
-notebook_launcher(train_loop, args, num_processes=1)
+train_loop(*args)
 
 sample_images = sorted(glob.glob(f"{config.output_dir}/samples/*.png"))
 Image.open(sample_images[-1])
