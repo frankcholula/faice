@@ -14,8 +14,8 @@ from tqdm.auto import tqdm
 from datasets import load_dataset
 from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
 from diffusers.optimization import get_cosine_schedule_with_warmup
-from accelerate import Accelerator, notebook_launcher
-from huggingface_hub import HfFolder, Repository, whoami
+from accelerate import Accelerator
+from huggingface_hub import HfFolder, whoami, create_repo, upload_folder
 
 # Image handling
 from PIL import Image
@@ -24,14 +24,14 @@ from PIL import Image
 @dataclass
 class TrainingConfig:
     image_size = 256  # CHNAGED: from 128 to 256 for this dataset
-    train_batch_size = 16
-    eval_batch_size = 16
-    num_epochs = 50
+    train_batch_size = 8 # reduced from 16
+    eval_batch_size = 8 # reduced from 16
+    num_epochs = 1 # reduce to 1 epoch just to get something working
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
     lr_warmup_steps = 500
-    save_image_epochs = 10
-    save_model_epochs = 25
+    save_image_epochs = 1
+    save_model_epochs = 1
     mixed_precision = "fp16"
     output_dir = "ddpm-celebhq-256"  # the model name locally and on the HF Hub
 
@@ -159,7 +159,7 @@ def train_loop(
     if accelerator.is_main_process:
         if config.push_to_hub:
             repo_name = get_full_repo_name(Path(config.output_dir).name)
-            repo = Repository(config.output_dir, clone_from=repo_name)
+            create_repo(repo_name, exist_ok=True)
         elif config.output_dir is not None:
             os.makedirs(config.output_dir, exist_ok=True)
         accelerator.init_trackers("train_example")
@@ -234,14 +234,19 @@ def train_loop(
                 epoch + 1
             ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
                 if config.push_to_hub:
-                    repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
+                    upload_folder(
+                        folder_path = config.output_dir,
+                        repo_id = repo_name, 
+                        commit_message=f"Epoch {epoch}",
+                        ignoore_patterns=["logs/*"],
+                    )
                 else:
                     pipeline.save_pretrained(config.output_dir)
 
 
 args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
 
-notebook_launcher(train_loop, args, num_processes=1)
+train_loop(*args)
 
 sample_images = sorted(glob.glob(f"{config.output_dir}/samples/*.png"))
 Image.open(sample_images[-1])

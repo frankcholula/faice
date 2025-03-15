@@ -313,6 +313,9 @@ TSWLatexianTemp*
 # Datasets and outputs
 datasets/
 ddpm-butterflies-128/
+ddpm-celebhq-256/
+!ddpm-celebhq-256/samples/
+!ddpm-celebhq-256/samples/**
 !ddpm-butterflies-128/samples/
 !ddpm-butterflies-128/samples/**
 
