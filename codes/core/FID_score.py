@@ -25,21 +25,20 @@ def preprocess_image(image):
     return F.center_crop(image, (256, 256))
 
 
-def make_real_images(dataset_path):
-    logger.info(f"Loading real images from {dataset_path}")
-    image_paths = sorted([os.path.join(dataset_path, x) for x in os.listdir(dataset_path)])
+def make_fid_input_images(images_path):
+    logger.info(f"Loading real images from {images_path}")
+    image_paths = sorted([os.path.join(images_path, x) for x in os.listdir(images_path)])
 
     real_images = [np.array(Image.open(path).convert("RGB")) for path in image_paths]
 
     real_images = torch.cat([preprocess_image(image) for image in real_images])
-    print(real_images.shape)
+    logger.info(f"real images shape: {real_images.shape}")
     return real_images
 
 
-def make_fake_images(model_ckpt, scheduler_path):
+def generate_images_from_model(model_ckpt, scheduler_path, device):
     # Load model
     logger.info(f"Loading model from {model_ckpt}")
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     scheduler = DDPMScheduler.from_pretrained(scheduler_path, subfolder="scheduler")
 
@@ -64,10 +63,11 @@ def make_fake_images(model_ckpt, scheduler_path):
 
 
 def calculate_fid(dataset_path, model_ckpt, scheduler_path):
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     logger.info("Calculate FID score")
-    real_images = make_real_images(dataset_path)
-    fake_images = make_fake_images(model_ckpt, scheduler_path)
-    fid = FrechetInceptionDistance(normalize=True)
+    real_images = make_fid_input_images(dataset_path)
+    fake_images = generate_images_from_model(model_ckpt, scheduler_path, device)
+    fid = FrechetInceptionDistance(normalize=True, device=device)
     fid.update(real_images, real=True)
     fid.update(fake_images, real=False)
 
