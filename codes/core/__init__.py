@@ -27,7 +27,7 @@ pipeline = DDPMPipeline.from_pretrained(
   model_ckpt,
   scheduler=scheduler,
   torch_dtype=torch.float16,
-  variant="fp16",
+  # variant="fp16",
   use_safetensors=True
 ).to(device)
 
