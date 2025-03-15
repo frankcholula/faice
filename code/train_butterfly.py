@@ -96,8 +96,10 @@ model = UNet2DModel(
         "UpBlock2D",
     ),
 )
+sample_image = dataset[0]["images"].unsqueeze(0)
+assert sample_image.shape == model(sample_image, timestep=0).sample.shape
 
-
+noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
 optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 lr_scheduler = get_cosine_schedule_with_warmup(
     optimizer=optimizer,
