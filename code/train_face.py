@@ -1,49 +1,49 @@
-from dataclasses import dataclass
-from datasets import load_dataset
-import matplotlib.pyplot as plt
-import torch
-import torch.nn.functional as F
+# Standard library imports
 import os
 import glob
+from dataclasses import dataclass
+from pathlib import Path
 
+# Deep learning and related imports
+import torch
+import torch.nn.functional as F
 from torchvision import transforms
+from tqdm.auto import tqdm
+
+# Diffusers and Hugging Face imports
+from datasets import load_dataset
 from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
-from PIL import Image
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from accelerate import Accelerator, notebook_launcher
 from huggingface_hub import HfFolder, Repository, whoami
-from tqdm.auto import tqdm
-from pathlib import Path
+
+# Image handling
+from PIL import Image
 
 
 @dataclass
 class TrainingConfig:
-    image_size = 128  # the generated image resolution
+    image_size = 256  # CHNAGED: from 128 to 256 for this dataset
     train_batch_size = 16
-    eval_batch_size = 16  # how many images to sample during evaluation
+    eval_batch_size = 16
     num_epochs = 50
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
     lr_warmup_steps = 500
     save_image_epochs = 10
     save_model_epochs = 25
-    mixed_precision = "fp16"  # `no` for float32, `fp16` for automatic mixed precision
+    mixed_precision = "fp16"
     output_dir = "ddpm-celebhq-256"  # the model name locally and on the HF Hub
 
-    push_to_hub = False  # whether to upload the saved model to the HF Hub
+    push_to_hub = True
     hub_private_repo = False
-    overwrite_output_dir = True  # overwrite the old model when re-running the notebook
+    overwrite_output_dir = True
     seed = 0
 
 
 config = TrainingConfig()
 config.dataset_name = "korexyz/celeba-hq-256x256"
 dataset = load_dataset(config.dataset_name, split="train")
-fig, axs = plt.subplots(1, 4, figsize=(16, 4))
-for i, image in enumerate(dataset[:4]["image"]):
-    axs[i].imshow(image)
-    axs[i].set_axis_off()
-fig.show()
 
 
 preprocess = transforms.Compose(
@@ -78,6 +78,7 @@ model = UNet2DModel(
         256,
         512,
         512,
+        512, # added one more block to capture finer details
     ),  # the number of output channels for each UNet block
     down_block_types=(
         "DownBlock2D",  # a regular ResNet downsampling block
@@ -85,11 +86,13 @@ model = UNet2DModel(
         "DownBlock2D",
         "DownBlock2D",
         "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
+        "AttnDownBlock2D", # Added additional attention block for the same reason as above
         "DownBlock2D",
     ),
     up_block_types=(
         "UpBlock2D",  # a regular ResNet upsampling block
         "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
+        "AttnUpBlock2D", # Added additional attention block for the same reason as above
         "UpBlock2D",
         "UpBlock2D",
         "UpBlock2D",
@@ -97,22 +100,9 @@ model = UNet2DModel(
     ),
 )
 sample_image = dataset[0]["images"].unsqueeze(0)
-print("Input shape:", sample_image.shape)
-print("Output shape:", model(sample_image, timestep=0).sample.shape)
+assert sample_image.shape == model(sample_image, timestep=0).sample.shape
 
 noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
-noise = torch.randn(sample_image.shape)
-timesteps = torch.LongTensor([50])
-noisy_image = noise_scheduler.add_noise(sample_image, noise, timesteps)
-
-Image.fromarray(
-    ((noisy_image.permute(0, 2, 3, 1) + 1.0) * 127.5).type(torch.uint8).numpy()[0]
-)
-
-
-noise_pred = model(noisy_image, timesteps).sample
-loss = F.mse_loss(noise_pred, noise)
-
 optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 lr_scheduler = get_cosine_schedule_with_warmup(
     optimizer=optimizer,
