@@ -67,7 +67,7 @@ def calculate_fid(dataset_path, model_ckpt, scheduler_path):
     logger.info("Calculate FID score")
     real_images = make_fid_input_images(dataset_path)
     fake_images = generate_images_from_model(model_ckpt, scheduler_path, device)
-    fid = FrechetInceptionDistance(normalize=True, device=device)
+    fid = FrechetInceptionDistance(normalize=True).to(device)
     fid.update(real_images, real=True)
     fid.update(fake_images, real=False)
 
