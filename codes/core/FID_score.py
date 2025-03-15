@@ -7,26 +7,16 @@
 """
 import os
 
+import torch
+from diffusers import DDPMPipeline
+from diffusers import DDPMScheduler
 from PIL import Image
 import numpy as np
-import torch
 from torchvision.transforms import functional as F
-from diffusers import DiTPipeline, DPMSolverMultistepScheduler
 from torchmetrics.image.fid import FrechetInceptionDistance
-from diffusers import DDPMPipeline
+from loguru import logger
 
-
-def process_test_data():
-    pass
-
-
-
-
-
-dataset_path = "sample-imagenet-images"
-image_paths = sorted([os.path.join(dataset_path, x) for x in os.listdir(dataset_path)])
-
-real_images = [np.array(Image.open(path).convert("RGB")) for path in image_paths]
+from codes.conf.global_setting import BASE_DIR, config
 
 
 def preprocess_image(image):
@@ -35,44 +25,58 @@ def preprocess_image(image):
     return F.center_crop(image, (256, 256))
 
 
-real_images = torch.cat([preprocess_image(image) for image in real_images])
-print(real_images.shape)
-# torch.Size([10, 3, 256, 256])
+def make_real_images(dataset_path):
+    logger.info(f"Loading real images from {dataset_path}")
+    image_paths = sorted([os.path.join(dataset_path, x) for x in os.listdir(dataset_path)])
+
+    real_images = [np.array(Image.open(path).convert("RGB")) for path in image_paths]
+
+    real_images = torch.cat([preprocess_image(image) for image in real_images])
+    print(real_images.shape)
+    return real_images
 
 
-dit_pipeline = DiTPipeline.from_pretrained("facebook/DiT-XL-2-256", torch_dtype=torch.float16)
-dit_pipeline.scheduler = DPMSolverMultistepScheduler.from_config(dit_pipeline.scheduler.config)
-dit_pipeline = dit_pipeline.to("cuda")
+def make_fake_images(model_ckpt, scheduler_path):
+    # Load model
+    logger.info(f"Loading model from {model_ckpt}")
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-seed = 0
-generator = torch.manual_seed(seed)
+    scheduler = DDPMScheduler.from_pretrained(scheduler_path, subfolder="scheduler")
 
-words = [
-    "cassette player",
-    "chainsaw",
-    "chainsaw",
-    "church",
-    "gas pump",
-    "gas pump",
-    "gas pump",
-    "parachute",
-    "parachute",
-    "tench",
-]
+    pipeline = DDPMPipeline.from_pretrained(
+        model_ckpt,
+        scheduler=scheduler,
+        torch_dtype=torch.float16,
+        # variant="fp16",
+        use_safetensors=True
+    ).to(device)
 
-class_ids = dit_pipeline.get_label_ids(words)
-output = dit_pipeline(class_labels=class_ids, generator=generator, output_type="np")
+    logger.info("Generate fake images")
+    images = pipeline(
+        batch_size=config.eval_batch_size,
+        generator=torch.manual_seed(config.seed),
+    ).images
 
-fake_images = output.images
-fake_images = torch.tensor(fake_images)
-fake_images = fake_images.permute(0, 3, 1, 2)
-print(fake_images.shape)
-# torch.Size([10, 3, 256, 256])
+    fake_images = torch.tensor(images)
+    fake_images = fake_images.permute(0, 3, 1, 2)
+    return fake_images
 
 
-fid = FrechetInceptionDistance(normalize=True)
-fid.update(real_images, real=True)
-fid.update(fake_images, real=False)
+def calculate_fid(dataset_path, model_ckpt, scheduler_path):
+    logger.info("Calculate FID score")
+    real_images = make_real_images(dataset_path)
+    fake_images = make_fake_images(model_ckpt, scheduler_path)
+    fid = FrechetInceptionDistance(normalize=True)
+    fid.update(real_images, real=True)
+    fid.update(fake_images, real=False)
 
-print(f"FID: {float(fid.compute())}")
-# FID: 177.7147216796875
+    print(f"FID: {float(fid.compute())}")
+
+
+if __name__ == '__main__':
+    dataset_dir = BASE_DIR + '/data/celeba_hq_256'
+    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
+    scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
+    test_data = BASE_DIR + '/data/test'
+
+    calculate_fid(dataset_dir, model_ckpt_dir, scheduler_dir)
