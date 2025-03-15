@@ -55,10 +55,11 @@ def make_fake_images(model_ckpt, scheduler_path):
     images = pipeline(
         batch_size=config.eval_batch_size,
         generator=torch.manual_seed(config.seed),
+        output_type="np"
     ).images
 
-    # fake_images = torch.tensor(images)
-    fake_images = images.permute(0, 3, 1, 2)
+    fake_images = torch.tensor(images)
+    fake_images = fake_images.permute(0, 3, 1, 2)
     return fake_images
 
 
