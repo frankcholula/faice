@@ -51,7 +51,7 @@ def unet2d_model():
     #     ),
     # )
 
-    model = UNet2DConditionModel.from_pretrained(
+    model = UNet2DModel.from_pretrained(
         # "stabilityai/stable-diffusion-xl-base-1.0",
         "runwayml/stable-diffusion-v1-5",
         torch_dtype=torch.float16,
