@@ -158,7 +158,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             # Load Lora weight
             unet = accelerator.unwrap_model(model)
             pipeline = DiffusionPipeline.from_pretrained(
-                "stabilityai/stable-diffusion-xl-base-1.0",
+                "runwayml/stable-diffusion-v1-5",
                 variant="fp16",
                 torch_dtype=torch.float16,
                 unet=unet
