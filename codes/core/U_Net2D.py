@@ -20,44 +20,36 @@ from tqdm.auto import tqdm
 from pathlib import Path
 from accelerate import notebook_launcher, launchers
 from loguru import logger
+from peft import LoraConfig, PeftModel, get_peft_model
 
 from codes.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, config
 
 
 def unet2d_model():
-    # model = UNet2DModel(
-    #     sample_size=config.image_size,  # the target image resolution
-    #     in_channels=3,  # the number of input channels, 3 for RGB images
-    #     out_channels=3,  # the number of output channels
-    #     layers_per_block=2,  # how many ResNet layers to use per UNet block
-    #     block_out_channels=(128, 128, 256, 256, 512, 512),
-    #     # the number of output channels for each UNet block
-    #     down_block_types=(
-    #         "DownBlock2D",  # a regular ResNet downsampling block
-    #         "DownBlock2D",
-    #         "DownBlock2D",
-    #         "DownBlock2D",
-    #         "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
-    #         "DownBlock2D",
-    #     ),
-    #     up_block_types=(
-    #         "UpBlock2D",  # a regular ResNet upsampling block
-    #         "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
-    #         "UpBlock2D",
-    #         "UpBlock2D",
-    #         "UpBlock2D",
-    #         "UpBlock2D",
-    #     ),
-    # )
-
-    model = UNet2DModel.from_pretrained(
-        # "stabilityai/stable-diffusion-xl-base-1.0",
-        "runwayml/stable-diffusion-v1-5",
-        torch_dtype=torch.float16,
-        use_safetensors=True,
-        variant="fp16",
-        subfolder="unet",
+    model = UNet2DModel(
+        sample_size=config.image_size,  # the target image resolution
+        in_channels=3,  # the number of input channels, 3 for RGB images
+        out_channels=3,  # the number of output channels
+        layers_per_block=2,  # how many ResNet layers to use per UNet block
+        block_out_channels=(128, 128, 256, 256, 512, 512),
+        # the number of output channels for each UNet block
+        down_block_types=(
+            "DownBlock2D",  # a regular ResNet downsampling block
+            "DownBlock2D",
+            "DownBlock2D",
+            "DownBlock2D",
+            "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
+            "DownBlock2D",
+        ),
+        up_block_types=(
+            "UpBlock2D",  # a regular ResNet upsampling block
+            "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
+            "UpBlock2D",
+            "UpBlock2D",
+            "UpBlock2D",
+            "UpBlock2D",
+        ),
     )
 
     return model
@@ -162,16 +154,16 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            # pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
             # Load Lora weight
-            unet = accelerator.unwrap_model(model)
-            pipeline = DiffusionPipeline.from_pretrained(
-                "runwayml/stable-diffusion-v1-5",
-                variant="fp16",
-                torch_dtype=torch.float16,
-                unet=unet
-            )
+            # unet = accelerator.unwrap_model(model)
+            # pipeline = DiffusionPipeline.from_pretrained(
+            #     "runwayml/stable-diffusion-v1-5",
+            #     variant="fp16",
+            #     torch_dtype=torch.float16,
+            #     unet=unet
+            # )
             # pipeline.load_lora_weights("ostris/ikea-instructions-lora-sdxl",
             #                            weight_name="ikea_instructions_xl_v1_5.safetensors",
             #                            adapter_name="ikea")
@@ -202,6 +194,13 @@ def main_train(data_dir):
     sample_image = dataset[0]["images"].unsqueeze(0)
     logger.info(f"Input shape: {sample_image.shape}")
     logger.info(f"Output shape: {model(sample_image, timestep=0).sample.shape}")
+
+    lora_config = LoraConfig(
+        target_modules=["q_proj", "k_proj"],
+        init_lora_weights=False
+    )
+    model = get_peft_model(model, config)
+    # model = PeftModel.from_pretrained(model)
 
     model.to(device)
 
