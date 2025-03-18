@@ -159,7 +159,6 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             unet = accelerator.unwrap_model(model)
             pipeline = DiffusionPipeline.from_pretrained(
                 "runwayml/stable-diffusion-v1-5",
-                accelerator.unwrap_model(model),
                 variant="fp16",
                 torch_dtype=torch.float16,
                 unet=unet
@@ -168,7 +167,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             #                            weight_name="ikea_instructions_xl_v1_5.safetensors",
             #                            adapter_name="ikea")
 
-            pipeline.load_lora_weights("sassad/face-lora")
+            # pipeline.load_lora_weights("sassad/face-lora")
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
