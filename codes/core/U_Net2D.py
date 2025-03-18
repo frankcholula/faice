@@ -167,14 +167,6 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                     pipeline.save_pretrained(config.output_dir)
 
 
-def freeze_layers(model, freeze_until_layer):
-    for name, param in model.named_parameters():
-        if int(name.split('.')[1]) < freeze_until_layer:
-            param.requires_grad = False
-        else:
-            param.requires_grad = True
-
-
 def main_train(data_dir):
     # 1. Make train dataset
     dataset = get_data(data_dir)
@@ -189,9 +181,6 @@ def main_train(data_dir):
     sample_image = dataset[0]["images"].unsqueeze(0)
     logger.info(f"Input shape: {sample_image.shape}")
     logger.info(f"Output shape: {model(sample_image, timestep=0).sample.shape}")
-
-    # Freeze some layers
-    freeze_layers(model, freeze_until_layer=3)
 
     # Define LoRA setting
     lora_config = LoraConfig(
