@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 @dataclass
 class TrainingConfig:
     image_size = 128  # the generated image resolution
-    train_batch_size = 24
+    train_batch_size = 16
     eval_batch_size = 16  # how many images to sample during evaluation
     num_epochs = 50
     gradient_accumulation_steps = 1

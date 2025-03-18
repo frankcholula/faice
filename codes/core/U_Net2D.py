@@ -162,6 +162,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
             pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            # pipeline.load_lora_weights("sassad/face-lora")
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
