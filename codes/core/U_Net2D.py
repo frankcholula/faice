@@ -166,13 +166,13 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             # pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
             # Load Lora weight
-            # unet = accelerator.unwrap_model(model)
+            unet = accelerator.unwrap_model(model)
             pipeline = DiffusionPipeline.from_pretrained(
-                # "runwayml/stable-diffusion-v1-5",
+                "runwayml/stable-diffusion-v1-5",
                 accelerator.unwrap_model(model),
                 variant="fp16",
                 torch_dtype=torch.float16,
-                # unet=unet
+                unet=unet
             )
             # pipeline.load_lora_weights("ostris/ikea-instructions-lora-sdxl",
             #                            weight_name="ikea_instructions_xl_v1_5.safetensors",
