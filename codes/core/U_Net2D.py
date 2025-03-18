@@ -56,26 +56,21 @@ def unet2d_model():
         out_channels=3,
         layers_per_block=2,
         block_out_channels=(64, 128, 256, 512),
-        down_block_types=("DownBlock2D", "DownBlock2D", "DownBlock2D", "AttnDownBlock2D"),
-        up_block_types=("AttnUpBlock2D", "UpBlock2D", "UpBlock2D", "UpBlock2D")
+        down_block_types=(
+        "DownBlock2D", "DownBlock2D", "DownBlock2D", "DownBlock2D", "AttnDownBlock2D", "DownBlock2D"),
+        up_block_types=("UpBlock2D", "AttnUpBlock2D", "UpBlock2D", "UpBlock2D", "UpBlock2D", "UpBlock2D")
     )
 
     # Define LoRA setting
-    # lora_config = LoraConfig(
-    #     r=8,  # rank
-    #     lora_alpha=32,
-    #     # target_modules=["conv1", "conv1"],
-    #     target_modules=["down_blocks.0.resnets.0.conv1", "down_blocks.0.resnets.0.conv2"],
-    #     lora_dropout=0.1,
-    #     bias="none",
-    #     task_type="FEATURE_EXTRACTION"
-    # )
     lora_config = LoraConfig(
-        task_type="FEATURE_EXTRACTION",  # Specify the task type for UNet-based models.
-        inference_mode=False,
-        r=8,  # Low-rank dimension.
-        lora_alpha=32,  # Scaling factor.
-        target_modules=["conv_in", "conv_out", "time_embedding"]  # Example target modules.
+        r=8,  # rank
+        lora_alpha=32,
+        # target_modules=["conv1", "conv1"],
+        target_modules=["down_blocks.0.resnets.0.conv1", "down_blocks.0.resnets.0.conv2"],
+        lora_dropout=0.1,
+        bias="none",
+        task_type="FEATURE_EXTRACTION",
+        inference_mode=False
     )
 
     # Apply LoRA
