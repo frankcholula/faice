@@ -20,7 +20,6 @@ from tqdm.auto import tqdm
 from pathlib import Path
 from accelerate import notebook_launcher, launchers
 from loguru import logger
-from peft import LoraConfig, PeftModel, get_peft_model
 
 from codes.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, config
@@ -52,8 +51,15 @@ def unet2d_model():
         ),
     )
 
-    # Load state dict from sassad/face-lora
-    model.load_state_dict(torch.load("sassad/face-lora"))
+    model = UNet2DModel.from_pretrained(
+        # "stabilityai/stable-diffusion-xl-base-1.0",
+        # "runwayml/stable-diffusion-v1-5",
+        model,
+        torch_dtype=torch.float16,
+        use_safetensors=True,
+        variant="fp16",
+        subfolder="unet",
+    )
 
     return model
 
@@ -157,7 +163,22 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            # pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+
+            # Load Lora weight
+            # unet = accelerator.unwrap_model(model)
+            pipeline = DiffusionPipeline.from_pretrained(
+                # "runwayml/stable-diffusion-v1-5",
+                accelerator.unwrap_model(model),
+                variant="fp16",
+                torch_dtype=torch.float16,
+                # unet=unet
+            )
+            # pipeline.load_lora_weights("ostris/ikea-instructions-lora-sdxl",
+            #                            weight_name="ikea_instructions_xl_v1_5.safetensors",
+            #                            adapter_name="ikea")
+
+            pipeline.load_lora_weights("sassad/face-lora")
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
