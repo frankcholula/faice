@@ -52,6 +52,9 @@ def unet2d_model():
         ),
     )
 
+    # Load state dict from sassad/face-lora
+    model.load_state_dict(torch.load("sassad/face-lora"))
+
     return model
 
 
@@ -156,20 +159,6 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         if accelerator.is_main_process:
             pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
-            # Load Lora weight
-            # unet = accelerator.unwrap_model(model)
-            # pipeline = DiffusionPipeline.from_pretrained(
-            #     "runwayml/stable-diffusion-v1-5",
-            #     variant="fp16",
-            #     torch_dtype=torch.float16,
-            #     unet=unet
-            # )
-            # pipeline.load_lora_weights("ostris/ikea-instructions-lora-sdxl",
-            #                            weight_name="ikea_instructions_xl_v1_5.safetensors",
-            #                            adapter_name="ikea")
-
-            pipeline.load_lora_weights("sassad/face-lora")
-
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
 
@@ -194,13 +183,6 @@ def main_train(data_dir):
     sample_image = dataset[0]["images"].unsqueeze(0)
     logger.info(f"Input shape: {sample_image.shape}")
     logger.info(f"Output shape: {model(sample_image, timestep=0).sample.shape}")
-
-    lora_config = LoraConfig(
-        target_modules=["q_proj", "k_proj"],
-        init_lora_weights=False
-    )
-    model = get_peft_model(model, config)
-    # model = PeftModel.from_pretrained(model)
 
     model.to(device)
 
