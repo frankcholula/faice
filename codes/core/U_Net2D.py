@@ -186,10 +186,11 @@ def main_train(data_dir):
     lora_config = LoraConfig(
         r=8,  # rank
         lora_alpha=32,
-        target_modules=["conv1", "conv1"],
+        # target_modules=["conv1", "conv1"],
+        target_modules=["down_blocks.0.resnets.0.conv1", "down_blocks.0.resnets.0.conv2"],
         lora_dropout=0.1,
         bias="none",
-        task_type="OTHER"
+        task_type="FEATURE_EXTRACTION"
     )
 
     # Apply LoRA
