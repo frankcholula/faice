@@ -56,6 +56,9 @@ def unet2d_model():
         "google/ddpm-celebahq-256",  # Base model
     )
 
+    # Load the LoRA weights
+    model.load_lora_weights("sassad/face-lora")
+
     return model
 
 
@@ -159,12 +162,8 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
 
-            # pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
-            pipeline = DiffusionPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
-
-            # Load the LoRA weights
-            pipeline.load_lora_weights("sassad/face-lora")
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
