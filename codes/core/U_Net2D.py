@@ -160,7 +160,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 target_modules=["proj_in", "proj_out"],
                 lora_dropout=0.1,
                 bias="none",
-                task_type="FEAT_PROJ"
+                task_type="FEATURE_EXTRACTION."
             )
 
             # Apply LoRA
