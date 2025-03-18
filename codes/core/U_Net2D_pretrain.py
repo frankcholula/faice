@@ -25,6 +25,26 @@ from codes.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, config
 
 
+def freeze_layers(model, freeze_until_layer):
+    """
+    Freeze layers until the specified layer index.
+    """
+    for name, param in model.named_parameters():
+        # Split the parameter name by '.'
+        parts = name.split('.')
+
+        # Check if the second part is a digit (e.g., '0', '1')
+        if len(parts) > 1 and parts[1].isdigit():
+            layer_index = int(parts[1])
+            if layer_index < freeze_until_layer:
+                param.requires_grad = False
+            else:
+                param.requires_grad = True
+        else:
+            # Skip parameters that do not match the expected format
+            continue
+
+
 def unet2d_model():
     model = UNet2DModel(
         sample_size=config.image_size,  # the target image resolution
@@ -50,6 +70,17 @@ def unet2d_model():
             "UpBlock2D",
         ),
     )
+
+    # Initialize model with LoRA weights
+    model = model.from_pretrained(
+        "google/ddpm-celebahq-256",  # Base model
+    )
+
+    # Freeze some layers
+    freeze_layers(model, freeze_until_layer=3)
+
+    # Load the LoRA weights
+    # model.load_lora_weights("sassad/face-lora")
 
     return model
 
@@ -191,6 +222,12 @@ def main_train(data_dir):
         num_warmup_steps=config.lr_warmup_steps,
         num_training_steps=(len(train_dataloader) * config.num_epochs),
     )
+
+    # Initialize scheduler
+    # noise_scheduler = DDPMScheduler.from_pretrained(
+    #     "google/ddpm-celebahq-256",
+    #     # subfolder="scheduler"
+    # )
 
     noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
     args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
