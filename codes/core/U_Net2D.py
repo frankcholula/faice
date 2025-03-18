@@ -54,7 +54,6 @@ def unet2d_model():
     # Initialize model with LoRA weights
     model = UNet2DModel.from_pretrained(
         "google/ddpm-celebahq-256",  # Base model
-        subfolder="unet"
     )
     model.load_attn_procs("sassad/face-lora")  # Load LoRA weights
 
