@@ -153,18 +153,6 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            # Define LoRA setting
-            lora_config = LoraConfig(
-                r=8,  # rank
-                lora_alpha=32,
-                target_modules=["proj_in", "proj_out"],
-                lora_dropout=0.1,
-                bias="none",
-                task_type="FEATURE_EXTRACTION."
-            )
-
-            # Apply LoRA
-            model = get_peft_model(model, lora_config)
 
             pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
@@ -177,6 +165,14 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
                     pipeline.save_pretrained(config.output_dir)
+
+
+def freeze_layers(model, freeze_until_layer):
+    for name, param in model.named_parameters():
+        if int(name.split('.')[1]) < freeze_until_layer:
+            param.requires_grad = False
+        else:
+            param.requires_grad = True
 
 
 def main_train(data_dir):
@@ -193,6 +189,22 @@ def main_train(data_dir):
     sample_image = dataset[0]["images"].unsqueeze(0)
     logger.info(f"Input shape: {sample_image.shape}")
     logger.info(f"Output shape: {model(sample_image, timestep=0).sample.shape}")
+
+    # Freeze some layers
+    freeze_layers(model, freeze_until_layer=3)
+
+    # Define LoRA setting
+    lora_config = LoraConfig(
+        r=8,  # rank
+        lora_alpha=32,
+        target_modules=["proj_in", "proj_out"],
+        lora_dropout=0.1,
+        bias="none",
+        task_type="FEAT_PROJ"
+    )
+
+    # Apply LoRA
+    model = get_peft_model(model, lora_config)
 
     model.to(device)
 
