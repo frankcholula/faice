@@ -9,10 +9,9 @@ import os
 
 import torch
 from PIL import Image
-from diffusers import UNet2DModel
+from diffusers import UNet2DModel, DDIMPipeline
 import torch.nn.functional as F
 from diffusers.optimization import get_cosine_schedule_with_warmup
-from diffusers import DDPMPipeline, DiffusionPipeline, UNet2DConditionModel
 from diffusers import DDPMScheduler, CosineDPMSolverMultistepScheduler
 from accelerate import Accelerator
 from huggingface_hub import HfFolder, Repository, whoami
@@ -154,19 +153,10 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             # pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
-            # Load Lora weight
-            unet = accelerator.unwrap_model(model)
-            pipeline = DiffusionPipeline.from_pretrained(
-                "runwayml/stable-diffusion-v1-5",
-                variant="fp16",
-                torch_dtype=torch.float16,
-                unet=unet,
-                scheduler=noise_scheduler
-            )
-            # pipeline.load_lora_weights("ostris/ikea-instructions-lora-sdxl",
-            #                            weight_name="ikea_instructions_xl_v1_5.safetensors",
-            #                            adapter_name="ikea")
+            # load model and scheduler
+            pipeline = pipeline.from_pretrained("fusing/ddim-celeba-hq")
 
             # pipeline.load_lora_weights("sassad/face-lora")
 
