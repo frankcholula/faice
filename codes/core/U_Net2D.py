@@ -186,7 +186,7 @@ def main_train(data_dir):
     lora_config = LoraConfig(
         r=8,  # rank
         lora_alpha=32,
-        target_modules=["attn"],
+        target_modules=["conv1", "conv2"],
         lora_dropout=0.1,
         bias="none",
         task_type="FEATURE_EXTRACTION"
