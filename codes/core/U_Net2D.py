@@ -19,41 +19,37 @@ from tqdm.auto import tqdm
 from pathlib import Path
 from accelerate import notebook_launcher, launchers
 from loguru import logger
+from peft import LoraConfig, get_peft_model
 
 from codes.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, config
 
-pretrained = True
-
 
 def unet2d_model():
-    if pretrained:
-        model = UNet2DModel.from_pretrained("fusing/ddim-celeba-hq")
-    else:
-        model = UNet2DModel(
-            sample_size=config.image_size,  # the target image resolution
-            in_channels=3,  # the number of input channels, 3 for RGB images
-            out_channels=3,  # the number of output channels
-            layers_per_block=2,  # how many ResNet layers to use per UNet block
-            block_out_channels=(128, 128, 256, 256, 512, 512),
-            # the number of output channels for each UNet block
-            down_block_types=(
-                "DownBlock2D",  # a regular ResNet downsampling block
-                "DownBlock2D",
-                "DownBlock2D",
-                "DownBlock2D",
-                "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
-                "DownBlock2D",
-            ),
-            up_block_types=(
-                "UpBlock2D",  # a regular ResNet upsampling block
-                "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
-                "UpBlock2D",
-                "UpBlock2D",
-                "UpBlock2D",
-                "UpBlock2D",
-            ),
-        )
+    model = UNet2DModel(
+        sample_size=config.image_size,  # the target image resolution
+        in_channels=3,  # the number of input channels, 3 for RGB images
+        out_channels=3,  # the number of output channels
+        layers_per_block=2,  # how many ResNet layers to use per UNet block
+        block_out_channels=(128, 128, 256, 256, 512, 512),
+        # the number of output channels for each UNet block
+        down_block_types=(
+            "DownBlock2D",  # a regular ResNet downsampling block
+            "DownBlock2D",
+            "DownBlock2D",
+            "DownBlock2D",
+            "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
+            "DownBlock2D",
+        ),
+        up_block_types=(
+            "UpBlock2D",  # a regular ResNet upsampling block
+            "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
+            "UpBlock2D",
+            "UpBlock2D",
+            "UpBlock2D",
+            "UpBlock2D",
+        ),
+    )
 
     return model
 
@@ -157,6 +153,19 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
+            # Define LoRA setting
+            lora_config = LoraConfig(
+                r=8,  # rank
+                lora_alpha=32,
+                target_modules=["proj_in", "proj_out"],
+                lora_dropout=0.1,
+                bias="none",
+                task_type="FEAT_PROJ"
+            )
+
+            # Apply LoRA
+            model = get_peft_model(model, lora_config)
+
             pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
