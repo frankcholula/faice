@@ -25,6 +25,14 @@ from codes.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, config
 
 
+def freeze_layers(model, freeze_until_layer):
+    for name, param in model.named_parameters():
+        if int(name.split('.')[1]) < freeze_until_layer:
+            param.requires_grad = False
+        else:
+            param.requires_grad = True
+
+
 def unet2d_model():
     model = UNet2DModel(
         sample_size=config.image_size,  # the target image resolution
@@ -56,8 +64,11 @@ def unet2d_model():
         "google/ddpm-celebahq-256",  # Base model
     )
 
+    # Freeze some layers
+    freeze_layers(model, freeze_until_layer=3)
+
     # Load the LoRA weights
-    model.load_lora_weights("sassad/face-lora")
+    # model.load_lora_weights("sassad/face-lora")
 
     return model
 
