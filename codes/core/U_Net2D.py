@@ -51,16 +51,6 @@ def unet2d_model():
         ),
     )
 
-    model = UNet2DModel.from_pretrained(
-        # "stabilityai/stable-diffusion-xl-base-1.0",
-        # "runwayml/stable-diffusion-v1-5",
-        model,
-        torch_dtype=torch.float16,
-        use_safetensors=True,
-        variant="fp16",
-        subfolder="unet",
-    )
-
     return model
 
 
