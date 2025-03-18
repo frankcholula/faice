@@ -9,7 +9,7 @@ import os
 
 import torch
 from PIL import Image
-from diffusers import UNet2DModel, DDPMPipeline, DDIMPipeline
+from diffusers import UNet2DModel, UNet2DConditionModel, DDPMPipeline, DDIMPipeline
 import torch.nn.functional as F
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from diffusers import DDPMScheduler, CosineDPMSolverMultistepScheduler
@@ -26,30 +26,60 @@ from codes.conf.global_setting import BASE_DIR, config
 
 
 def unet2d_model():
-    model = UNet2DModel(
-        sample_size=config.image_size,  # the target image resolution
-        in_channels=3,  # the number of input channels, 3 for RGB images
-        out_channels=3,  # the number of output channels
-        layers_per_block=2,  # how many ResNet layers to use per UNet block
-        block_out_channels=(128, 128, 256, 256, 512, 512),
-        # the number of output channels for each UNet block
-        down_block_types=(
-            "DownBlock2D",  # a regular ResNet downsampling block
-            "DownBlock2D",
-            "DownBlock2D",
-            "DownBlock2D",
-            "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
-            "DownBlock2D",
-        ),
-        up_block_types=(
-            "UpBlock2D",  # a regular ResNet upsampling block
-            "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
-            "UpBlock2D",
-            "UpBlock2D",
-            "UpBlock2D",
-            "UpBlock2D",
-        ),
+    # model = UNet2DModel(
+    #     sample_size=config.image_size,  # the target image resolution
+    #     in_channels=3,  # the number of input channels, 3 for RGB images
+    #     out_channels=3,  # the number of output channels
+    #     layers_per_block=2,  # how many ResNet layers to use per UNet block
+    #     block_out_channels=(128, 128, 256, 256, 512, 512),
+    #     # the number of output channels for each UNet block
+    #     down_block_types=(
+    #         "DownBlock2D",  # a regular ResNet downsampling block
+    #         "DownBlock2D",
+    #         "DownBlock2D",
+    #         "DownBlock2D",
+    #         "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
+    #         "DownBlock2D",
+    #     ),
+    #     up_block_types=(
+    #         "UpBlock2D",  # a regular ResNet upsampling block
+    #         "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
+    #         "UpBlock2D",
+    #         "UpBlock2D",
+    #         "UpBlock2D",
+    #         "UpBlock2D",
+    #     ),
+    # )
+    model = UNet2DConditionModel(
+        sample_size=config.image_size,
+        in_channels=3,
+        out_channels=3,
+        layers_per_block=2,
+        block_out_channels=(64, 128, 256, 512),
+        down_block_types=("DownBlock2D", "DownBlock2D", "DownBlock2D", "AttnDownBlock2D", "DownBlock2D",),
+        up_block_types=("UpBlock2D", "AttnUpBlock2D", "UpBlock2D", "UpBlock2D", "UpBlock2D")
     )
+
+    # Define LoRA setting
+    # lora_config = LoraConfig(
+    #     r=8,  # rank
+    #     lora_alpha=32,
+    #     # target_modules=["conv1", "conv1"],
+    #     target_modules=["down_blocks.0.resnets.0.conv1", "down_blocks.0.resnets.0.conv2"],
+    #     lora_dropout=0.1,
+    #     bias="none",
+    #     task_type="FEATURE_EXTRACTION"
+    # )
+    lora_config = LoraConfig(
+        task_type="UNet",  # Specify the task type for UNet-based models.
+        inference_mode=False,
+        r=8,  # Low-rank dimension.
+        lora_alpha=32,  # Scaling factor.
+        target_modules=["conv_in", "conv_out", "time_embedding"]  # Example target modules.
+    )
+
+    # Apply LoRA
+    model = get_peft_model(model, lora_config)
 
     return model
 
@@ -154,20 +184,6 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
 
-            # Define LoRA setting
-            lora_config = LoraConfig(
-                r=8,  # rank
-                lora_alpha=32,
-                # target_modules=["conv1", "conv1"],
-                target_modules=["down_blocks.0.resnets.0.conv1", "down_blocks.0.resnets.0.conv2"],
-                lora_dropout=0.1,
-                bias="none",
-                task_type="FEATURE_EXTRACTION"
-            )
-
-            # Apply LoRA
-            model = get_peft_model(model, lora_config)
-
             pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
@@ -207,7 +223,6 @@ def main_train(data_dir):
     )
 
     noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
-    # noise_scheduler = CosineDPMSolverMultistepScheduler(num_train_timesteps=1000)
     args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
 
     notebook_launcher(train_loop, args, num_processes=1)
