@@ -19,7 +19,7 @@ from tqdm.auto import tqdm
 from pathlib import Path
 from accelerate import notebook_launcher, launchers
 from loguru import logger
-from peft import LoraConfig, get_peft_model
+from peft import LoraConfig, get_peft_model, PeftModel
 
 from codes.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, config
@@ -51,20 +51,9 @@ def unet2d_model():
         ),
     )
 
-    # Define LoRA setting
-    lora_config = LoraConfig(
-        r=8,  # rank
-        lora_alpha=32,
-        # target_modules=["conv1", "conv1"],
-        target_modules=["down_blocks.0.resnets.0.conv1", "down_blocks.0.resnets.0.conv2"],
-        lora_dropout=0.1,
-        bias="none",
-        task_type="FEATURE_EXTRACTION",
-        inference_mode=False
-    )
-
-    # Apply LoRA
-    model = get_peft_model(model, lora_config)
+    # Load LoRA weights from the pretrained repository "sassad/face-lora".
+    logger.info("LoRA weights loaded into UNet2DModel.")
+    model = PeftModel.from_pretrained(model, "sassad/face-lora")
 
     return model
 
@@ -151,8 +140,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                # noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
-                noise_pred = model(noisy_images, timesteps, return_dict=False)
+                noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
@@ -194,9 +182,9 @@ def main_train(data_dir):
     #     device = torch.device("mps")
     model = unet2d_model()
     # Check the shape of input and output
-    # sample_image = dataset[0]["images"].unsqueeze(0)
-    # logger.info(f"Input shape: {sample_image.shape}")
-    # logger.info(f"Output shape: {model(sample_image, timestep=0).sample.shape}")
+    sample_image = dataset[0]["images"].unsqueeze(0)
+    logger.info(f"Input shape: {sample_image.shape}")
+    logger.info(f"Output shape: {model(sample_image, timestep=0).sample.shape}")
 
     model.to(device)
 
