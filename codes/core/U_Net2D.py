@@ -55,7 +55,6 @@ def unet2d_model():
     model = model.from_pretrained(
         "google/ddpm-celebahq-256",  # Base model
     )
-    # model.load_attn_procs("sassad/face-lora")  # Load LoRA weights
 
     return model
 
@@ -162,7 +161,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
             pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
-            # pipeline.load_lora_weights("sassad/face-lora")
+
+            # Load the LoRA weights
+            pipeline.load_lora_weights("sassad/face-lora")
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
