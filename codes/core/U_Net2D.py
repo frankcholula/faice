@@ -154,19 +154,6 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
 
-            # Define LoRA setting
-            lora_config = LoraConfig(
-                r=8,  # rank
-                lora_alpha=32,
-                target_modules=["proj_in", "proj_out"],
-                lora_dropout=0.1,
-                bias="none",
-                task_type="FEATURE_EXTRACTION"
-            )
-
-            # Apply LoRA
-            model = get_peft_model(model, lora_config)
-
             pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
@@ -194,6 +181,19 @@ def main_train(data_dir):
     sample_image = dataset[0]["images"].unsqueeze(0)
     logger.info(f"Input shape: {sample_image.shape}")
     logger.info(f"Output shape: {model(sample_image, timestep=0).sample.shape}")
+
+    # Define LoRA setting
+    lora_config = LoraConfig(
+        r=8,  # rank
+        lora_alpha=32,
+        target_modules=["mid_block.attn_1.proj_in", "mid_block.attn_1.proj_out"],
+        lora_dropout=0.1,
+        bias="none",
+        task_type="FEATURE_EXTRACTION"
+    )
+
+    # Apply LoRA
+    model = get_peft_model(model, lora_config)
 
     model.to(device)
 
