@@ -26,34 +26,37 @@ from codes.conf.global_setting import BASE_DIR, config
 
 
 def unet2d_model():
-    model = UNet2DModel(
-        sample_size=config.image_size,  # the target image resolution
-        in_channels=3,  # the number of input channels, 3 for RGB images
-        out_channels=3,  # the number of output channels
-        layers_per_block=2,  # how many ResNet layers to use per UNet block
-        block_out_channels=(128, 128, 256, 256, 512, 512),
-        # the number of output channels for each UNet block
-        down_block_types=(
-            "DownBlock2D",  # a regular ResNet downsampling block
-            "DownBlock2D",
-            "DownBlock2D",
-            "DownBlock2D",
-            "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
-            "DownBlock2D",
-        ),
-        up_block_types=(
-            "UpBlock2D",  # a regular ResNet upsampling block
-            "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
-            "UpBlock2D",
-            "UpBlock2D",
-            "UpBlock2D",
-            "UpBlock2D",
-        ),
-    )
+    # model = UNet2DModel(
+    #     sample_size=config.image_size,  # the target image resolution
+    #     in_channels=3,  # the number of input channels, 3 for RGB images
+    #     out_channels=3,  # the number of output channels
+    #     layers_per_block=2,  # how many ResNet layers to use per UNet block
+    #     block_out_channels=(128, 128, 256, 256, 512, 512),
+    #     # the number of output channels for each UNet block
+    #     down_block_types=(
+    #         "DownBlock2D",  # a regular ResNet downsampling block
+    #         "DownBlock2D",
+    #         "DownBlock2D",
+    #         "DownBlock2D",
+    #         "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
+    #         "DownBlock2D",
+    #     ),
+    #     up_block_types=(
+    #         "UpBlock2D",  # a regular ResNet upsampling block
+    #         "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
+    #         "UpBlock2D",
+    #         "UpBlock2D",
+    #         "UpBlock2D",
+    #         "UpBlock2D",
+    #     ),
+    # )
 
-    # Load LoRA weights from the pretrained repository "sassad/face-lora".
-    logger.info("LoRA weights loaded into UNet2DModel.")
-    model = PeftModel.from_pretrained(model, "sassad/face-lora")
+    # Initialize model with LoRA weights
+    model = UNet2DModel.from_pretrained(
+        "google/ddpm-celebahq-256",  # Base model
+        subfolder="unet"
+    )
+    model.load_attn_procs("sassad/face-lora")  # Load LoRA weights
 
     return model
 
@@ -196,7 +199,13 @@ def main_train(data_dir):
         num_training_steps=(len(train_dataloader) * config.num_epochs),
     )
 
-    noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
+    # Initialize scheduler
+    noise_scheduler = DDPMScheduler.from_pretrained(
+        "google/ddpm-celebahq-256",
+        subfolder="scheduler"
+    )
+
+    # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
     args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
 
     notebook_launcher(train_loop, args, num_processes=1)
