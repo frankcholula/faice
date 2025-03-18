@@ -55,7 +55,7 @@ def unet2d_model():
     model = UNet2DModel.from_pretrained(
         "google/ddpm-celebahq-256",  # Base model
     )
-    model.load_attn_procs("sassad/face-lora")  # Load LoRA weights
+    # model.load_attn_procs("sassad/face-lora")  # Load LoRA weights
 
     return model
 
@@ -201,7 +201,7 @@ def main_train(data_dir):
     # Initialize scheduler
     noise_scheduler = DDPMScheduler.from_pretrained(
         "google/ddpm-celebahq-256",
-        subfolder="scheduler"
+        # subfolder="scheduler"
     )
 
     # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
