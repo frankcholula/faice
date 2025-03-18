@@ -71,7 +71,7 @@ def unet2d_model():
     #     task_type="FEATURE_EXTRACTION"
     # )
     lora_config = LoraConfig(
-        task_type="UNet",  # Specify the task type for UNet-based models.
+        task_type="FEATURE_EXTRACTION",  # Specify the task type for UNet-based models.
         inference_mode=False,
         r=8,  # Low-rank dimension.
         lora_alpha=32,  # Scaling factor.
