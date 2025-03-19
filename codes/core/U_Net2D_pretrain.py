@@ -71,16 +71,13 @@ def unet2d_model():
         ),
     )
 
-    # Initialize model with LoRA weights
+    # Initialize pretrained model
     model = model.from_pretrained(
         "google/ddpm-celebahq-256",  # Base model
     )
 
     # Freeze some layers
     freeze_layers(model, freeze_until_layer=3)
-
-    # Load the LoRA weights
-    # model.load_lora_weights("sassad/face-lora")
 
     return model
 
