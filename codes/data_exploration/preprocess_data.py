@@ -24,8 +24,8 @@ def transform(examples):
             transforms.Resize((config.image_size, config.image_size)),
             # transforms.CenterCrop((config.image_size, config.image_size)),
             transforms.RandomHorizontalFlip(),
-            transforms.GaussianBlur(kernel_size=3),
-            # transforms.RandomAdjustSharpness(sharpness_factor=0.5),
+            # transforms.GaussianBlur(kernel_size=3),
+            transforms.RandomAdjustSharpness(sharpness_factor=0.5),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),
         ]
