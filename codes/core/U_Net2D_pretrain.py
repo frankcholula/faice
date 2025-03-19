@@ -22,7 +22,8 @@ from loguru import logger
 from peft import LoraConfig, get_peft_model, PeftModel
 
 from codes.data_exploration.preprocess_data import get_data
-from codes.conf.global_setting import BASE_DIR, config
+from codes.conf.global_setting import BASE_DIR
+from codes.conf.model_config import config
 
 
 def freeze_layers(model, freeze_until_layer):

@@ -16,7 +16,8 @@ from torchvision.transforms import functional as F
 from torchmetrics.image.fid import FrechetInceptionDistance
 from loguru import logger
 
-from codes.conf.global_setting import BASE_DIR, config
+from codes.conf.global_setting import BASE_DIR
+from codes.conf.model_config import config
 
 
 def preprocess_image(image):
