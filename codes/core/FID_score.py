@@ -74,7 +74,9 @@ def calculate_fid(dataset_path, model_ckpt, scheduler_path):
     fid.update(real_images, real=True)
     fid.update(fake_images, real=False)
 
-    print(f"FID: {float(fid.compute())}")
+    fid_score = round(float(fid.compute()), 3)
+
+    print(f"FID: {fid_score}")
 
 
 if __name__ == '__main__':
