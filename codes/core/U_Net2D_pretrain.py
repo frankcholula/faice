@@ -221,12 +221,12 @@ def main_train(data_dir):
     )
 
     # Initialize scheduler
-    # noise_scheduler = DDPMScheduler.from_pretrained(
-    #     "google/ddpm-celebahq-256",
-    #     # subfolder="scheduler"
-    # )
+    noise_scheduler = DDPMScheduler.from_pretrained(
+        "google/ddpm-celebahq-256",
+        # subfolder="scheduler"
+    )
 
-    noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
+    # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
     args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
 
     notebook_launcher(train_loop, args, num_processes=1)
