@@ -63,7 +63,18 @@ def generate_images_from_model(model_ckpt, scheduler_path, device):
     return fake_images
 
 
-def calculate_fid(dataset_path, model_ckpt, scheduler_path):
+def calculate_fid(real_images, fake_images, device):
+    fid = FrechetInceptionDistance(normalize=True).to(device)
+    # fid = FrechetInceptionDistance(normalize=True)
+    fid.update(real_images, real=True)
+    fid.update(fake_images, real=False)
+
+    fid_score = round(float(fid.compute()), 3)
+
+    logger.info(f"FID score: {fid_score}")
+
+
+def test_calculate_fid(dataset_path, model_ckpt, scheduler_path):
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     # if torch.backends.mps.is_available():
     #     device = torch.device("mps")
@@ -71,22 +82,15 @@ def calculate_fid(dataset_path, model_ckpt, scheduler_path):
     real_images = make_fid_input_images(dataset_path)
     # real_images = real_images.to(device)
     fake_images = generate_images_from_model(model_ckpt, scheduler_path, device)
-    # fid = FrechetInceptionDistance(normalize=True).to(device)
-    fid = FrechetInceptionDistance(normalize=True)
-    fid.update(real_images, real=True)
-    fid.update(fake_images, real=False)
-
-    fid_score = round(float(fid.compute()), 3)
-
-    print(f"FID: {fid_score}")
+    calculate_fid(real_images, fake_images, device)
 
 
 if __name__ == '__main__':
     dataset_dir = BASE_DIR + '/data/celeba_hq_256'
-    # model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
-    # scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
+    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
+    scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
     # test_data = BASE_DIR + '/data/test'
-    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training_7_3/'
-    scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training_7_3/scheduler/'
+    # model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training_7_3/'
+    # scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training_7_3/scheduler/'
 
-    calculate_fid(dataset_dir, model_ckpt_dir, scheduler_dir)
+    test_calculate_fid(dataset_dir, model_ckpt_dir, scheduler_dir)

@@ -23,6 +23,7 @@ from loguru import logger
 from codes.core.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR
 from codes.conf.model_config import config
+from codes.core.FID_score import calculate_fid
 
 
 def freeze_layers(model, freeze_until_layer):
@@ -108,6 +109,7 @@ def evaluate(config, epoch, pipeline):
     test_dir = os.path.join(config.output_dir, "samples")
     os.makedirs(test_dir, exist_ok=True)
     image_grid.save(f"{test_dir}/{epoch:04d}.png")
+    return images
 
 
 def get_full_repo_name(model_id: str, organization: str = None, token: str = None):
@@ -150,8 +152,11 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
         progress_bar.set_description(f"Epoch {epoch}")
 
+        real_images = []
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
+            if epoch == config.num_epochs - 1:
+                real_images.append(clean_images)
             # Sample noise to add to the images
             noise = torch.randn(clean_images.shape).to(device)
             bs = clean_images.shape[0]
@@ -189,7 +194,15 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
-                evaluate(config, epoch, pipeline)
+                fake_images = evaluate(config, epoch, pipeline)
+
+                # Calculate FID
+                if epoch == config.num_epochs - 1:
+                    fake_images = torch.tensor(fake_images)
+                    fake_images = fake_images.permute(0, 3, 1, 2)
+
+                    real_images = torch.cat(real_images)
+                    calculate_fid(real_images, fake_images, device)
 
             if (epoch + 1) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
                 if config.push_to_hub:
