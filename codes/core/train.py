@@ -64,7 +64,6 @@ def generate_images_for_test(config, pipeline, num_images=300):
         images = pipeline(
             batch_size=batch_size,
             generator=torch.manual_seed(batch_seed),
-            torch_dtype=torch.float16,
             output_type="np"
         ).images
 
@@ -167,7 +166,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
                 # Calculate FID
                 if epoch == config.num_epochs - 1:
-                    fake_images = generate_images_for_test
+                    fake_images = generate_images_for_test(config, pipeline)
                     real_images = make_fid_input_images(config.test_dir)
 
                     calculate_fid(real_images, fake_images, device)
