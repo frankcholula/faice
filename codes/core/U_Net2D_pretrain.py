@@ -237,5 +237,5 @@ def main_train(data_dir):
 
 if __name__ == "__main__":
     data_path = BASE_DIR + "/data/celeba_hq_256/"
-    # main_train(data_path)
-    unet2d_model()
+    main_train(data_path)
+    # unet2d_model()
