@@ -26,7 +26,7 @@ class TrainingConfig:
     image_size = 128  # training at lower resolution
     train_batch_size = 16
     eval_batch_size = 16
-    num_epochs = 10 # reduce to 1 epoch just to get something working
+    num_epochs = 20 # reduce to 1 epoch just to get something working
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
     lr_warmup_steps = 500
