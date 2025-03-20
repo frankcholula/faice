@@ -1,8 +1,6 @@
 # Standard library imports
 from dataclasses import dataclass, field
 from typing import Optional
-
-# wandb integration
 from datetime import datetime
 
 
