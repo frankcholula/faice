@@ -15,7 +15,7 @@ from diffusers.optimization import get_cosine_schedule_with_warmup
 from diffusers import DDPMScheduler
 from accelerate import Accelerator
 from huggingface_hub import HfFolder, Repository, whoami
-from tqdm.auto import tqdm
+from tqdm.auto import tqdm, trange
 from pathlib import Path
 from accelerate import notebook_launcher
 from loguru import logger
@@ -59,7 +59,7 @@ def generate_images_for_test(config, pipeline, num_images=300):
 
     all_fake_images = []
 
-    for i in range(num_batches):
+    for i in trange(num_batches):
         batch_seed = config.seed + i  # Use a different seed for each batch to ensure diversity
         images = pipeline(
             batch_size=batch_size,
