@@ -29,6 +29,7 @@ def freeze_layers(model, freeze_until_layer):
     """
     Freeze layers until the specified layer index.
     """
+    layers = 0
     for name, param in model.named_parameters():
         # Split the parameter name by '.'
         parts = name.split('.')
@@ -36,6 +37,7 @@ def freeze_layers(model, freeze_until_layer):
         # Check if the second part is a digit (e.g., '0', '1')
         if len(parts) > 1 and parts[1].isdigit():
             layer_index = int(parts[1])
+            layers += 1
             if layer_index < freeze_until_layer:
                 param.requires_grad = False
             else:
@@ -43,6 +45,7 @@ def freeze_layers(model, freeze_until_layer):
         else:
             # Skip parameters that do not match the expected format
             continue
+    logger.info(f"The model has {layers} layers and freeze the front {freeze_until_layer} layers")
 
 
 def unet2d_model():
@@ -77,7 +80,7 @@ def unet2d_model():
     )
 
     # Freeze some layers
-    freeze_layers(model, freeze_until_layer=3)
+    freeze_layers(model, freeze_until_layer=409)
 
     return model
 
@@ -234,4 +237,5 @@ def main_train(data_dir):
 
 if __name__ == "__main__":
     data_path = BASE_DIR + "/data/celeba_hq_256/"
-    main_train(data_path)
+    # main_train(data_path)
+    unet2d_model()
