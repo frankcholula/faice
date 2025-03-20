@@ -7,7 +7,6 @@ from PIL import Image
 # Deep learning framework
 import torch
 from torchvision import transforms
-from tqdm.auto import tqdms
 
 # Hugging Face
 from datasets import load_dataset

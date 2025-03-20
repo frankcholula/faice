@@ -305,20 +305,3 @@ TSWLatexianTemp*
 # option is specified. Footnotes are the stored in a file with suffix Notes.bib.
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
-
-# MacOS Files
-.DS_Store
-*.zip
-
-# Datasets and outputs
-datasets/
-ddpm-butterflies-128/
-ddpm-celebahq-256/
-!ddpm-celebahq-256/samples/
-!ddpm-celebahq-256/samples/**
-!ddpm-butterflies-128/samples/
-!ddpm-butterflies-128/samples/**
-wandb/
-
-# Notebook
-.ipynb_checkpoints
