@@ -33,7 +33,7 @@ class TrainingConfig:
     # training params
     train_batch_size = 16
     eval_batch_size = 16  # how many images to sample during evaluation
-    num_epochs = 50
+    num_epochs: int = 20
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
     lr_warmup_steps = 500
@@ -41,8 +41,8 @@ class TrainingConfig:
     seed = 0
 
     # saving params
-    save_image_epochs = 10
-    save_model_epochs = 25
+    save_image_epochs = 5
+    save_model_epochs = 10
     output_dir: str = field(default=None)  # the model name locally and on the HF Hub
     overwrite_output_dir: bool = (
         True  # overwrite the old model when re-running the notebook
@@ -88,6 +88,9 @@ class FaceConfig(TrainingConfig):
     output_dir: str = "ddpm-celeba-hq-256"
     dataset_name: str = "korexyz/celeba-hq-256x256"
     wandb_project: str = "ddpm-celeba-hq-256"
+    num_epochs: int = 10
+    save_image_epochs: int = 1
+    save_model_epochs: int = 5
 
 
 def make_grid(images, rows, cols):
