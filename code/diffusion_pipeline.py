@@ -86,7 +86,7 @@ class ButterflyConfig(TrainingConfig):
 @dataclass
 class FaceConfig(TrainingConfig):
     output_dir: str = "ddpm-celebahq-256"
-    dataset_name: str = "korexyz/celebahq-256x256"
+    dataset_name: str = "korexyz/celeba-hq-256x256"
     wandb_project: str = "ddpm-celebahq-256"
     num_epochs: int = 10
     save_image_epochs: int = 1
