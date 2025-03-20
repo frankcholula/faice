@@ -86,7 +86,7 @@ if __name__ == '__main__':
     # model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
     # scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
     # test_data = BASE_DIR + '/data/test'
-    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training_7/'
-    scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training_7/scheduler/'
+    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training_7_1/'
+    scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training_7_1/scheduler/'
 
     calculate_fid(dataset_dir, model_ckpt_dir, scheduler_dir)
