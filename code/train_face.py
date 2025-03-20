@@ -22,7 +22,7 @@ from huggingface_hub import HfFolder, whoami, create_repo, upload_folder
 # Local configuration
 from diffusion_pipeline import FaceConfig
 
-config = FaceConfig
+config = FaceConfig()
 dataset = load_dataset(config.dataset_name, split="train")
 
 

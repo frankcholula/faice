@@ -26,7 +26,7 @@ import wandb
 from diffusion_pipeline import ButterflyConfig
 
 
-config = ButterflyConfig
+config = ButterflyConfig()
 dataset = load_dataset(config.dataset_name, split="train")
 
 
