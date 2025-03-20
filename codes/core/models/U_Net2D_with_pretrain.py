@@ -66,7 +66,7 @@ def unet2d_model():
     )
 
     # Freeze some layers
-    freeze_layers(model, freeze_until_layer=409)
+    freeze_layers(model, freeze_until_layer=205)
 
     return model
 

@@ -24,7 +24,7 @@ class TrainingConfig:
     save_model_epochs = 30
     mixed_precision = "fp16"  # `no` for float32, `fp16` for automatic mixed precision
     output_dir = BASE_DIR + "/output/celeba_hq_256_training"  # the model name locally and on the HF Hub
-    test_dir = BASE_DIR + "/output/celebahq256_3000/valid"
+    test_dir = BASE_DIR + "/data/celebahq256_3000/valid"
 
     push_to_hub = False  # whether to upload the saved model to the HF Hub
     hub_private_repo = False
