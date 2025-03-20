@@ -78,8 +78,8 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=30
 
 
 def calculate_fid(real_images, fake_images, device):
-    fid = FrechetInceptionDistance(normalize=True).to(device)
-    # fid = FrechetInceptionDistance(normalize=True)
+    # fid = FrechetInceptionDistance(normalize=True).to(device)
+    fid = FrechetInceptionDistance(normalize=True)
     fid.update(real_images, real=True)
     fid.update(fake_images, real=False)
 
