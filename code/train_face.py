@@ -20,29 +20,10 @@ from huggingface_hub import HfFolder, whoami, create_repo, upload_folder
 # Image handling
 from PIL import Image
 
+# Training configuration
+from diffusion_pipeline import FaceConfig
 
-@dataclass
-class TrainingConfig:
-    image_size = 128  # training at lower resolution
-    train_batch_size = 16
-    eval_batch_size = 16
-    num_epochs = 20 # reduce to 1 epoch just to get something working
-    gradient_accumulation_steps = 1
-    learning_rate = 1e-4
-    lr_warmup_steps = 500
-    save_image_epochs = 1
-    save_model_epochs = 5
-    mixed_precision = "fp16"
-    output_dir = "ddpm-celebahq-256"  # the model name locally and on the HF Hub
-
-    push_to_hub = True
-    hub_private_repo = False
-    overwrite_output_dir = True
-    seed = 0
-
-
-config = TrainingConfig()
-config.dataset_name = "korexyz/celeba-hq-256x256"
+config = FaceConfig
 dataset = load_dataset(config.dataset_name, split="train")
 
 
