@@ -1,6 +1,5 @@
 # Standard library imports
 import glob
-import os
 
 # Image handling
 from PIL import Image
