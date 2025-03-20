@@ -72,6 +72,8 @@ def generate_images_for_test(config, pipeline, num_images=300):
             k = i + j
             test_dir = os.path.join(config.output_dir, "test_samples")
             os.makedirs(test_dir, exist_ok=True)
+            # Save images
+            image = Image.fromarray(image)
             image.save(f"{test_dir}/{k:04d}.png")
 
         fake_images = torch.tensor(images)
