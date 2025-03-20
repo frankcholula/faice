@@ -65,6 +65,8 @@ def generate_images_from_model(model_ckpt, scheduler_path, device):
 
 def calculate_fid(dataset_path, model_ckpt, scheduler_path):
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    # if torch.backends.mps.is_available():
+    #     device = torch.device("mps")
     logger.info("Calculate FID score")
     real_images = make_fid_input_images(dataset_path)
     # real_images = real_images.to(device)
@@ -81,8 +83,10 @@ def calculate_fid(dataset_path, model_ckpt, scheduler_path):
 
 if __name__ == '__main__':
     dataset_dir = BASE_DIR + '/data/celeba_hq_256'
-    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
-    scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
-    test_data = BASE_DIR + '/data/test'
+    # model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
+    # scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
+    # test_data = BASE_DIR + '/data/test'
+    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training_5/'
+    scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training_5/scheduler/'
 
     calculate_fid(dataset_dir, model_ckpt_dir, scheduler_dir)
