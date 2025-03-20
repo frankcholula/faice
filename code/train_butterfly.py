@@ -9,7 +9,7 @@ import torch
 from torchvision import transforms
 from tqdm.auto import tqdms
 
-# Hugging Face ecosystem
+# Hugging Face
 from datasets import load_dataset
 from diffusers import UNet2DModel, DDPMScheduler
 from diffusers.optimization import get_cosine_schedule_with_warmup
