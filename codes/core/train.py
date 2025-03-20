@@ -67,12 +67,15 @@ def generate_images_for_test(config, pipeline, num_images=300):
             output_type="np"
         ).images
 
+        # Convert images from float32 to uint8
+        images_uint8 = (images * 255).astype(np.uint8)
+
         # Save images
-        for j, image in enumerate(images):
+        for j, image in enumerate(images_uint8):
             k = i + j
             test_dir = os.path.join(config.output_dir, "test_samples")
             os.makedirs(test_dir, exist_ok=True)
-            # Save images
+            # Save image
             image = Image.fromarray(image)
             image.save(f"{test_dir}/{k:04d}.png")
 
