@@ -64,6 +64,7 @@ def generate_images_for_test(config, pipeline, num_images=300):
         images = pipeline(
             batch_size=batch_size,
             generator=torch.manual_seed(batch_seed),
+            torch_dtype=torch.float16,
             output_type="np"
         ).images
 
