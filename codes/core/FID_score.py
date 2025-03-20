@@ -37,7 +37,7 @@ def make_fid_input_images(images_path):
     return real_images
 
 
-def generate_images_from_model(model_ckpt, scheduler_path, device):
+def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=300):
     # Load model
     logger.info(f"Loading model from {model_ckpt}")
 
@@ -52,14 +52,28 @@ def generate_images_from_model(model_ckpt, scheduler_path, device):
     ).to(device)
 
     logger.info("Generate fake images")
-    images = pipeline(
-        batch_size=config.eval_batch_size,
-        generator=torch.manual_seed(config.seed),
-        output_type="np"
-    ).images
 
-    fake_images = torch.tensor(images)
-    fake_images = fake_images.permute(0, 3, 1, 2)
+    batch_size = config.eval_batch_size
+    num_batches = (num_images + batch_size - 1) // batch_size  # Ceiling division
+
+    all_fake_images = []
+
+    for i in range(num_batches):
+        batch_seed = config.seed + i  # Use a different seed for each batch to ensure diversity
+        images = pipeline(
+            batch_size=batch_size,
+            generator=torch.manual_seed(batch_seed),
+            output_type="np"
+        ).images
+
+        fake_images = torch.tensor(images)
+        fake_images = fake_images.permute(0, 3, 1, 2)
+        all_fake_images.append(fake_images)
+
+    # Concatenate all batches into a single tensor
+    fake_images = torch.cat(all_fake_images)[:num_images]  # Ensure exactly 300 images
+
+    logger.info(f"Generated fake images shape: {fake_images.shape}")
     return fake_images
 
 
@@ -89,8 +103,7 @@ if __name__ == '__main__':
     dataset_dir = BASE_DIR + '/data/celeba_hq_256'
     model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
     scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
-    # test_data = BASE_DIR + '/data/test'
-    # model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training_7_3/'
-    # scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training_7_3/scheduler/'
 
-    test_calculate_fid(dataset_dir, model_ckpt_dir, scheduler_dir)
+    test_data = config.test_dir
+
+    test_calculate_fid(test_data, model_ckpt_dir, scheduler_dir)
