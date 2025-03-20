@@ -33,7 +33,7 @@ class TrainingConfig:
     save_image_epochs = 1
     save_model_epochs = 5
     mixed_precision = "fp16"
-    output_dir = "ddpm-celebhq-256"  # the model name locally and on the HF Hub
+    output_dir = "ddpm-celebahq-256"  # the model name locally and on the HF Hub
 
     push_to_hub = True
     hub_private_repo = False

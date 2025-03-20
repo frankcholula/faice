@@ -318,6 +318,7 @@ ddpm-celebhq-256/
 !ddpm-celebhq-256/samples/**
 !ddpm-butterflies-128/samples/
 !ddpm-butterflies-128/samples/**
+wandb/
 
 # Notebook
 .ipynb_checkpoints

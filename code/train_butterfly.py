@@ -20,6 +20,9 @@ from huggingface_hub import HfFolder, Repository, whoami
 # Image handling
 from PIL import Image
 
+# wandb integration
+import wandb
+from datetime import datetime
 
 @dataclass
 class TrainingConfig:
@@ -39,6 +42,12 @@ class TrainingConfig:
     hub_private_repo = False
     overwrite_output_dir = True  # overwrite the old model when re-running the notebook
     seed = 0
+
+    use_wandb = True # use wandb for logging
+    wandb_entity = "tsufanglu"
+    wandb_project = "ddpm-butterflies-128"
+    wandb_run_name = f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    wandb_watch_model = True
 
 
 config = TrainingConfig()
@@ -130,8 +139,14 @@ def evaluate(config, epoch, pipeline):
     # Save the images
     test_dir = os.path.join(config.output_dir, "samples")
     os.makedirs(test_dir, exist_ok=True)
-    image_grid.save(f"{test_dir}/{epoch:04d}.png")
+    image_grid_path = f"{test_dir}/{epoch:04d}.png"
+    image_grid.save(image_grid_path)
 
+    if config.use_wandb:
+        wandb.log({
+            "generated_images": wandb.Image(image_grid_path, caption=f"Epoch {epoch}"),
+            "epoch": epoch
+        })
 
 def get_full_repo_name(model_id: str, organization: str = None, token: str = None):
     if token is None:
@@ -153,6 +168,25 @@ def train_loop(
         log_with="tensorboard",
         project_dir=os.path.join(config.output_dir, "logs"),
     )
+    if config.use_wandb and accelerator.is_main_process:
+        wandb.init(
+            entity=config.wandb_entity,
+            project=config.wandb_project,
+            name=config.wandb_run_name,
+            config={
+                "learning_rate": config.learning_rate,
+                "epochs": config.num_epochs,
+                "train_batch_size": config.train_batch_size,
+                "image_size": config.image_size,
+                "seed": config.seed,
+                "dataset": config.dataset_name,
+                "model_architecture": "UNet2D",
+                "scheduler": "DDPM"
+            }        
+        )
+        if config.wandb_watch_model:
+            wandb.watch(model, log="all", log_freq=10)
+
     if accelerator.is_main_process:
         if config.push_to_hub:
             repo_name = get_full_repo_name(Path(config.output_dir).name)
@@ -214,6 +248,10 @@ def train_loop(
             }
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
+            
+            if config.use_wandb and accelerator.is_main_process:
+                wandb.log(logs, step=global_step)
+
             global_step += 1
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
@@ -234,7 +272,8 @@ def train_loop(
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
                     pipeline.save_pretrained(config.output_dir)
-
+    if config.use_wandb and accelerator.is_main_process:
+        wandb.finish()
 
 args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
 
