@@ -79,7 +79,7 @@ def generate_images_for_test(config, pipeline, num_images=300):
         all_fake_images.append(fake_images)
 
     # Concatenate all batches into a single tensor
-    fake_images = torch.cat(all_fake_images)[:num_images-1]  # Ensure exactly 300 images
+    fake_images = torch.cat(all_fake_images)[:num_images]  # Ensure exactly 300 images
     return fake_images
 
 
