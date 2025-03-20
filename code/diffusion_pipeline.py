@@ -1,28 +1,8 @@
 # Standard library imports
-import os
-import glob
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Optional, Tuple, List
-
-# Deep learning and related imports
-import torch
-import torch.nn.functional as F
-from torchvision import transforms
-from tqdm.auto import tqdm
-
-# Diffusers and Hugging Face imports
-from datasets import load_dataset
-from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
-from diffusers.optimization import get_cosine_schedule_with_warmup
-from accelerate import Accelerator, notebook_launcher
-from huggingface_hub import HfFolder, Repository, whoami
-
-# Image handling
-from PIL import Image
+from typing import Optional
 
 # wandb integration
-import wandb
 from datetime import datetime
 
 

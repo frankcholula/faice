@@ -1,26 +1,25 @@
 # Standard library imports
 import os
 import glob
-from dataclasses import dataclass
 from pathlib import Path
 
-# Deep learning and related imports
+# Image handling
+from PIL import Image
+
+# Deep learning framework
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
 from tqdm.auto import tqdm
 
-# Diffusers and Hugging Face imports
+# Hugging Face ecosystem
 from datasets import load_dataset
 from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from accelerate import Accelerator
 from huggingface_hub import HfFolder, whoami, create_repo, upload_folder
 
-# Image handling
-from PIL import Image
-
-# Training configuration
+# Local configuration
 from diffusion_pipeline import FaceConfig
 
 config = FaceConfig
@@ -216,8 +215,8 @@ def train_loop(
             ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
                 if config.push_to_hub:
                     upload_folder(
-                        folder_path = config.output_dir,
-                        repo_id = repo_name, 
+                        folder_path=config.output_dir,
+                        repo_id=repo_name,
                         commit_message=f"Epoch {epoch}",
                         ignore_patterns=["logs/*"],
                     )

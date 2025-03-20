@@ -1,29 +1,29 @@
 # Standard library imports
 import os
 import glob
-from dataclasses import dataclass
 from pathlib import Path
 
-# Deep learning and related imports
+# Image handling
+from PIL import Image
+
+# Deep learning framework
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
-from tqdm.auto import tqdm
+from tqdm.auto import tqdms
 
-# Diffusers and Hugging Face imports
+# Hugging Face ecosystem
 from datasets import load_dataset
 from diffusers import UNet2DModel, DDPMScheduler, DDPMPipeline
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from accelerate import Accelerator, notebook_launcher
 from huggingface_hub import HfFolder, Repository, whoami
-from diffusion_pipeline import ButterflyConfig
 
-# Image handling
-from PIL import Image
-
-# wandb integration
+# Monitoring and logging
 import wandb
-from datetime import datetime
+
+# Local configuration
+from diffusion_pipeline import ButterflyConfig
 
 
 config = ButterflyConfig
