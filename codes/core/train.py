@@ -25,7 +25,8 @@ from codes.core.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR
 from codes.conf.model_config import config
 from codes.core.FID_score import calculate_fid, make_fid_input_images
-from codes.core.models.U_Net2D_with_pretrain import unet2d_model
+# from codes.core.models.U_Net2D_with_pretrain import unet2d_model
+from codes.core.models.U_Net2D import unet2d_model
 
 
 def make_grid(images, rows, cols):
