@@ -73,7 +73,7 @@ def generate_images_for_test(config, pipeline, num_images=300):
 
         # Save images
         for j, image in enumerate(images_uint8):
-            k = i + j
+            k = i * batch_size + j
             test_dir = os.path.join(config.output_dir, "test_samples")
             os.makedirs(test_dir, exist_ok=True)
             # Save image
