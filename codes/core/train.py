@@ -74,6 +74,8 @@ def generate_images_for_test(config, pipeline, num_images=300):
         # Save images
         for j, image in enumerate(images_uint8):
             k = i * batch_size + j
+            if k >= num_images:
+                break
             test_dir = os.path.join(config.output_dir, "test_samples")
             os.makedirs(test_dir, exist_ok=True)
             # Save image
@@ -164,7 +166,8 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
 
-            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler,
+                                    num_inference_steps=1000)
             # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
