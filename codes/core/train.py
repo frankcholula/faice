@@ -19,8 +19,8 @@ from huggingface_hub import HfFolder, Repository, whoami
 from tqdm.auto import tqdm, trange
 from pathlib import Path
 from accelerate import notebook_launcher
-from loguru import logger
 
+from codes.conf.log_conf import logger
 from codes.core.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR
 from codes.conf.model_config import config

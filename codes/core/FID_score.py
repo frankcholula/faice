@@ -14,8 +14,8 @@ from PIL import Image
 import numpy as np
 from torchvision.transforms import functional as F
 from torchmetrics.image.fid import FrechetInceptionDistance
-from loguru import logger
 
+from codes.conf.log_conf import logger
 from codes.conf.global_setting import BASE_DIR
 from codes.conf.model_config import config
 

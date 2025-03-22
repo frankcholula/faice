@@ -481,3 +481,4 @@ cython_debug/
 /codes/data/*
 /codes/ddpm-butterflies-128
 /codes/output/*
+/codes/logs/*

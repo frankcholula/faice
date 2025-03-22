@@ -6,8 +6,8 @@
 @Project : faice
 """
 from diffusers import UNet2DModel
-from loguru import logger
 
+from codes.conf.log_conf import logger
 from codes.conf.model_config import config
 
 
