@@ -20,7 +20,7 @@ class Config(object):
     # *************************************** log path setting *************************************** #
 
     # log path
-    LOG_DIR = os.getenv('LOG_DIR', BASE_DIR + '/codes/logs/')
+    LOG_DIR = os.getenv('LOG_DIR', BASE_DIR + '/logs/')
     debug_log_file_path = os.path.join(LOG_DIR, "debug.log")
     info_log_file_path = os.path.join(LOG_DIR, "info.log")
     error_log_file_path = os.path.join(LOG_DIR, "error.log")
