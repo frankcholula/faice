@@ -5,12 +5,14 @@ from dataclasses import dataclass, field
 from typing import Optional
 from datetime import datetime
 from dotenv import load_dotenv
+
 # Image handling
 from PIL import Image
 
 # Deep learning framework
 import torch
 import torch.nn.functional as F
+from torchmetrics.image.fid import FrechetInceptionDistance
 from tqdm.auto import tqdm
 
 # Hugging Face
@@ -27,13 +29,15 @@ def setup_wandb():
     wandb_api_key = os.getenv("WANDB_API_KEY")
     if not wandb_api_key:
         raise ValueError("WANDB_API_KEY not found in .env file")
-    
+
     if not wandb_entity:
         raise ValueError("WANDB_ENTITY not found in .env file")
     wandb.login(key=wandb_api_key)
 
+
 load_dotenv()
 setup_wandb()
+
 
 @dataclass
 class TrainingConfig:
@@ -86,9 +90,7 @@ class TrainingConfig:
         if self.wandb_project is None:
             raise NotImplementedError("wandb_project must be specified")
         if self.wandb_run_name is None:
-            self.wandb_run_name = (
-                f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-            )
+            self.wandb_run_name = f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
 
 @dataclass
@@ -118,7 +120,7 @@ def make_grid(images, rows, cols):
     return grid
 
 
-def evaluate(config, epoch, pipeline):
+def evaluate(config, epoch, pipeline, test_dataloader=None, device=None):
     # Sample some images from random noise (this is the backward diffusion process).
     # The default pipeline output type is `List[PIL.Image]`
     images = pipeline(
@@ -135,15 +137,52 @@ def evaluate(config, epoch, pipeline):
     image_grid_path = f"{test_dir}/{epoch:04d}.png"
     image_grid.save(image_grid_path)
 
+    if test_dataloader:
+        if device is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        fid = FrechetInceptionDistance(feature=2048).to(device)
+
+        with torch.no_grad():
+            for batch in tqdm(test_dataloader, desc="Calculating FID (real images)"):
+                real_images = batch["images"].to(device)
+                real_images = (
+                    real_images + 1.0
+                ) / 2.0  # FID expects images in [0, 1] range
+                fid.update(real_images, real=True)
+
+        with torch.no_grad():
+            for i in tqdm(
+                range(0, len(test_dataloader.dataset), config.eval_batch_size),
+                desc="Calculating FID (generated images)",
+            ):
+                fake_images = pipeline(
+                    batch_size=min(
+                        config.eval_batch_size, len(test_dataloader.dataset) - i, # fill the last batch
+                        generator= torch.manual_seed(config.seed + i), # use different seeds for each batch
+                        output_type="tensor",
+                    ).images
+                )
+                fake_images = fake_images.to(device)
+                fake_images = (
+                    fake_images + 1.0
+                ) / 2.0
+                fid.update(fake_images, real=False)
+
+        fid_score = fid.compute().item()
+        
+
     if config.use_wandb:
         wandb.log(
             {
+                
                 "generated_images": wandb.Image(
                     image_grid_path, caption=f"Epoch {epoch}"
                 ),
                 "epoch": epoch,
+                "fid_score": fid_score,
             }
         )
+    return fid_score
 
 
 def get_full_repo_name(model_id: str, organization: str = None, token: str = None):
@@ -157,7 +196,13 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
 
 
 def train_loop(
-    config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    test_dataloader=None,
 ):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
@@ -196,9 +241,16 @@ def train_loop(
     # Prepare everything
     # There is no specific order to remember, you just need to unpack the
     # objects in the same order you gave them to the prepare method.
-    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_dataloader, lr_scheduler
-    )
+    if test_dataloader is not None:
+        model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
+            accelerator.prepare(
+                model, optimizer, train_dataloader, lr_scheduler, test_dataloader
+            )
+        )
+    else:
+        model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+            model, optimizer, train_dataloader, lr_scheduler
+        )
 
     global_step = 0
 
@@ -258,8 +310,12 @@ def train_loop(
                 unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
             )
 
-            generate_samples = (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
-            save_model = (epoch + 1) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+            generate_samples = (
+                epoch + 1
+            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+            save_model = (
+                epoch + 1
+            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             if generate_samples:
                 evaluate(config, epoch, pipeline)
 
