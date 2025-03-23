@@ -4,7 +4,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 from datetime import datetime
-
+from dotenv import load_dotenv
 # Image handling
 from PIL import Image
 
@@ -20,6 +20,20 @@ from accelerate import Accelerator
 
 # Monitoring and logging
 import wandb
+
+
+def setup_wandb():
+    wandb_entity = os.getenv("WANDB_ENTITY")
+    wandb_api_key = os.getenv("WANDB_API_KEY")
+    if not wandb_api_key:
+        raise ValueError("WANDB_API_KEY not found in .env file")
+    
+    if not wandb_entity:
+        raise ValueError("WANDB_ENTITY not found in .env file")
+    wandb.login(key=wandb_api_key)
+
+load_dotenv()
+setup_wandb()
 
 @dataclass
 class TrainingConfig:
@@ -54,7 +68,8 @@ class TrainingConfig:
 
     # wandb params
     use_wandb: bool = True  # use wandb for logging
-    wandb_entity: str = "tsufanglu"
+    wandb_entity: str = os.getenv("WANDB_ENTITY")
+
     wandb_project: str = field(default=None)
 
     wandb_run_name: Optional[str] = None
@@ -63,15 +78,15 @@ class TrainingConfig:
     # dataset
     dataset_name: str = field(default=None)
 
-    def __post__init__(self):
+    def __post_init__(self):
         if self.output_dir is None:
             raise NotImplementedError("output_dir must be specified")
         if self.dataset_name is None:
             raise NotImplementedError("dataset_name must be specified")
         if self.wandb_project is None:
             raise NotImplementedError("wandb_project must be specified")
-        if self.wandb.run_name is None:
-            self.wanadb_run_name = (
+        if self.wandb_run_name is None:
+            self.wandb_run_name = (
                 f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
             )
 
@@ -86,11 +101,13 @@ class ButterflyConfig(TrainingConfig):
 @dataclass
 class FaceConfig(TrainingConfig):
     output_dir: str = "ddpm-celebahq-256"
-    dataset_name: str = "korexyz/celeba-hq-256x256"
+    dataset_name: str = "uos-celeba-hq-256x256"
     wandb_project: str = "ddpm-celebahq-256"
-    num_epochs: int = 10
+    num_epochs: int = 5
     save_image_epochs: int = 1
     save_model_epochs: int = 5
+    train_dir: str = "datasets/celeba_hq_split/train"
+    test_dir: str = "datasets/celeba_hq_split/test"
 
 
 def make_grid(images, rows, cols):
@@ -241,14 +258,12 @@ def train_loop(
                 unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
             )
 
-            if (
-                epoch + 1
-            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
+            generate_samples = (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+            save_model = (epoch + 1) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+            if generate_samples:
                 evaluate(config, epoch, pipeline)
 
-            if (
-                epoch + 1
-            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
+            if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
