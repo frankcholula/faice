@@ -218,9 +218,6 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 else:
                     pipeline.save_pretrained(config.output_dir)
 
-    if wandb_config.use_wandb:
-        wandb_run.finish()
-
 
 def main(data_dir):
     # 1. Make train dataset
@@ -263,6 +260,12 @@ def main(data_dir):
                 selected_pipeline)
 
         notebook_launcher(train_loop, args, num_processes=1)
+
+        if wandb_config.use_wandb:
+            wandb_run.alert(title="Finish", text=f"The {k} training is done")
+
+    if wandb_config.use_wandb:
+        wandb_run.finish()
 
 
 if __name__ == "__main__":
