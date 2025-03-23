@@ -17,7 +17,7 @@ from torchmetrics.image.fid import FrechetInceptionDistance
 
 from codes.conf.log_conf import logger
 from codes.conf.global_setting import BASE_DIR
-from codes.conf.model_config import config
+from codes.conf.model_config import model_config
 
 
 def preprocess_image(image):
@@ -53,13 +53,13 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=30
 
     logger.info("Generate fake images")
 
-    batch_size = config.eval_batch_size
+    batch_size = model_config.eval_batch_size
     num_batches = (num_images + batch_size - 1) // batch_size  # Ceiling division
 
     all_fake_images = []
 
     for i in range(num_batches):
-        batch_seed = config.seed + i  # Use a different seed for each batch to ensure diversity
+        batch_seed = model_config.seed + i  # Use a different seed for each batch to ensure diversity
         images = pipeline(
             batch_size=batch_size,
             generator=torch.manual_seed(batch_seed),
@@ -104,6 +104,6 @@ if __name__ == '__main__':
     model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
     scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
 
-    test_data = config.test_dir
+    test_data = model_config.test_dir
 
     test_calculate_fid(test_data, model_ckpt_dir, scheduler_dir)

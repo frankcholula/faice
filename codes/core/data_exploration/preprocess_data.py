@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from datasets import load_dataset
 
 from codes.conf.global_setting import BASE_DIR
-from codes.conf.model_config import config
+from codes.conf.model_config import model_config as config
 
 
 def transform(examples):

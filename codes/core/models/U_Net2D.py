@@ -7,12 +7,12 @@
 """
 from diffusers import UNet2DModel
 
-from codes.conf.model_config import config
+from codes.conf.model_config import model_config
 
 
 def unet2d_model():
     model = UNet2DModel(
-        sample_size=config.image_size,  # the target image resolution
+        sample_size=model_config.image_size,  # the target image resolution
         in_channels=3,  # the number of input channels, 3 for RGB images
         out_channels=3,  # the number of output channels
         layers_per_block=2,  # how many ResNet layers to use per UNet block

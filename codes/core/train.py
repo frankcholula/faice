@@ -23,7 +23,8 @@ from accelerate import notebook_launcher
 from codes.conf.log_conf import logger
 from codes.core.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR
-from codes.conf.model_config import config
+from codes.conf.model_config import model_config
+from codes.conf.model_config import wandb_config, wandb_run
 from codes.core.FID_score import calculate_fid, make_fid_input_images
 # from codes.core.models.U_Net2D_with_pretrain import unet2d_model
 from codes.core.models.U_Net2D import unet2d_model
@@ -111,6 +112,10 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         log_with="tensorboard",
         project_dir=os.path.join(config.output_dir, "logs"),
     )
+
+    if wandb_config.use_wandb and wandb_config.wandb_watch_model:
+        wandb_run.watch(model, log="all", log_freq=wandb_config.log_freq)
+
     if accelerator.is_main_process:
         if config.push_to_hub:
             repo_name = get_full_repo_name(Path(config.output_dir).name)
@@ -163,6 +168,10 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0], "step": global_step}
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
+
+            if wandb_config.use_wandb:
+                wandb_run.log(logs, step=global_step)
+
             global_step += 1
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
@@ -187,11 +196,15 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 else:
                     pipeline.save_pretrained(config.output_dir)
 
+    if wandb_config.use_wandb:
+        wandb_run.finish()
+
 
 def main_train(data_dir):
     # 1. Make train dataset
     dataset = get_data(data_dir)
-    train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=config.train_batch_size, shuffle=True)
+    train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=model_config.train_batch_size,
+                                                   shuffle=True)
 
     # 2. Make model
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -206,11 +219,11 @@ def main_train(data_dir):
     model.to(device)
 
     # 4. Set up the optimizer, the learning rate scheduler and the loss scaling for AMP
-    optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=model_config.learning_rate)
     lr_scheduler = get_cosine_schedule_with_warmup(
         optimizer=optimizer,
-        num_warmup_steps=config.lr_warmup_steps,
-        num_training_steps=(len(train_dataloader) * config.num_epochs),
+        num_warmup_steps=model_config.lr_warmup_steps,
+        num_training_steps=(len(train_dataloader) * model_config.num_epochs),
     )
 
     # Initialize scheduler
@@ -220,7 +233,7 @@ def main_train(data_dir):
     # )
 
     noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
-    args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
+    args = (model_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
 
     notebook_launcher(train_loop, args, num_processes=1)
 

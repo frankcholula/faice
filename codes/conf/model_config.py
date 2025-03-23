@@ -5,7 +5,11 @@
 @File : model_config.py
 @Project : faice
 """
-from dataclasses import dataclass
+from typing import Optional
+from dataclasses import dataclass, field, asdict
+from datetime import datetime
+
+import wandb
 
 from codes.conf.global_setting import BASE_DIR
 
@@ -32,4 +36,24 @@ class TrainingConfig:
     seed = 0
 
 
-config = TrainingConfig()
+model_config = TrainingConfig()
+
+
+@dataclass
+class WandbConfig:
+    project = "ddpm-celebahq-256"
+    use_wandb: bool = True  # use wandb for logging
+    wandb_entity: str = "faice"
+    wandb_project: str = field(default=None)
+    wandb_watch_model: bool = True
+    wandb_run_name: str = f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    log_freq: int = 10
+
+
+wandb_config = WandbConfig()
+
+wandb_run = wandb.init(entity=wandb_config.wandb_entity,
+                       project=wandb_config.wandb_project,
+                       name=wandb_config.wandb_run_name,
+                       config=asdict(model_config))
+
