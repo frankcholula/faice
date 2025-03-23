@@ -41,12 +41,12 @@ model_config = TrainingConfig()
 
 @dataclass
 class WandbConfig:
-    project = "ddpm-celebahq-256"
+    project = "celebahq-256-splitted"
     use_wandb: bool = True  # use wandb for logging
     wandb_entity: str = "tsufanglu"
     wandb_project: str = field(default=None)
     wandb_watch_model: bool = True
-    wandb_run_name: str = f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    wandb_run_name: str = f"run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     log_freq: int = 10
 
 
