@@ -43,7 +43,7 @@ model_config = TrainingConfig()
 class WandbConfig:
     project = "ddpm-celebahq-256"
     use_wandb: bool = True  # use wandb for logging
-    wandb_entity: str = "faice"
+    wandb_entity: str = "tsufanglu"
     wandb_project: str = field(default=None)
     wandb_watch_model: bool = True
     wandb_run_name: str = f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
