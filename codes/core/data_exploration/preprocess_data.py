@@ -23,7 +23,7 @@ def transform(examples):
         [
             transforms.Resize((config.image_size, config.image_size)),
             # transforms.CenterCrop((config.image_size, config.image_size)),
-            transforms.RandomAdjustSharpness(sharpness_factor=0.5),
+            # transforms.RandomAdjustSharpness(sharpness_factor=0.5),
             transforms.RandomHorizontalFlip(),
             # transforms.GaussianBlur(kernel_size=3), # Not good
             transforms.ToTensor(),

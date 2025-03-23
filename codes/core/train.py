@@ -10,24 +10,45 @@ import os
 import numpy as np
 import torch
 from PIL import Image
-from diffusers import DDPMPipeline
+from diffusers import DDPMPipeline, DDIMPipeline, PNDMPipeline, ConsistencyModelPipeline, ScoreSdeVePipeline, \
+    KarrasVePipeline, LDMPipeline, UniDiffuserPipeline
+from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler, ScoreSdeVeScheduler, KarrasVeScheduler, \
+    UniPCMultistepScheduler
+from diffusers.schedulers import ConsistencyDecoderScheduler
 import torch.nn.functional as F
 from diffusers.optimization import get_cosine_schedule_with_warmup
-from diffusers import DDPMScheduler
 from accelerate import Accelerator
 from huggingface_hub import HfFolder, Repository, whoami
 from tqdm.auto import tqdm, trange
 from pathlib import Path
 from accelerate import notebook_launcher
+import sentry_sdk
+from sentry_sdk import capture_exception
 
 from codes.conf.log_conf import logger
 from codes.core.data_exploration.preprocess_data import get_data
-from codes.conf.global_setting import BASE_DIR
+from codes.conf.global_setting import BASE_DIR, SETTINGS
 from codes.conf.model_config import model_config
 from codes.conf.model_config import wandb_config, wandb_run
 from codes.core.FID_score import calculate_fid, make_fid_input_images
 # from codes.core.models.U_Net2D_with_pretrain import unet2d_model
 from codes.core.models.U_Net2D import unet2d_model
+
+# Capture the error with Sentry
+sentry_sdk.init(SETTINGS.SENTRY_URL)
+
+pipeline_selector = {"DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+                     "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
+                     "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
+                     "Consistency": {"pipeline": ConsistencyModelPipeline,
+                                     "scheduler": ConsistencyDecoderScheduler},
+                     "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
+                                          "scheduler": DDPMScheduler},
+                     "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
+                     "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
+                     "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler},
+                     "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+                     "Uni": {"pipeline": UniDiffuserPipeline, "scheduler": UniPCMultistepScheduler}}
 
 
 def make_grid(images, rows, cols):
@@ -104,7 +125,8 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
         return f"{organization}/{model_id}"
 
 
-def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device):
+def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device,
+               selected_pipeline):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
         mixed_precision=config.mixed_precision,
@@ -177,8 +199,8 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
 
-            pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
-            # pipeline = DDIMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            # pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
@@ -200,7 +222,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         wandb_run.finish()
 
 
-def main_train(data_dir):
+def main(data_dir):
     # 1. Make train dataset
     dataset = get_data(data_dir)
     train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=model_config.train_batch_size,
@@ -218,7 +240,7 @@ def main_train(data_dir):
 
     model.to(device)
 
-    # 4. Set up the optimizer, the learning rate scheduler and the loss scaling for AMP
+    # 3. Set up the optimizer, the learning rate scheduler and the loss scaling for AMP
     optimizer = torch.optim.AdamW(model.parameters(), lr=model_config.learning_rate)
     lr_scheduler = get_cosine_schedule_with_warmup(
         optimizer=optimizer,
@@ -226,19 +248,31 @@ def main_train(data_dir):
         num_training_steps=(len(train_dataloader) * model_config.num_epochs),
     )
 
-    # Initialize scheduler
-    # noise_scheduler = DDPMScheduler.from_pretrained(
-    #     "google/ddpm-celebahq-256",
-    #     # subfolder="scheduler"
-    # )
+    # 4. Select pipline and scheduler
+    for k, v in tqdm(pipeline_selector.items()):
+        logger.info(f"Select {k} pipeline and scheduler")
+        selected_scheduler = v['scheduler']
+        selected_pipeline = v['pipeline']
 
-    noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
-    args = (model_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device)
+        # Update output_dir
+        model_config.output_dir = os.path.join(model_config.output_dir, f"_{k}")
 
-    notebook_launcher(train_loop, args, num_processes=1)
+        # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
+        noise_scheduler = selected_scheduler(num_train_timesteps=1000)
+        args = (model_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device,
+                selected_pipeline)
+
+        notebook_launcher(train_loop, args, num_processes=1)
 
 
 if __name__ == "__main__":
     # data_path = BASE_DIR + "/data/celeba_hq_256/"
-    data_path = BASE_DIR + "/data/celebahq256_3000/train"
-    main_train(data_path)
+    # data_path = BASE_DIR + "/data/celebahq256_3000/train"
+    data_path = BASE_DIR + "/data/celeba_hq_split/train"
+
+    try:
+        main(data_path)
+    except Exception as exc:
+        capture_exception(exc)
+        print(exc)
+        raise exc

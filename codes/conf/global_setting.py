@@ -28,6 +28,10 @@ class Config(object):
     # log form
     log_format = "{time:YYYY-MM-DD HH:mm:sss} | {message}"
 
+    # *************************************** sentry setting *************************************** #
+
+    SENTRY_URL = 'https://43c4683ceda6404549f18ee0aaa0f642@o421658.ingest.us.sentry.io/4509028258217984'
+
 
 class Development(Config):
     pass
