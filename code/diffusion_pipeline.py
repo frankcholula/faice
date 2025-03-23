@@ -157,24 +157,23 @@ def evaluate(config, epoch, pipeline, test_dataloader=None, device=None):
             ):
                 fake_images = pipeline(
                     batch_size=min(
-                        config.eval_batch_size, len(test_dataloader.dataset) - i, # fill the last batch
-                        generator= torch.manual_seed(config.seed + i), # use different seeds for each batch
+                        config.eval_batch_size,
+                        len(test_dataloader.dataset) - i,  # fill the last batch
+                        generator=torch.manual_seed(
+                            config.seed + i
+                        ),  # use different seeds for each batch
                         output_type="tensor",
                     ).images
                 )
                 fake_images = fake_images.to(device)
-                fake_images = (
-                    fake_images + 1.0
-                ) / 2.0
+                fake_images = (fake_images + 1.0) / 2.0
                 fid.update(fake_images, real=False)
 
         fid_score = fid.compute().item()
-        
 
     if config.use_wandb:
         wandb.log(
             {
-                
                 "generated_images": wandb.Image(
                     image_grid_path, caption=f"Epoch {epoch}"
                 ),
