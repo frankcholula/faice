@@ -91,6 +91,8 @@ class FaceConfig(TrainingConfig):
     num_epochs: int = 10
     save_image_epochs: int = 1
     save_model_epochs: int = 5
+    train_dir: str = "code/datasets/celeba_hq_split/train"
+    test_dir: str = "code/datasets/celeba_hq_split/test"
 
 
 def make_grid(images, rows, cols):
