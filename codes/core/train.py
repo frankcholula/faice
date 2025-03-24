@@ -37,18 +37,21 @@ from codes.core.models.U_Net2D import unet2d_model
 # Capture the error with Sentry
 sentry_sdk.init(SETTINGS.SENTRY_URL)
 
-pipeline_selector = {"DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
-                     "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
-                     "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
-                     "Consistency": {"pipeline": ConsistencyModelPipeline,
-                                     "scheduler": ConsistencyDecoderScheduler},
-                     "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
-                                          "scheduler": DDPMScheduler},
-                     "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
-                     "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
-                     "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler},
-                     "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
-                     "Uni": {"pipeline": UniDiffuserPipeline, "scheduler": UniPCMultistepScheduler}}
+pipeline_selector = {
+    # "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+    # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
+    "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
+    "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
+    # "Consistency": {"pipeline": ConsistencyModelPipeline,
+    #                 "scheduler": ConsistencyDecoderScheduler},
+    "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
+                         "scheduler": DDPMScheduler},
+    "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
+    "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
+    "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler},
+    "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+    "Uni": {"pipeline": UniDiffuserPipeline, "scheduler": UniPCMultistepScheduler}
+}
 
 
 def make_grid(images, rows, cols):
@@ -252,7 +255,7 @@ def main(data_dir):
         selected_pipeline = v['pipeline']
 
         # Update output_dir
-        model_config.output_dir = os.path.join(model_config.output_dir, f"_{k}")
+        model_config.output_dir = os.path.join(model_config.base_output_dir, f"{k}")
 
         # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
         noise_scheduler = selected_scheduler(num_train_timesteps=1000)
