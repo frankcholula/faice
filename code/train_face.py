@@ -15,7 +15,8 @@ from diffusers import UNet2DModel, DDPMScheduler
 from diffusers.optimization import get_cosine_schedule_with_warmup
 
 # Local configuration
-from diffusion_pipeline import FaceConfig, train_loop
+from conf.training_config import FaceConfig
+from diffusion_pipeline import train_loop
 
 
 class CelebaAHQDataset(Dataset):
@@ -46,11 +47,16 @@ preprocess = transforms.Compose(
 )
 # training
 train_dataset = CelebaAHQDataset(root_dir=config.train_dir, transform=preprocess)
-train_dataloader = DataLoader(train_dataset, batch_size=config.train_batch_size, shuffle=True)
+train_dataloader = DataLoader(
+    train_dataset, batch_size=config.train_batch_size, shuffle=True
+)
 
 # evaluation
 test_dataset = CelebaAHQDataset(root_dir=config.test_dir, transform=preprocess)
-test_dataloader = DataLoader(test_dataset, batch_size=config.eval_batch_size, shuffle=False)
+test_dataloader = DataLoader(
+    test_dataset, batch_size=config.eval_batch_size, shuffle=False
+)
+
 
 def transform(examples):
     images = [preprocess(image.convert("RGB")) for image in examples["image"]]
@@ -99,7 +105,15 @@ lr_scheduler = get_cosine_schedule_with_warmup(
     num_training_steps=(len(train_dataloader) * config.num_epochs),
 )
 
-args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, test_dataloader)
+args = (
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    test_dataloader,
+)
 
 train_loop(*args)
 

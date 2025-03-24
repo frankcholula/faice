@@ -13,8 +13,9 @@ from datasets import load_dataset
 from diffusers import UNet2DModel, DDPMScheduler
 from diffusers.optimization import get_cosine_schedule_with_warmup
 
-# Local configuration
-from diffusion_pipeline import ButterflyConfig, train_loop
+# Configuration
+from conf.training_config import ButterflyConfig
+from diffusion_pipeline import train_loop
 
 config = ButterflyConfig()
 dataset = load_dataset(config.dataset_name, split="train")
