@@ -5,12 +5,14 @@ from dataclasses import dataclass, field
 from typing import Optional
 from datetime import datetime
 from dotenv import load_dotenv
+
 # Image handling
 from PIL import Image
 
 # Deep learning framework
 import torch
 import torch.nn.functional as F
+from torchmetrics.image.fid import FrechetInceptionDistance
 from tqdm.auto import tqdm
 
 # Hugging Face
@@ -27,13 +29,15 @@ def setup_wandb():
     wandb_api_key = os.getenv("WANDB_API_KEY")
     if not wandb_api_key:
         raise ValueError("WANDB_API_KEY not found in .env file")
-    
+
     if not wandb_entity:
         raise ValueError("WANDB_ENTITY not found in .env file")
     wandb.login(key=wandb_api_key)
 
+
 load_dotenv()
 setup_wandb()
+
 
 @dataclass
 class TrainingConfig:
@@ -86,9 +90,7 @@ class TrainingConfig:
         if self.wandb_project is None:
             raise NotImplementedError("wandb_project must be specified")
         if self.wandb_run_name is None:
-            self.wandb_run_name = (
-                f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-            )
+            self.wandb_run_name = f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
 
 @dataclass
@@ -101,13 +103,14 @@ class ButterflyConfig(TrainingConfig):
 @dataclass
 class FaceConfig(TrainingConfig):
     output_dir: str = "ddpm-celebahq-256"
-    dataset_name: str = "uos-celeba-hq-256x256"
+    dataset_name: str = "uos-celebahq-256x256"
     wandb_project: str = "ddpm-celebahq-256"
-    num_epochs: int = 5
+    num_epochs: int = 1
     save_image_epochs: int = 1
-    save_model_epochs: int = 5
+    save_model_epochs: int = 1
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
+    calculate_fid: bool = True
 
 
 def make_grid(images, rows, cols):
@@ -134,17 +137,58 @@ def evaluate(config, epoch, pipeline):
     os.makedirs(test_dir, exist_ok=True)
     image_grid_path = f"{test_dir}/{epoch:04d}.png"
     image_grid.save(image_grid_path)
-
+    
     if config.use_wandb:
-        wandb.log(
-            {
-                "generated_images": wandb.Image(
-                    image_grid_path, caption=f"Epoch {epoch}"
-                ),
-                "epoch": epoch,
-            }
-        )
+        wandb.log({
+            "generated_images": wandb.Image(
+                image_grid_path, caption=f"Epoch {epoch}"
+            ),
+            "epoch": epoch,
+        })
 
+
+def calculate_fid_score(config, pipeline, test_dataloader, device=None):
+    """Calculate FID score between generated images and test dataset"""
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    # Create FID instance with normalize=True since we'll provide images in [0,1] range
+    fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
+
+    # Process real images, no need to convert to BCHW format
+    with torch.no_grad():
+        for batch in tqdm(test_dataloader, desc="Calculating FID (real images)"):
+            real_images = batch["images"].to(device)
+            # Convert from [-1, 1] to [0, 1] range
+            real_images = (real_images + 1.0) / 2.0
+            fid.update(real_images, real=True)
+
+    # Process fake images, need to convert to BCHW but no need to rescale.
+    with torch.no_grad():
+        for i in tqdm(
+            range(0, len(test_dataloader.dataset), config.eval_batch_size),
+            desc="Calculating FID (generated images)",
+        ):
+            # Generate images as numpy arrays
+            output = pipeline(
+                batch_size=min(
+                    config.eval_batch_size, len(test_dataloader.dataset) - i
+                ),
+                generator=torch.manual_seed(config.seed + i),
+                output_type="np.array",
+            ).images
+            
+            # Convert numpy arrays to tensors
+            fake_images = torch.tensor(output)
+            # Rearrange from BHWC to BCHW format
+            fake_images = fake_images.permute(0, 3, 1, 2)
+            fake_images = fake_images.to(device)
+            fid.update(fake_images, real=False)
+    
+    # Compute final FID score
+    fid_score = fid.compute().item()
+    print(f"FID Score: {fid_score}")
+    return fid_score
 
 def get_full_repo_name(model_id: str, organization: str = None, token: str = None):
     if token is None:
@@ -157,7 +201,13 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
 
 
 def train_loop(
-    config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    test_dataloader,
 ):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
@@ -166,6 +216,8 @@ def train_loop(
         log_with="tensorboard",
         project_dir=os.path.join(config.output_dir, "logs"),
     )
+
+    # Initialize wandb
     if config.use_wandb and accelerator.is_main_process:
         wandb.init(
             entity=config.wandb_entity,
@@ -196,9 +248,16 @@ def train_loop(
     # Prepare everything
     # There is no specific order to remember, you just need to unpack the
     # objects in the same order you gave them to the prepare method.
-    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_dataloader, lr_scheduler
-    )
+    if test_dataloader is not None:
+        model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
+            accelerator.prepare(
+                model, optimizer, train_dataloader, lr_scheduler, test_dataloader
+            )
+        )
+    else:
+        model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+            model, optimizer, train_dataloader, lr_scheduler
+        )
 
     global_step = 0
 
@@ -258,15 +317,33 @@ def train_loop(
                 unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
             )
 
-            generate_samples = (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
-            save_model = (epoch + 1) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+            generate_samples = (
+                epoch + 1
+            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+            save_model = (
+                epoch + 1
+            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+
             if generate_samples:
                 evaluate(config, epoch, pipeline)
-
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
                     pipeline.save_pretrained(config.output_dir)
+        if accelerator.is_main_process and config.calculate_fid:
+
+            progress_bar.close()
+
+    # Now we evaluate the model on the test set
+    if accelerator.is_main_process and config.calculate_fid:
+        pipeline = DDPMPipeline(
+            unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+        )
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+
+        if config.use_wandb and fid_score is not None:
+            wandb.run.summary["fid_score"] = fid_score
+
     if config.use_wandb and accelerator.is_main_process:
         wandb.finish()

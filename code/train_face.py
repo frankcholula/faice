@@ -99,7 +99,7 @@ lr_scheduler = get_cosine_schedule_with_warmup(
     num_training_steps=(len(train_dataloader) * config.num_epochs),
 )
 
-args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
+args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, test_dataloader)
 
 train_loop(*args)
 
