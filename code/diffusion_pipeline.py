@@ -20,7 +20,8 @@ from accelerate import Accelerator
 
 # Configuration
 from conf.wandb_config import setup_wandb
-from conf.eval_config import calculate_fid_score
+from utils.metrics import calculate_fid_score, get_full_repo_name
+
 
 load_dotenv()
 setup_wandb()
