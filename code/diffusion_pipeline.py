@@ -1,30 +1,28 @@
 # Standard library imports
 import os
 from pathlib import Path
-from dataclasses import dataclass, field
 from dotenv import load_dotenv
 
-# Image handling
-from PIL import Image
 
 # Deep learning framework
 import torch
 import torch.nn.functional as F
-from torchmetrics.image.fid import FrechetInceptionDistance
 from tqdm.auto import tqdm
 
 # Hugging Face
 from diffusers import DDPMPipeline
-from huggingface_hub import HfFolder, Repository, whoami
+from huggingface_hub import Repository
 from accelerate import Accelerator
 
 # Configuration
+import wandb
 from conf.wandb_config import setup_wandb
 from utils.metrics import calculate_fid_score, get_full_repo_name
-
+from utils.metrics import evaluate
 
 load_dotenv()
 setup_wandb()
+
 
 def train_loop(
     config,
