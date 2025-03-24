@@ -482,3 +482,4 @@ cython_debug/
 /codes/ddpm-butterflies-128
 /codes/output/*
 /codes/logs/*
+wandb
