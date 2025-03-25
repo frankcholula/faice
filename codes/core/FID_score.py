@@ -63,7 +63,8 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=30
         images = pipeline(
             batch_size=batch_size,
             generator=torch.manual_seed(batch_seed),
-            output_type="np"
+            output_type="np",
+            num_inference_steps=1000
         ).images
 
         fake_images = torch.tensor(images)

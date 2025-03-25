@@ -92,7 +92,8 @@ def generate_images_for_test(config, pipeline, num_images=300):
         images = pipeline(
             batch_size=batch_size,
             generator=torch.manual_seed(batch_seed),
-            output_type="np"
+            output_type="np",
+            num_inference_steps=1000
         ).images
 
         # Convert images from float32 to uint8
