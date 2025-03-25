@@ -23,7 +23,7 @@ from codes.conf.model_config import model_config
 def preprocess_image(image):
     image = torch.tensor(image).unsqueeze(0)
     image = image.permute(0, 3, 1, 2) / 255.0
-    return F.center_crop(image, (256, 256))
+    return F.center_crop(image, (model_config.image_size, model_config.image_size))
 
 
 def make_fid_input_images(images_path):
