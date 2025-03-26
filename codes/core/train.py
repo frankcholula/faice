@@ -6,6 +6,7 @@
 @Project : faice
 """
 import os
+from dataclasses import asdict
 
 import numpy as np
 import torch
@@ -24,12 +25,13 @@ from pathlib import Path
 from accelerate import notebook_launcher
 import sentry_sdk
 from sentry_sdk import capture_exception
+import wandb
 
 from codes.conf.log_conf import logger
 from codes.core.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, SETTINGS
 from codes.conf.model_config import model_config
-from codes.conf.model_config import wandb_config, wandb_run
+from codes.conf.model_config import wandb_config
 from codes.core.FID_score import calculate_fid, make_fid_input_images
 # from codes.core.models.U_Net2D_with_pretrain import unet2d_model
 from codes.core.models.U_Net2D import unet2d_model
@@ -43,11 +45,11 @@ pipeline_selector = {
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
     # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
     # "Consistency": {"pipeline": ConsistencyModelPipeline,
-    #                 "scheduler": ConsistencyDecoderScheduler},
+    #                 "scheduler": ConsistencyDecoderScheduler}, # Scheduler fault
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
-    "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
-    "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
+    # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
+    # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler}, # unexpected keyword argument num_train_timesteps
     "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler},
     "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
     "Uni": {"pipeline": UniDiffuserPipeline, "scheduler": UniPCMultistepScheduler}
@@ -130,7 +132,7 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
 
 
 def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device,
-               selected_pipeline):
+               selected_pipeline, wandb_run):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
         mixed_precision=config.mixed_precision,
@@ -251,6 +253,15 @@ def main(data_dir):
 
     # 4. Select pipline and scheduler
     for k, v in tqdm(pipeline_selector.items()):
+
+        # Update the wandb_run_name
+        origin_name = wandb_config.wandb_run_name
+        run_name = f"{k}_{origin_name}"
+        wandb_run = wandb.init(entity=wandb_config.wandb_entity,
+                               project=wandb_config.wandb_project,
+                               name=run_name,
+                               config=asdict(model_config))
+
         logger.info(f"Select {k} pipeline and scheduler")
         selected_scheduler = v['scheduler']
         selected_pipeline = v['pipeline']
@@ -261,15 +272,15 @@ def main(data_dir):
         # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
         noise_scheduler = selected_scheduler(num_train_timesteps=1000)
         args = (model_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device,
-                selected_pipeline)
+                selected_pipeline,)
 
         notebook_launcher(train_loop, args, num_processes=1)
 
         if wandb_config.use_wandb:
             wandb_run.alert(title="Finish", text=f"The {k} training is done")
 
-    if wandb_config.use_wandb:
-        wandb_run.finish()
+    # if wandb_config.use_wandb:
+    #     wandb_run.finish()
 
 
 if __name__ == "__main__":

@@ -29,7 +29,8 @@ class TrainingConfig:
     mixed_precision = "fp16"  # `no` for float32, `fp16` for automatic mixed precision
     base_output_dir = BASE_DIR + "/output/celeba_hq_split_training"
     output_dir = base_output_dir  # the model name locally and on the HF Hub
-    test_dir = BASE_DIR + "/data/celeba_hq_split/test"
+    # test_dir = BASE_DIR + "/data/celeba_hq_split/test"
+    test_dir = BASE_DIR + "/data/celeba_hq_split/test30"
 
     push_to_hub = False  # whether to upload the saved model to the HF Hub
     hub_private_repo = False
@@ -53,7 +54,3 @@ class WandbConfig:
 
 wandb_config = WandbConfig()
 
-wandb_run = wandb.init(entity=wandb_config.wandb_entity,
-                       project=wandb_config.wandb_project,
-                       name=wandb_config.wandb_run_name,
-                       config=asdict(model_config))
