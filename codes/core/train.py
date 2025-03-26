@@ -40,19 +40,24 @@ from codes.core.models.U_Net2D import unet2d_model
 sentry_sdk.init(SETTINGS.SENTRY_URL)
 
 pipeline_selector = {
-    # "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+    "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+    "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
+    "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
+                         "scheduler": DDPMScheduler},
+
     # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
-    # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
+    # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
+
     # "Consistency": {"pipeline": ConsistencyModelPipeline,
     #                 "scheduler": ConsistencyDecoderScheduler}, # Scheduler fault
-    # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
-    #                      "scheduler": DDPMScheduler},
-    # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
+
     # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler}, # unexpected keyword argument num_train_timesteps
     # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
     # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
-    "Uni": {"pipeline": UniDiffuserPipeline, "scheduler": UniPCMultistepScheduler}
+
+    # TypeError: UniDiffuserPipeline.__init__() missing 7 required positional arguments: 'vae', 'text_encoder', 'image_encoder', 'clip_image_processor', 'clip_tokenizer', 'text_decoder', and 'text_tokenizer'
+    #     "Uni": {"pipeline": UniDiffuserPipeline, "scheduler": UniPCMultistepScheduler}
 }
 
 
