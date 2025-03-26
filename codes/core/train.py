@@ -272,7 +272,7 @@ def main(data_dir):
         # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
         noise_scheduler = selected_scheduler(num_train_timesteps=1000)
         args = (model_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device,
-                selected_pipeline,)
+                selected_pipeline, wandb_run)
 
         notebook_launcher(train_loop, args, num_processes=1)
 
