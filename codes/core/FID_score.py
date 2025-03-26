@@ -37,7 +37,7 @@ def make_fid_input_images(images_path):
     return real_images
 
 
-def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=300):
+def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=model_config.num_images):
     # Load model
     logger.info(f"Loading model from {model_ckpt}")
 
