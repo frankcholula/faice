@@ -31,6 +31,8 @@ class TrainingConfig:
     output_dir = base_output_dir  # the model name locally and on the HF Hub
     # test_dir = BASE_DIR + "/data/celeba_hq_split/test"
     test_dir = BASE_DIR + "/data/celeba_hq_split/test30"
+    # The number of generating images
+    num_images = 30
 
     push_to_hub = False  # whether to upload the saved model to the HF Hub
     hub_private_repo = False

@@ -87,7 +87,7 @@ def evaluate(config, epoch, pipeline):
     image_grid.save(f"{test_dir}/{epoch:04d}.png")
 
 
-def generate_images_for_test(config, pipeline, num_images=300):
+def generate_images_for_test(config, pipeline, num_images=model_config.num_images):
     logger.info("Generate fake images")
     batch_size = config.eval_batch_size
     num_batches = (num_images + batch_size - 1) // batch_size  # Ceiling division
