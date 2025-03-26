@@ -50,8 +50,8 @@ pipeline_selector = {
     #                      "scheduler": DDPMScheduler},
     # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
     # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler}, # unexpected keyword argument num_train_timesteps
-    "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler},
-    "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+    # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
+    # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
     "Uni": {"pipeline": UniDiffuserPipeline, "scheduler": UniPCMultistepScheduler}
 }
 
