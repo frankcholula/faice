@@ -6,11 +6,12 @@
 @Project : faice
 """
 from diffusers import VQModel
+from codes.conf.model_config import model_config
 
 vqvae = VQModel(
+    sample_size=model_config.image_size,  # the target image resolution
     in_channels=3,  # RGB images
     out_channels=3,
-    num_res_blocks=2,
     # width=128,
     # height=128,
     # depth=64,
