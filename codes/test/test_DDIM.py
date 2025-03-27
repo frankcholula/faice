@@ -6,7 +6,7 @@
 @Project : faice
 """
 import torch
-from diffusers import DDIMPipeline
+from diffusers import DDIMPipeline, DDIMScheduler
 import PIL.Image
 import numpy as np
 
@@ -16,9 +16,21 @@ from codes.conf.global_setting import BASE_DIR
 def test_ddim(model_path):
     pipe = DDIMPipeline.from_pretrained(model_path)
 
+    pipe.scheduler = DDIMScheduler.from_config(
+        pipe.scheduler.config,
+        num_train_timesteps=1000,
+        beta_start=0.00085,
+        beta_end=0.012,
+        beta_schedule="linear",
+        eta=0.5,
+        # rescale_betas_zero_snr=True,
+        timestep_spacing="trailing"
+    )
+
     # image = pipe(eta=0.0, num_inference_steps=50)
 
-    images = pipe(eta=0.5, num_inference_steps=10, output_type="np", batch_size=1).images
+    images = pipe(eta=0.5, num_inference_steps=5, output_type="np", batch_size=1,
+                  generator=torch.manual_seed(42), ).images
 
     # process image to PIL
     # fake_images = torch.tensor(images)

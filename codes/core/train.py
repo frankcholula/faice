@@ -15,7 +15,7 @@ from diffusers import DDPMPipeline, DDIMPipeline, PNDMPipeline, ConsistencyModel
     KarrasVePipeline, LDMPipeline, UniDiffuserPipeline
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler, ScoreSdeVeScheduler, KarrasVeScheduler, \
     UniPCMultistepScheduler
-from diffusers.schedulers import ConsistencyDecoderScheduler
+from diffusers.schedulers import ConsistencyDecoderScheduler, CMStochasticIterativeScheduler
 import torch.nn.functional as F
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from accelerate import Accelerator
@@ -35,6 +35,7 @@ from codes.conf.model_config import wandb_config
 from codes.core.FID_score import calculate_fid, make_fid_input_images
 # from codes.core.models.U_Net2D_with_pretrain import unet2d_model
 from codes.core.models.U_Net2D import unet2d_model
+from codes.core.models.VQModels import vqvae
 
 # Capture the error with Sentry
 sentry_sdk.init(SETTINGS.SENTRY_URL)
@@ -49,15 +50,14 @@ pipeline_selector = {
     "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
     "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
 
-    # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler}, # unexpected keyword argument num_train_timesteps
-    # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
-    # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+    "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
+    # unexpected keyword argument num_train_timesteps
+    "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
+    "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
 
-    # TypeError: UniDiffuserPipeline.__init__() missing 7 required positional arguments: 'vae', 'text_encoder', 'image_encoder', 'clip_image_processor', 'clip_tokenizer', 'text_decoder', and 'text_tokenizer'
-    #     "Uni": {"pipeline": UniDiffuserPipeline, "scheduler": UniPCMultistepScheduler}
 
-    # "Consistency": {"pipeline": ConsistencyModelPipeline,
-    #                 "scheduler": ConsistencyDecoderScheduler}, # Scheduler fault
+    "Consistency": {"pipeline": ConsistencyModelPipeline,
+                    "scheduler": CMStochasticIterativeScheduler},
 
 }
 
@@ -224,8 +224,13 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
 
-            # pipeline = DDPMPipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
-            pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            # Get the name of selected_pipeline
+            pipeline_name = selected_pipeline.__class__.__name__
+            if 'LDMP' in pipeline_name:
+                pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
+                                             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            else:
+                pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
@@ -288,8 +293,66 @@ def main(data_dir):
         # Update output_dir
         model_config.output_dir = os.path.join(model_config.base_output_dir, f"{k}")
 
-        # noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
-        noise_scheduler = selected_scheduler(num_train_timesteps=1000)
+        # Get the name of scheduler
+        scheduler_name = selected_scheduler.__class__.__name__
+        if 'DDPM' in scheduler_name:
+            noise_scheduler = selected_scheduler.from_config(
+                selected_pipeline.scheduler.config,
+                num_train_timesteps=1000,
+                beta_start=0.0001,
+                beta_end=0.02,
+                beta_schedule="linear",
+            )
+        elif 'DDIM' in scheduler_name:
+            noise_scheduler = selected_scheduler.from_config(
+                selected_pipeline.scheduler.config,
+                num_train_timesteps=1000,
+                beta_start=0.0001,
+                beta_end=0.02,
+                beta_schedule="linear",
+                eta=0.5,
+                clip_sample=False,
+                timestep_spacing="trailing"
+            )
+        elif 'PDNM' in scheduler_name:
+            noise_scheduler = selected_scheduler.from_config(
+                selected_pipeline.scheduler.config,
+                num_train_timesteps=1000,
+                beta_start=0.0001,
+                beta_end=0.02,
+                beta_schedule="linear",
+            )
+        elif 'ScoreSdeVe' in scheduler_name:
+            noise_scheduler = selected_scheduler.from_config(
+                selected_pipeline.scheduler.config,
+                num_train_timesteps=1000,
+                snr=0.15,
+                sigma_min=0.001,
+                sigma_max=2348.0,
+                sampling_eps=1e-3,
+                correct_steps=3,
+            )
+        elif 'Karras' in scheduler_name:
+            noise_scheduler = selected_scheduler.from_config(
+                selected_pipeline.scheduler.config,
+                sigma_min=0.0001,
+                sigma_max=200,
+                s_churn=90.0,
+                # s_min=0.05,
+                # s_max=50,
+            )
+        elif 'CMS' in scheduler_name:
+            noise_scheduler = selected_scheduler.from_config(
+                selected_pipeline.scheduler.config,
+                num_train_timesteps=1000,
+                sigma_min=0.001,
+                sigma_max=200,
+                # s_noise=1.0,
+                # rho=0.7,
+            )
+        else:
+            noise_scheduler = selected_scheduler(num_train_timesteps=1000)
+
         args = (model_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device,
                 selected_pipeline, wandb_run)
 
