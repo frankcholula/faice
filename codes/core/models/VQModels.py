@@ -12,13 +12,6 @@ vqvae = VQModel(
     sample_size=model_config.image_size,  # the target image resolution
     in_channels=3,  # RGB images
     out_channels=3,
-    # width=128,
-    # height=128,
-    # depth=64,
-    # num_embeddings=8192,
-    # commitment_cost=0.25,
-    decay=0.99,
-    eps=1e-5,
     layers_per_block=2,  # how many ResNet layers to use per UNet block
     block_out_channels=(128, 128, 256, 256, 512, 512),
     # the number of output channels for each UNet block
