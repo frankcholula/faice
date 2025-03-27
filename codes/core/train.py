@@ -35,7 +35,6 @@ from codes.conf.model_config import wandb_config
 from codes.core.FID_score import calculate_fid, make_fid_input_images
 # from codes.core.models.U_Net2D_with_pretrain import unet2d_model
 from codes.core.models.U_Net2D import unet2d_model
-from codes.core.models.VQModels import vqvae
 
 # Capture the error with Sentry
 sentry_sdk.init(SETTINGS.SENTRY_URL)
@@ -52,8 +51,8 @@ pipeline_selector = {
 
     "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
     # unexpected keyword argument num_train_timesteps
-    "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
-    "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+    # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
+    # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
 
 
     "Consistency": {"pipeline": ConsistencyModelPipeline,
@@ -226,11 +225,11 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
             # Get the name of selected_pipeline
             pipeline_name = selected_pipeline.__class__.__name__
-            if 'LDMP' in pipeline_name:
-                pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
-                                             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
-            else:
-                pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            # if 'LDMP' in pipeline_name:
+            #     pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
+            #                                  unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            # else:
+            pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
