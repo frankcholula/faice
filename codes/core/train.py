@@ -35,6 +35,7 @@ from codes.conf.model_config import wandb_config
 from codes.core.FID_score import calculate_fid, make_fid_input_images
 # from codes.core.models.U_Net2D_with_pretrain import unet2d_model
 from codes.core.models.U_Net2D import unet2d_model
+from codes.core.models.VQModels import vqvae
 
 # Capture the error with Sentry
 sentry_sdk.init(SETTINGS.SENTRY_URL)
@@ -49,11 +50,11 @@ pipeline_selector = {
     "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
     "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
 
-    "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
     # unexpected keyword argument num_train_timesteps
-    # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
-    # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+    "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
 
+    "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
+    "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
 
     "Consistency": {"pipeline": ConsistencyModelPipeline,
                     "scheduler": CMStochasticIterativeScheduler},
@@ -189,6 +190,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
     global_step = 0
 
+    # Get the name of selected_pipeline
+    pipeline_name = selected_pipeline.__class__.__name__
+
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
@@ -196,8 +200,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
-            # Sample noise to add to the images
-            noise = torch.randn(clean_images.shape).to(device)
+
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
@@ -205,9 +208,20 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 0, noise_scheduler.config.num_train_timesteps, (bs,), device=device
             ).long()
 
-            # Add noise to the clean images according to the noise magnitude at each timestep
-            # (this is the forward diffusion process)
-            noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+            if 'LDMP' in pipeline_name:
+                # Encode image to latent space
+                latents = vqvae.encode(clean_images).latents
+                # Add noise (diffusion process)
+                noise = torch.randn_like(latents)
+                # Add noise to the clean images according to the noise magnitude at each timestep
+                # (this is the forward diffusion process)
+                noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
+            else:
+                # Sample noise to add to the images
+                noise = torch.randn(clean_images.shape).to(device)
+                # Add noise to the clean images according to the noise magnitude at each timestep
+                # (this is the forward diffusion process)
+                noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
@@ -233,13 +247,11 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
 
-            # Get the name of selected_pipeline
-            pipeline_name = selected_pipeline.__class__.__name__
-            # if 'LDMP' in pipeline_name:
-            #     pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
-            #                                  unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
-            # else:
-            pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            if 'LDMP' in pipeline_name:
+                pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
+                                             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+            else:
+                pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
             if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
