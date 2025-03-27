@@ -35,7 +35,7 @@ from codes.conf.model_config import wandb_config
 from codes.core.FID_score import calculate_fid, make_fid_input_images
 # from codes.core.models.U_Net2D_with_pretrain import unet2d_model
 from codes.core.models.U_Net2D import unet2d_model
-from codes.core.models.VQModels import vqvae
+# from codes.core.models.VQModels import vqvae
 
 # Capture the error with Sentry
 sentry_sdk.init(SETTINGS.SENTRY_URL)
@@ -48,18 +48,16 @@ pipeline_selector = {
 
     # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
-
-    "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler},
-    # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
-    "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
-
-    "Consistency": {"pipeline": ConsistencyModelPipeline,
-                    "scheduler": CMStochasticIterativeScheduler},
-
     "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
 
     # unexpected keyword argument num_train_timesteps
     "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
+
+    # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
+    # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+
+    "Consistency": {"pipeline": ConsistencyModelPipeline,
+                    "scheduler": CMStochasticIterativeScheduler},
 
 }
 
@@ -211,13 +209,14 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             ).long()
 
             if 'LDMP' in pipeline_name:
+                pass
                 # Encode image to latent space
-                latents = vqvae.encode(clean_images).latents
-                # Add noise (diffusion process)
-                noise = torch.randn_like(latents)
-                # Add noise to the clean images according to the noise magnitude at each timestep
-                # (this is the forward diffusion process)
-                noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
+                # latents = vqvae.encode(clean_images).latents
+                # # Add noise (diffusion process)
+                # noise = torch.randn_like(latents)
+                # # Add noise to the clean images according to the noise magnitude at each timestep
+                # # (this is the forward diffusion process)
+                # noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
             else:
                 # Sample noise to add to the images
                 noise = torch.randn(clean_images.shape).to(device)
@@ -250,8 +249,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         if accelerator.is_main_process:
 
             if 'LDMP' in pipeline_name:
-                pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
-                                             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+                pass
+                # pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
+                #                              unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             else:
                 pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
 
