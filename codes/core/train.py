@@ -106,15 +106,25 @@ def generate_images_for_test(config, pipeline, num_images=model_config.num_image
     num_batches = (num_images + batch_size - 1) // batch_size  # Ceiling division
 
     all_fake_images = []
+    pipeline_name = pipeline.__class__.__name__
 
     for i in trange(num_batches):
         batch_seed = config.seed + i  # Use a different seed for each batch to ensure diversity
-        images = pipeline(
-            batch_size=batch_size,
-            generator=torch.manual_seed(batch_seed),
-            output_type="np",
-            num_inference_steps=1000
-        ).images
+        if 'DDIM' in pipeline_name:
+            images = pipeline(
+                eta=0.5,
+                batch_size=batch_size,
+                generator=torch.manual_seed(batch_seed),
+                output_type="np",
+                num_inference_steps=1000
+            ).images
+        else:
+            images = pipeline(
+                batch_size=batch_size,
+                generator=torch.manual_seed(batch_seed),
+                output_type="np",
+                num_inference_steps=1000
+            ).images
 
         # Convert images from float32 to uint8
         images_uint8 = (images * 255).astype(np.uint8)
