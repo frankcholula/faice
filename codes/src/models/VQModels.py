@@ -37,3 +37,4 @@ vqvae = VQModel(
         "UpBlock2D",
     ),
 )
+

@@ -28,15 +28,15 @@ from sentry_sdk import capture_exception
 import wandb
 
 from codes.conf.log_conf import logger
-from codes.core.data_exploration.preprocess_data import get_data
+from codes.src.data_exploration.preprocess_data import get_data
 from codes.conf.global_setting import BASE_DIR, SETTINGS
 from codes.conf.model_config import model_config
 from codes.conf.model_config import wandb_config
-from codes.core.FID_score import calculate_fid, make_fid_input_images
-# from codes.core.models.U_Net2D_with_pretrain import unet2d_model
-from codes.core.models.U_Net2D import unet2d_model
+from codes.src.FID_score import calculate_fid, make_fid_input_images
+# from codes.src.models.U_Net2D_with_pretrain import unet2d_model
+from codes.src.models.U_Net2D import unet2d_model
 
-# from codes.core.models.VQModels import vqvae
+# from codes.src.models.VQModels import vqvae
 
 # Capture the error with Sentry
 sentry_sdk.init(SETTINGS.SENTRY_URL)
@@ -47,14 +47,14 @@ pipeline_selector = {
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
 
-    "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
-    "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
+    # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
+    # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
     # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
 
     # unexpected keyword argument num_train_timesteps
     # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
 
-    # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
+    "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
     # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
 
     # "Consistency": {"pipeline": ConsistencyModelPipeline,
