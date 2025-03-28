@@ -49,7 +49,7 @@ pipeline_selector = {
 
     # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
-    # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
+    "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
 
     # unexpected keyword argument num_train_timesteps
     # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
@@ -57,8 +57,8 @@ pipeline_selector = {
     # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
     # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
 
-    "Consistency": {"pipeline": ConsistencyModelPipeline,
-                    "scheduler": CMStochasticIterativeScheduler},
+    # "Consistency": {"pipeline": ConsistencyModelPipeline,
+    #                 "scheduler": CMStochasticIterativeScheduler},
 
 }
 
