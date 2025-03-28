@@ -319,16 +319,14 @@ def main(data_dir):
         # Get the name of scheduler
         scheduler_name = selected_scheduler.__name__
         if 'DDPM' in scheduler_name:
-            noise_scheduler = selected_scheduler.from_config(
-                selected_pipeline.scheduler.config,
+            noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 beta_start=0.0001,
                 beta_end=0.02,
                 beta_schedule="linear",
             )
         elif 'DDIM' in scheduler_name:
-            noise_scheduler = selected_scheduler.from_config(
-                selected_pipeline.scheduler.config,
+            noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 beta_start=0.0001,
                 beta_end=0.02,
@@ -338,16 +336,14 @@ def main(data_dir):
                 timestep_spacing="trailing"
             )
         elif 'PDNM' in scheduler_name:
-            noise_scheduler = selected_scheduler.from_config(
-                selected_pipeline.scheduler.config,
+            noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 beta_start=0.0001,
                 beta_end=0.02,
                 beta_schedule="linear",
             )
         elif 'ScoreSdeVe' in scheduler_name:
-            noise_scheduler = selected_scheduler.from_config(
-                selected_pipeline.scheduler.config,
+            noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 snr=0.15,
                 sigma_min=0.001,
@@ -356,8 +352,7 @@ def main(data_dir):
                 correct_steps=3,
             )
         elif 'Karras' in scheduler_name:
-            noise_scheduler = selected_scheduler.from_config(
-                selected_pipeline.scheduler.config,
+            noise_scheduler = selected_scheduler(
                 sigma_min=0.0001,
                 sigma_max=200,
                 s_churn=90.0,
@@ -365,8 +360,7 @@ def main(data_dir):
                 # s_max=50,
             )
         elif 'CMS' in scheduler_name:
-            noise_scheduler = selected_scheduler.from_config(
-                selected_pipeline.scheduler.config,
+            noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 sigma_min=0.001,
                 sigma_max=200,
