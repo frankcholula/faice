@@ -343,8 +343,7 @@ def main(data_dir):
                 beta_start=0.0001,
                 beta_end=0.02,
                 beta_schedule="linear",
-                eta=0.5,
-                clip_sample=False,
+                # clip_sample=False,
                 timestep_spacing="trailing"
             )
         elif 'PDNM' in scheduler_name:
