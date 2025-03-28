@@ -78,6 +78,7 @@ def evaluate(config, epoch, pipeline):
 
     # Get the name of the pipeline
     pipeline_name = pipeline.__class__.__name__
+    logger.info(f"Evaluating {pipeline_name}")
     if 'DDIM' in pipeline_name:
         images = pipeline(
             eta=0.5,
@@ -108,6 +109,7 @@ def generate_images_for_test(config, pipeline, num_images=model_config.num_image
 
     all_fake_images = []
     pipeline_name = pipeline.__class__.__name__
+    logger.info(f"Generating fake images with {pipeline_name}")
 
     for i in trange(num_batches):
         batch_seed = config.seed + i  # Use a different seed for each batch to ensure diversity
@@ -213,6 +215,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 0, num_train_timesteps, (bs,), device=device
             ).long()
 
+            # Sample noise to add to the images
+            noise = torch.randn(clean_images.shape).to(device)
+
             if 'LDMP' in pipeline_name:
                 pass
                 # Encode image to latent space
@@ -223,10 +228,8 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 # # (this is the forward diffusion process)
                 # noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
             elif 'Karras' in scheduler_name:
-                noisy_images = noise_scheduler.add_noise_to_latents(clean_images, noise, timesteps)
+                noisy_images = noise_scheduler.add_noise_to_input(clean_images, noise, timesteps)
             else:
-                # Sample noise to add to the images
-                noise = torch.randn(clean_images.shape).to(device)
                 # Add noise to the clean images according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
