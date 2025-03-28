@@ -52,7 +52,7 @@ pipeline_selector = {
     # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
 
     # unexpected keyword argument num_train_timesteps
-    "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
+    # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
 
     # "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
     # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
