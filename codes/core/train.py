@@ -365,7 +365,7 @@ def main(data_dir):
             noise_scheduler = selected_scheduler(
                 sigma_min=0.02,
                 sigma_max=100,
-                s_churn=90.0,
+                s_churn=80.0,
                 s_min=0.01,
                 s_max=100,
             )
