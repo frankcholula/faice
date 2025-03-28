@@ -47,9 +47,9 @@ pipeline_selector = {
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
 
-    # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
-    # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
-    "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
+    "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
+    "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
+    # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
 
     # unexpected keyword argument num_train_timesteps
     # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
