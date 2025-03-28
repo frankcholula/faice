@@ -35,6 +35,7 @@ from codes.conf.model_config import wandb_config
 from codes.core.FID_score import calculate_fid, make_fid_input_images
 # from codes.core.models.U_Net2D_with_pretrain import unet2d_model
 from codes.core.models.U_Net2D import unet2d_model
+
 # from codes.core.models.VQModels import vqvae
 
 # Capture the error with Sentry
@@ -228,7 +229,8 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 # # (this is the forward diffusion process)
                 # noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
             elif 'Karras' in scheduler_name:
-                noisy_images = noise_scheduler.add_noise_to_input(clean_images, noise, timesteps)
+                noisy_images = noise_scheduler.add_noise_to_input(clean_images, sigma=0.02,
+                                                                  generator=torch.manual_seed(config.seed))
             else:
                 # Add noise to the clean images according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
