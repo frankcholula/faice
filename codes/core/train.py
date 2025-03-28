@@ -364,10 +364,10 @@ def main(data_dir):
         elif 'Karras' in scheduler_name:
             noise_scheduler = selected_scheduler(
                 sigma_min=0.02,
-                sigma_max=100,
-                s_churn=80.0,
-                s_min=0.01,
-                s_max=100,
+                # sigma_max=100,
+                # s_churn=80.0,
+                # s_min=0.01,
+                # s_max=100,
             )
         elif 'CMS' in scheduler_name:
             noise_scheduler = selected_scheduler(
