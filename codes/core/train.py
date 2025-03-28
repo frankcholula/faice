@@ -222,6 +222,8 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 # # Add noise to the clean images according to the noise magnitude at each timestep
                 # # (this is the forward diffusion process)
                 # noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
+            elif 'Karras' in scheduler_name:
+                noisy_images = noise_scheduler.add_noise_to_latents(clean_images, noise, timesteps)
             else:
                 # Sample noise to add to the images
                 noise = torch.randn(clean_images.shape).to(device)
