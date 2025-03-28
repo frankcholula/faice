@@ -192,6 +192,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
     # Get the name of selected_pipeline
     pipeline_name = selected_pipeline.__name__
+    scheduler_name = noise_scheduler.__name__
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -204,8 +205,12 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
+            if 'Karras' in scheduler_name:
+                num_train_timesteps = 1000
+            else:
+                num_train_timesteps = noise_scheduler.config.num_train_timesteps
             timesteps = torch.randint(
-                0, noise_scheduler.config.num_train_timesteps, (bs,), device=device
+                0, num_train_timesteps, (bs,), device=device
             ).long()
 
             if 'LDMP' in pipeline_name:
