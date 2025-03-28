@@ -8,6 +8,7 @@
 from diffusers import VQModel
 from codes.conf.model_config import model_config
 
+# TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
 vqvae = VQModel(
     sample_size=model_config.image_size,  # the target image resolution
     in_channels=3,  # RGB images
