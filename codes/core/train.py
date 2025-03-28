@@ -77,7 +77,7 @@ def evaluate(config, epoch, pipeline):
     # The default pipeline output type is `List[PIL.Image]`
 
     # Get the name of the pipeline
-    pipeline_name = pipeline.__name__
+    pipeline_name = pipeline.__class__.__name__
     if 'DDIM' in pipeline_name:
         images = pipeline(
             eta=0.5,
@@ -107,7 +107,7 @@ def generate_images_for_test(config, pipeline, num_images=model_config.num_image
     num_batches = (num_images + batch_size - 1) // batch_size  # Ceiling division
 
     all_fake_images = []
-    pipeline_name = pipeline.__name__
+    pipeline_name = pipeline.__class__.__name__
 
     for i in trange(num_batches):
         batch_seed = config.seed + i  # Use a different seed for each batch to ensure diversity
@@ -192,7 +192,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
     # Get the name of selected_pipeline
     pipeline_name = selected_pipeline.__name__
-    scheduler_name = noise_scheduler.__name__
+    scheduler_name = noise_scheduler.__class__.__name__
 
     # Now you train the model
     for epoch in range(config.num_epochs):
