@@ -19,6 +19,7 @@ import wandb
 from conf.wandb_config import setup_wandb
 from utils.metrics import calculate_fid_score, get_full_repo_name
 from utils.metrics import evaluate
+from utils.loggers import WandBLogger, setup_accelerator
 
 load_dotenv()
 setup_wandb()
