@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-
 # Deep learning framework
 import torch
 import torch.nn.functional as F
@@ -15,7 +14,6 @@ from huggingface_hub import Repository
 from accelerate import Accelerator
 
 # Configuration
-import wandb
 from utils.metrics import calculate_fid_score, get_full_repo_name
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
@@ -42,24 +40,8 @@ def train_loop(
     )
 
     # Initialize wandb
-    if config.use_wandb and accelerator.is_main_process:
-        wandb.init(
-            entity=config.wandb_entity,
-            project=config.wandb_project,
-            name=config.wandb_run_name,
-            config={
-                "learning_rate": config.learning_rate,
-                "epochs": config.num_epochs,
-                "train_batch_size": config.train_batch_size,
-                "image_size": config.image_size,
-                "seed": config.seed,
-                "dataset": config.dataset_name,
-                "model_architecture": "UNet2D",
-                "scheduler": "DDPM",
-            },
-        )
-        if config.wandb_watch_model:
-            wandb.watch(model, log="all", log_freq=10)
+    wandb_logger = WandBLogger(config, accelerator)
+    wandb_logger.setup(model)
 
     if accelerator.is_main_process:
         if config.push_to_hub:
@@ -130,8 +112,7 @@ def train_loop(
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
 
-            if config.use_wandb and accelerator.is_main_process:
-                wandb.log(logs, step=global_step)
+            wandb_logger.log_step(logs, global_step)
 
             global_step += 1
 
@@ -166,8 +147,6 @@ def train_loop(
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
-        if config.use_wandb and fid_score is not None:
-            wandb.run.summary["fid_score"] = fid_score
+        wandb_logger.log_fid_score(fid_score)
 
-    if config.use_wandb and accelerator.is_main_process:
-        wandb.finish()
+    wandb_logger.finish()
