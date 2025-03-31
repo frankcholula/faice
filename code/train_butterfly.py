@@ -15,7 +15,7 @@ from diffusers.optimization import get_cosine_schedule_with_warmup
 
 # Configuration
 from conf.training_config import ButterflyConfig
-from diffusion_pipeline import train_loop
+from pipelines.ddpm import train_loop
 
 from models.unet import create_unet
 
