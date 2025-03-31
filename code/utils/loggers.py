@@ -1,15 +1,6 @@
 # Standard library imports
 import os
-from pathlib import Path
-
-# Logging and tracking
 import wandb
-from accelerate import Accelerator
-from huggingface_hub import Repository
-
-# Local imports
-from utils.metrics import get_full_repo_name
-
 
 class WandBLogger:
     def __init__(self, config, accelerator):
