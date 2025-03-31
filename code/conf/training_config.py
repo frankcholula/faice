@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 import os
 
+
 @dataclass
 class BaseConfig:
     """
@@ -37,14 +38,15 @@ class BaseConfig:
     # wandb params
     use_wandb: bool = True  # use wandb for logging
     wandb_entity: str = os.getenv("WANDB_ENTITY")
-
     wandb_project: str = "faice"
-
     wandb_run_name: Optional[str] = None
     wandb_watch_model: bool = True
 
     # dataset
     dataset_name: str = field(default=None)
+
+    # evaluation
+    calculate_fid: bool = False
 
     def __post_init__(self):
         if self.output_dir is None:
@@ -57,7 +59,7 @@ class BaseConfig:
 
 @dataclass
 class ButterflyConfig(BaseConfig):
-    num_epochs: int = 5
+    num_epochs: int = 1
     output_dir: str = "ddpm-butterflies-128"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
     wandb_run_name: str = f"ddpm-butterflies-128-{num_epochs}"
