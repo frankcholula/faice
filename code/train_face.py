@@ -17,7 +17,7 @@ from diffusers.optimization import get_cosine_schedule_with_warmup
 
 # Local configuration
 from conf.training_config import FaceConfig
-from diffusion_pipeline import train_loop
+from pipelines.ddpm import train_loop
 
 
 class CelebaAHQDataset(Dataset):
