@@ -11,12 +11,12 @@ from tqdm.auto import tqdm
 # Hugging Face
 from diffusers import DDPMPipeline
 from huggingface_hub import Repository
-from accelerate import Accelerator
 
 # Configuration
 from utils.metrics import calculate_fid_score, get_full_repo_name
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
+from utils.training import setup_accelerator
 
 load_dotenv()
 WandBLogger.login()
@@ -31,29 +31,14 @@ def train_loop(
     lr_scheduler,
     test_dataloader,
 ):
-    # Initialize accelerator and tensorboard logging
-    accelerator = Accelerator(
-        mixed_precision=config.mixed_precision,
-        gradient_accumulation_steps=config.gradient_accumulation_steps,
-        log_with="tensorboard",
-        project_dir=os.path.join(config.output_dir, "logs"),
-    )
+    accelerator, repo = setup_accelerator(config)
 
     # Initialize wandb
     wandb_logger = WandBLogger(config, accelerator)
     wandb_logger.setup(model)
 
-    if accelerator.is_main_process:
-        if config.push_to_hub:
-            repo_name = get_full_repo_name(Path(config.output_dir).name)
-            repo = Repository(config.output_dir, clone_from=repo_name)
-        elif config.output_dir is not None:
-            os.makedirs(config.output_dir, exist_ok=True)
-        accelerator.init_trackers("train_example")
-
     # Prepare everything
-    # There is no specific order to remember, you just need to unpack the
-    # objects in the same order you gave them to the prepare method.
+    # There is no specific order to remember, you just need to unpack the objects in the same order you gave them to the prepare method.
     if test_dataloader is not None:
         model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
             accelerator.prepare(
@@ -136,12 +121,15 @@ def train_loop(
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
                     pipeline.save_pretrained(config.output_dir)
-        if accelerator.is_main_process and config.calculate_fid:
 
             progress_bar.close()
 
     # Now we evaluate the model on the test set
-    if accelerator.is_main_process and config.calculate_fid:
+    if (
+        accelerator.is_main_process
+        and config.calculate_fid
+        and test_dataloader is not None
+    ):
         pipeline = DDPMPipeline(
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
