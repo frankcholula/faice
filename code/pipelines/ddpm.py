@@ -22,7 +22,7 @@ def train_loop(
     optimizer,
     train_dataloader,
     lr_scheduler,
-    test_dataloader,
+    test_dataloader = None
 ):
     accelerator, repo = setup_accelerator(config)
 
