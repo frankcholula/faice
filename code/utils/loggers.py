@@ -9,7 +9,7 @@ class WandBLogger:
         self.is_initialized = False
 
     @staticmethod
-    def login_wandb():
+    def login():
         if "WANDB_API_KEY" in os.environ:
             try:
                 wandb.login(key=os.environ["WANDB_API_KEY"])
