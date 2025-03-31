@@ -4,7 +4,7 @@ from typing import Optional
 import os
 
 @dataclass
-class TrainingConfig:
+class BaseConfig:
     """
     Base configuration for diffuser training.
     """
@@ -56,14 +56,15 @@ class TrainingConfig:
 
 
 @dataclass
-class ButterflyConfig(TrainingConfig):
+class ButterflyConfig(BaseConfig):
+    num_epochs: int = 5
     output_dir: str = "ddpm-butterflies-128"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
-    wandb_run_name: str = f"ddpm-butterflies-128-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    wandb_run_name: str = f"ddpm-butterflies-128-{num_epochs}"
 
 
 @dataclass
-class FaceConfig(TrainingConfig):
+class FaceConfig(BaseConfig):
     output_dir: str = "ddpm-celebahq-256"
     dataset_name: str = "uos-celebahq-256x256"
     num_epochs: int = 1
@@ -72,4 +73,4 @@ class FaceConfig(TrainingConfig):
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
     calculate_fid: bool = True
-    wandb_run_name: str = f"ddpm-celebahq-256-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    wandb_run_name: str = f"ddpm-celebahq-256-{num_epochs}"
