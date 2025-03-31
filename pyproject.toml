@@ -1,11 +1,14 @@
 [tool.poetry]
-name = "code"
+name = "faice"
 version = "0.1.0"
-description = "project code goes here."
+description = "human face generation with diffusion models"
 authors = ["frankcholula <lu.phrank@gmail.com>"]
 license = "GPL-3.0-or-later"
 readme = "README.md"
-package-mode = false
+packages = [
+    { include = "code" }
+]
+
 
 [tool.poetry.dependencies]
 python = ">=3.10, <4.0"
