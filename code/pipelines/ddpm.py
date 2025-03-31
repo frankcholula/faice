@@ -1,9 +1,3 @@
-# Standard library imports
-import os
-from pathlib import Path
-from dotenv import load_dotenv
-
-
 # Deep learning framework
 import torch
 import torch.nn.functional as F
@@ -11,17 +5,14 @@ from tqdm.auto import tqdm
 
 # Hugging Face
 from diffusers import DDPMPipeline
-from huggingface_hub import Repository
-from accelerate import Accelerator
 
 # Configuration
-import wandb
-from conf.wandb_config import setup_wandb
-from utils.metrics import calculate_fid_score, get_full_repo_name
+from utils.metrics import calculate_fid_score
 from utils.metrics import evaluate
+from utils.loggers import WandBLogger
+from utils.training import setup_accelerator
 
-load_dotenv()
-setup_wandb()
+WandBLogger.login()
 
 
 def train_loop(
@@ -31,47 +22,16 @@ def train_loop(
     optimizer,
     train_dataloader,
     lr_scheduler,
-    test_dataloader,
+    test_dataloader = None
 ):
-    # Initialize accelerator and tensorboard logging
-    accelerator = Accelerator(
-        mixed_precision=config.mixed_precision,
-        gradient_accumulation_steps=config.gradient_accumulation_steps,
-        log_with="tensorboard",
-        project_dir=os.path.join(config.output_dir, "logs"),
-    )
+    accelerator, repo = setup_accelerator(config)
 
     # Initialize wandb
-    if config.use_wandb and accelerator.is_main_process:
-        wandb.init(
-            entity=config.wandb_entity,
-            project=config.wandb_project,
-            name=config.wandb_run_name,
-            config={
-                "learning_rate": config.learning_rate,
-                "epochs": config.num_epochs,
-                "train_batch_size": config.train_batch_size,
-                "image_size": config.image_size,
-                "seed": config.seed,
-                "dataset": config.dataset_name,
-                "model_architecture": "UNet2D",
-                "scheduler": "DDPM",
-            },
-        )
-        if config.wandb_watch_model:
-            wandb.watch(model, log="all", log_freq=10)
-
-    if accelerator.is_main_process:
-        if config.push_to_hub:
-            repo_name = get_full_repo_name(Path(config.output_dir).name)
-            repo = Repository(config.output_dir, clone_from=repo_name)
-        elif config.output_dir is not None:
-            os.makedirs(config.output_dir, exist_ok=True)
-        accelerator.init_trackers("train_example")
+    wandb_logger = WandBLogger(config, accelerator)
+    wandb_logger.setup(model)
 
     # Prepare everything
-    # There is no specific order to remember, you just need to unpack the
-    # objects in the same order you gave them to the prepare method.
+    # There is no specific order to remember, you just need to unpack the objects in the same order you gave them to the prepare method.
     if test_dataloader is not None:
         model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
             accelerator.prepare(
@@ -130,8 +90,7 @@ def train_loop(
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
 
-            if config.use_wandb and accelerator.is_main_process:
-                wandb.log(logs, step=global_step)
+            wandb_logger.log_step(logs, global_step)
 
             global_step += 1
 
@@ -155,19 +114,20 @@ def train_loop(
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
                     pipeline.save_pretrained(config.output_dir)
-        if accelerator.is_main_process and config.calculate_fid:
 
             progress_bar.close()
 
     # Now we evaluate the model on the test set
-    if accelerator.is_main_process and config.calculate_fid:
+    if (
+        accelerator.is_main_process
+        and config.calculate_fid
+        and test_dataloader is not None
+    ):
         pipeline = DDPMPipeline(
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
-        if config.use_wandb and fid_score is not None:
-            wandb.run.summary["fid_score"] = fid_score
+        wandb_logger.log_fid_score(fid_score)
 
-    if config.use_wandb and accelerator.is_main_process:
-        wandb.finish()
+    wandb_logger.finish()
