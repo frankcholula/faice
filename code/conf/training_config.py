@@ -38,7 +38,7 @@ class TrainingConfig:
     use_wandb: bool = True  # use wandb for logging
     wandb_entity: str = os.getenv("WANDB_ENTITY")
 
-    wandb_project: str = field(default=None)
+    wandb_project: str = "faice"
 
     wandb_run_name: Optional[str] = None
     wandb_watch_model: bool = True
@@ -51,8 +51,6 @@ class TrainingConfig:
             raise NotImplementedError("output_dir must be specified")
         if self.dataset_name is None:
             raise NotImplementedError("dataset_name must be specified")
-        if self.wandb_project is None:
-            raise NotImplementedError("wandb_project must be specified")
         if self.wandb_run_name is None:
             self.wandb_run_name = f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
@@ -61,17 +59,17 @@ class TrainingConfig:
 class ButterflyConfig(TrainingConfig):
     output_dir: str = "ddpm-butterflies-128"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
-    wandb_project: str = "ddpm-butterflies-128"
+    wandb_run_name: str = f"ddpm-butterflies-128-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
 
 @dataclass
 class FaceConfig(TrainingConfig):
     output_dir: str = "ddpm-celebahq-256"
     dataset_name: str = "uos-celebahq-256x256"
-    wandb_project: str = "ddpm-celebahq-256"
     num_epochs: int = 1
     save_image_epochs: int = 1
     save_model_epochs: int = 1
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
     calculate_fid: bool = True
+    wandb_run_name: str = f"ddpm-celebahq-256-{datetime.now().strftime('%Y%m%d-%H%M%S')}"

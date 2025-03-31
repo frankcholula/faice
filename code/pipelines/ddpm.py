@@ -1,8 +1,3 @@
-# Standard library imports
-import os
-from pathlib import Path
-from dotenv import load_dotenv
-
 # Deep learning framework
 import torch
 import torch.nn.functional as F
@@ -10,15 +5,13 @@ from tqdm.auto import tqdm
 
 # Hugging Face
 from diffusers import DDPMPipeline
-from huggingface_hub import Repository
 
 # Configuration
-from utils.metrics import calculate_fid_score, get_full_repo_name
+from utils.metrics import calculate_fid_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
-load_dotenv()
 WandBLogger.login()
 
 

@@ -1,6 +1,10 @@
 # Standard library imports
 import os
 import wandb
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class WandBLogger:
     def __init__(self, config, accelerator):
