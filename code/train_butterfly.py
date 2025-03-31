@@ -43,7 +43,7 @@ train_dataloader = torch.utils.data.DataLoader(
     dataset, batch_size=config.train_batch_size, shuffle=True
 )
 
-model = creat_unet(config)
+model = create_unet(config)
 sample_image = dataset[0]["images"].unsqueeze(0)
 assert sample_image.shape == model(sample_image, timestep=0).sample.shape
 
