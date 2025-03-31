@@ -74,5 +74,5 @@ class FaceConfig(BaseConfig):
     save_model_epochs: int = 1
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
-    calculate_fid: bool = True
+    calculate_fid: bool = False
     wandb_run_name: str = f"ddpm-celebahq-256-{num_epochs}"
