@@ -65,7 +65,7 @@ def transform(examples):
 
 
 model = create_unet(config)
-# some sanity checkss
+# some sanity checks
 sample_image = train_dataset[0]["images"].unsqueeze(0)
 assert sample_image.shape == model(sample_image, timestep=0).sample.shape
 
