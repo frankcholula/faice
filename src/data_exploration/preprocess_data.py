@@ -5,17 +5,13 @@
 @File : preprocess_data.py
 @Project : faice
 """
-import os
 
-from PIL import Image
-import numpy as np
-import torch.utils.data as data
 from torchvision import transforms
 import matplotlib.pyplot as plt
 from datasets import load_dataset
 
-from codes.conf.global_setting import BASE_DIR
-from codes.conf.model_config import model_config as config
+from conf.global_setting import BASE_DIR
+from conf.model_config import model_config as config
 
 
 def transform(examples):
@@ -39,7 +35,7 @@ def get_data(data_path, do_trans=True):
     # Load local image data
     dataset = load_dataset("imagefolder", data_dir=data_path, split="train")
 
-    # image datasets
+    # image data
     if do_trans:
         dataset.set_transform(transform)
 

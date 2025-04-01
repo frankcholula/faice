@@ -5,17 +5,15 @@
 @File : train.py
 @Project : faice
 """
+
 import os
 from dataclasses import asdict
 
 import numpy as np
 import torch
 from PIL import Image
-from diffusers import DDPMPipeline, DDIMPipeline, PNDMPipeline, ConsistencyModelPipeline, ScoreSdeVePipeline, \
-    KarrasVePipeline, LDMPipeline, UniDiffuserPipeline
-from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler, ScoreSdeVeScheduler, KarrasVeScheduler, \
-    UniPCMultistepScheduler
-from diffusers.schedulers import ConsistencyDecoderScheduler, CMStochasticIterativeScheduler
+from diffusers import LDMPipeline
+from diffusers import DDIMScheduler
 import torch.nn.functional as F
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from accelerate import Accelerator
@@ -27,16 +25,17 @@ import sentry_sdk
 from sentry_sdk import capture_exception
 import wandb
 
-from codes.conf.log_conf import logger
-from codes.src.data_exploration.preprocess_data import get_data
-from codes.conf.global_setting import BASE_DIR, SETTINGS
-from codes.conf.model_config import model_config
-from codes.conf.model_config import wandb_config
-from codes.src.FID_score import calculate_fid, make_fid_input_images
-# from codes.src.models.U_Net2D_with_pretrain import unet2d_model
-from codes.src.models.U_Net2D import unet2d_model
+from conf.log_conf import logger
+from src.data_exploration.preprocess_data import get_data
+from conf.global_setting import BASE_DIR, SETTINGS
+from conf.model_config import model_config
+from conf.model_config import wandb_config
+from src.FID_score import calculate_fid, make_fid_input_images
 
-# from codes.src.models.VQModels import vqvae
+# from src.models.U_Net2D_with_pretrain import unet2d_model
+from src.models.U_Net2D import unet2d_model
+
+# from src.models.VQModels import vqvae
 
 # Capture the error with Sentry
 sentry_sdk.init(SETTINGS.SENTRY_URL)
@@ -46,20 +45,18 @@ pipeline_selector = {
     # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
-
     # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
     # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
-
     # unexpected keyword argument num_train_timesteps
     # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
-
-    "LDMP_DDIM": {"pipeline": LDMPipeline, "scheduler": DDIMScheduler}, # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
+    "LDMP_DDIM": {
+        "pipeline": LDMPipeline,
+        "scheduler": DDIMScheduler,
+    },  # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
     # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
-
     # "Consistency": {"pipeline": ConsistencyModelPipeline,
     #                 "scheduler": CMStochasticIterativeScheduler},
-
 }
 
 
@@ -80,18 +77,18 @@ def evaluate(config, epoch, pipeline):
     # Get the name of the pipeline
     pipeline_name = pipeline.__class__.__name__
     logger.info(f"Evaluating {pipeline_name}")
-    if 'DDIM' in pipeline_name:
+    if "DDIM" in pipeline_name:
         images = pipeline(
             eta=0.5,
             batch_size=config.eval_batch_size,
             generator=torch.manual_seed(config.seed),
-            num_inference_steps=1000
+            num_inference_steps=1000,
         ).images
     else:
         images = pipeline(
             batch_size=config.eval_batch_size,
             generator=torch.manual_seed(config.seed),
-            num_inference_steps=1000
+            num_inference_steps=1000,
         ).images
 
     # Make a grid out of the images
@@ -113,21 +110,23 @@ def generate_images_for_test(config, pipeline, num_images=model_config.num_image
     logger.info(f"Generating fake images with {pipeline_name}")
 
     for i in trange(num_batches):
-        batch_seed = config.seed + i  # Use a different seed for each batch to ensure diversity
-        if 'DDIM' in pipeline_name:
+        batch_seed = (
+            config.seed + i
+        )  # Use a different seed for each batch to ensure diversity
+        if "DDIM" in pipeline_name:
             images = pipeline(
                 eta=0.5,
                 batch_size=batch_size,
                 generator=torch.manual_seed(batch_seed),
                 output_type="np",
-                num_inference_steps=1000
+                num_inference_steps=1000,
             ).images
         else:
             images = pipeline(
                 batch_size=batch_size,
                 generator=torch.manual_seed(batch_seed),
                 output_type="np",
-                num_inference_steps=1000
+                num_inference_steps=1000,
             ).images
 
         # Convert images from float32 to uint8
@@ -163,8 +162,17 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
         return f"{organization}/{model_id}"
 
 
-def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device,
-               selected_pipeline, wandb_run):
+def train_loop(
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    device,
+    selected_pipeline,
+    wandb_run,
+):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
         mixed_precision=config.mixed_precision,
@@ -199,7 +207,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
     # Now you train the model
     for epoch in range(config.num_epochs):
-        progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
+        progress_bar = tqdm(
+            total=len(train_dataloader), disable=not accelerator.is_local_main_process
+        )
         progress_bar.set_description(f"Epoch {epoch}")
 
         for step, batch in enumerate(train_dataloader):
@@ -208,7 +218,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
-            if 'Karras' in scheduler_name:
+            if "Karras" in scheduler_name:
                 num_train_timesteps = 1000
             else:
                 num_train_timesteps = noise_scheduler.config.num_train_timesteps
@@ -219,7 +229,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
             # Sample noise to add to the images
             noise = torch.randn(clean_images.shape).to(device)
 
-            if 'LDMP' in pipeline_name:
+            if "LDMP" in pipeline_name:
                 pass
                 # Encode image to latent space
                 # latents = vqvae.encode(clean_images).latents
@@ -228,9 +238,10 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 # # Add noise to the clean images according to the noise magnitude at each timestep
                 # # (this is the forward diffusion process)
                 # noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
-            elif 'Karras' in scheduler_name:
-                noisy_images = noise_scheduler.add_noise_to_input(clean_images, sigma=0.02,
-                                                                  generator=torch.manual_seed(config.seed))
+            elif "Karras" in scheduler_name:
+                noisy_images = noise_scheduler.add_noise_to_input(
+                    clean_images, sigma=0.02, generator=torch.manual_seed(config.seed)
+                )
             else:
                 # Add noise to the clean images according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
@@ -248,7 +259,11 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
                 optimizer.zero_grad()
 
             progress_bar.update(1)
-            logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0], "step": global_step}
+            logs = {
+                "loss": loss.detach().item(),
+                "lr": lr_scheduler.get_last_lr()[0],
+                "step": global_step,
+            }
             progress_bar.set_postfix(**logs)
             accelerator.log(logs, step=global_step)
 
@@ -259,15 +274,18 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-
-            if 'LDMP' in pipeline_name:
+            if "LDMP" in pipeline_name:
                 pass
                 # pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
                 #                              unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             else:
-                pipeline = selected_pipeline(unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+                pipeline = selected_pipeline(
+                    unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+                )
 
-            if (epoch + 1) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
+            if (
+                epoch + 1
+            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
 
                 # Calculate FID
@@ -277,7 +295,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 
                     calculate_fid(real_images, fake_images, device)
 
-            if (epoch + 1) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
+            if (
+                epoch + 1
+            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
@@ -287,8 +307,9 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
 def main(data_dir):
     # 1. Make train dataset
     dataset = get_data(data_dir)
-    train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=model_config.train_batch_size,
-                                                   shuffle=True)
+    train_dataloader = torch.utils.data.DataLoader(
+        dataset, batch_size=model_config.train_batch_size, shuffle=True
+    )
 
     # 2. Make model
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -312,48 +333,49 @@ def main(data_dir):
 
     # 4. Select pipline and scheduler
     for k, v in tqdm(pipeline_selector.items()):
-
         # Update the wandb_run_name
         origin_name = wandb_config.wandb_run_name
         run_name = f"{k}_{origin_name}"
-        wandb_run = wandb.init(entity=wandb_config.wandb_entity,
-                               project=wandb_config.wandb_project,
-                               name=run_name,
-                               config=asdict(model_config))
+        wandb_run = wandb.init(
+            entity=wandb_config.wandb_entity,
+            project=wandb_config.wandb_project,
+            name=run_name,
+            config=asdict(model_config),
+        )
 
         logger.info(f"Select {k} pipeline and scheduler")
-        selected_scheduler = v['scheduler']
-        selected_pipeline = v['pipeline']
+        selected_scheduler = v["scheduler"]
+        selected_pipeline = v["pipeline"]
 
         # Update output_dir
         model_config.output_dir = os.path.join(model_config.base_output_dir, f"{k}")
 
         # Get the name of scheduler
         scheduler_name = selected_scheduler.__name__
-        if 'DDPM' in scheduler_name:
+        if "DDPM" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 beta_start=0.0001,
                 beta_end=0.02,
                 beta_schedule="linear",
             )
-        elif 'DDIM' in scheduler_name:
+        elif "DDIM" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 beta_start=0.0001,
                 beta_end=0.02,
                 beta_schedule="linear",
                 # clip_sample=False,
-                timestep_spacing="trailing"
+                timestep_spacing="trailing",
             )
-        elif 'PDNM' in scheduler_name:
+        elif "PDNM" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 beta_start=0.0001,
                 beta_end=0.02,
                 beta_schedule="linear",
             )
-        elif 'ScoreSdeVe' in scheduler_name:
+        elif "ScoreSdeVe" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 snr=0.15,
@@ -362,7 +384,7 @@ def main(data_dir):
                 sampling_eps=1e-3,
                 correct_steps=3,
             )
-        elif 'Karras' in scheduler_name:
+        elif "Karras" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 # sigma_min=0.02,
                 # sigma_max=100,
@@ -370,7 +392,7 @@ def main(data_dir):
                 # s_min=0.01,
                 # s_max=100,
             )
-        elif 'CMS' in scheduler_name:
+        elif "CMS" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
                 sigma_min=0.001,
@@ -381,8 +403,17 @@ def main(data_dir):
         else:
             noise_scheduler = selected_scheduler(num_train_timesteps=1000)
 
-        args = (model_config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler, device,
-                selected_pipeline, wandb_run)
+        args = (
+            model_config,
+            model,
+            noise_scheduler,
+            optimizer,
+            train_dataloader,
+            lr_scheduler,
+            device,
+            selected_pipeline,
+            wandb_run,
+        )
 
         notebook_launcher(train_loop, args, num_processes=1)
 

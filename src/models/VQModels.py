@@ -6,7 +6,7 @@
 @Project : faice
 """
 from diffusers import VQModel
-from codes.conf.model_config import model_config
+from conf.model_config import model_config
 
 # TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
 vqvae = VQModel(

@@ -1,15 +1,13 @@
 # -*- coding: UTF-8 -*-
 """
-@Time : 20/03/2025 13:30
+@Time : 20/03/2025 13:29
 @Author : xiaoguangliang
-@File : U_Net_with_LoRA.py
+@File : U_Net2D.py
 @Project : faice
 """
 from diffusers import UNet2DModel
 
-from codes.conf.log_conf import logger
-from codes.conf.model_config import model_config
-from peft import LoraConfig, get_peft_model, PeftModel
+from conf.model_config import model_config
 
 
 def unet2d_model():
@@ -37,23 +35,5 @@ def unet2d_model():
             "UpBlock2D",
         ),
     )
-
-    # Define LoRA setting
-    lora_config = LoraConfig(
-        r=8,  # rank
-        lora_alpha=32,
-        # target_modules=["conv1", "conv1"],
-        target_modules=["down_blocks.0.resnets.0.conv1", "down_blocks.0.resnets.0.conv2"],
-        lora_dropout=0.1,
-        bias="none",
-        task_type="FEATURE_EXTRACTION",
-        inference_mode=False
-    )
-
-    # Apply LoRA
-    model = get_peft_model(model, lora_config)
-    # Load LoRA weights from the pretrained repository "sassad/face-lora".
-    logger.info("LoRA weights loaded into UNet2DModel.")
-    model = PeftModel.from_pretrained(model, "sassad/face-lora")
 
     return model

@@ -15,9 +15,9 @@ import numpy as np
 from torchvision.transforms import functional as F
 from torchmetrics.image.fid import FrechetInceptionDistance
 
-from codes.conf.log_conf import logger
-from codes.conf.global_setting import BASE_DIR
-from codes.conf.model_config import model_config
+from conf.log_conf import logger
+from conf.global_setting import BASE_DIR
+from conf.model_config import model_config
 
 
 def preprocess_image(image):

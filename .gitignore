@@ -478,8 +478,8 @@ cython_debug/
 .idea/
 
 
-/codes/data/*
-/codes/ddpm-butterflies-128
-/codes/output/*
-/codes/logs/*
+/data/*
+/ddpm-butterflies-128
+/output/*
+/logs/*
 wandb
