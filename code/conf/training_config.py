@@ -60,14 +60,14 @@ class BaseConfig:
 @dataclass
 class ButterflyConfig(BaseConfig):
     num_epochs: int = 1
-    output_dir: str = "ddpm-butterflies-128"
+    output_dir: str = "runs/ddpm-butterflies-128"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
     wandb_run_name: str = f"ddpm-butterflies-128-{num_epochs}"
 
 
 @dataclass
 class FaceConfig(BaseConfig):
-    output_dir: str = "ddpm-celebahq-256"
+    output_dir: str = "runs/ddpm-celebahq-256"
     dataset_name: str = "uos-celebahq-256x256"
     num_epochs: int = 1
     save_image_epochs: int = 1
