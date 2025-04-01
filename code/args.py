@@ -66,3 +66,15 @@ def parse_args():
     parser.add_argument(
         "--num_epochs", type=int, default=20, help="Number of epochs for training"
     )
+    parser.add_argument(
+        "--image_size", type=int, default=256, help="Image size for training"
+    )
+    parser.add_argument(
+        "--output_dir", type=str, default="runs", help="Output directory for training"
+    )
+    parser.add_argument("--seed", type=int, default=0, help="Random seed for training")
+    parser.add_argument(
+        "--no_wandb",
+        action="store_true",
+        help="Disable wandb logging",
+    )
