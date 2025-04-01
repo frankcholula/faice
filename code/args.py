@@ -50,7 +50,7 @@ def parse_args():
         choices=get_available_datasets(),
         help="Dataset to use for training",
     )
-    parser.add_argument(s
+    parser.add_argument(
         "--model",
         type=str,
         default="unet",
@@ -151,18 +151,18 @@ def parse_args():
 
 
 def get_config_and_components():
-    config, model, scheduler_type, pipeline_type = parse_args()
-    model = create_model(model, config)
-    scheduler = create_scheduler(scheduler)
-    pipeline = create_pipeline(pipeline)
+    config, model_type, scheduler_type, pipeline_type = parse_args()
+    print(f"Selected dataset: {config.dataset_name}")
+    print(f"Selected model: {model_type}")
+    print(f"Selected scheduler: {scheduler_type}")
+    print(f"Selected pipeline: {pipeline_type}")
+    model = create_model(model_type, config)
+    scheduler = create_scheduler(scheduler_type)
+    pipeline = create_pipeline(pipeline_type)
     return config, model, scheduler, pipeline
 
 if __name__ == "__main__":
     config, model, scheduler, pipeline = get_config_and_components()
-    print(f"Selected dataset: {config.dataset_name}")
-    print(f"Selected model: {model}")
-    print(f"Selected scheduler: {scheduler}")
-    print(f"Selected pipeline: {pipeline}")
     print("\nDetailed Configuration Params")
     print("=" * 50)
     for k, v in inspect.getmembers(config):

@@ -12,8 +12,6 @@ from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
-WandBLogger.login()
-
 
 def train_loop(
     config,
@@ -22,7 +20,7 @@ def train_loop(
     optimizer,
     train_dataloader,
     lr_scheduler,
-    test_dataloader = None
+    test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
