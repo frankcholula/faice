@@ -12,29 +12,34 @@ class BaseConfig:
     Base configuration for diffuser training.
     """
 
-    # image params
-    image_size = 128  # the generated image resolution
+    # model params
+    model_type: str = "unet2d"
+    scheduler_type: str = "ddpm"
+    pipeline_type: str = "ddpm"
+
+    # dataset params need to be set by subclass
+    dataset_type: str = field(default=None)
+    dataset_name: str = field(default=None)
+    image_size: int = 128
 
     # training params
-    train_batch_size = 16
-    eval_batch_size = 16  # how many images to sample during evaluation
+    train_batch_size: int = 16
+    eval_batch_size: int = 16
     num_epochs: int = 20
-    gradient_accumulation_steps = 1
-    learning_rate = 1e-4
-    lr_warmup_steps = 500
-    mixed_precision = "fp16"  # `no` for float32, `fp16` for automatic mixed precision
-    seed = 0
+    gradient_accumulation_steps: int = 1
+    learning_rate: float = 1e-4
+    lr_warmup_steps: int = 500
+    mixed_precision: str = "fp16"
+    seed: int = 0
 
     # saving params
-    save_image_epochs = 5
-    save_model_epochs = 10
-    output_dir: str = field(default=None)  # the model name locally and on the HF Hub
-    overwrite_output_dir: bool = (
-        True  # overwrite the old model when re-running the notebook
-    )
+    save_image_epochs: int = 5
+    save_model_epochs: int = 10
+    output_dir: str = field(default=None)  # need to be set by subclass
+    overwrite_output_dir: bool = True
 
     # hugging face hub params
-    push_to_hub = False  # whether to upload the saved model to the HF Hub
+    push_to_hub = False
     hub_private_repo = False
 
     # wandb params
@@ -43,9 +48,6 @@ class BaseConfig:
     wandb_project: str = "faice"
     wandb_run_name: Optional[str] = None
     wandb_watch_model: bool = True
-
-    # dataset
-    dataset_name: str = field(default=None)
 
     # evaluation
     calculate_fid: bool = False
@@ -56,7 +58,9 @@ class BaseConfig:
         if self.dataset_name is None:
             raise NotImplementedError("dataset_name must be specified")
         if self.wandb_run_name is None:
-            raise NotImplementedError("wandb_run_name must be specified")
+            self.wandb_run_name = (
+                f"{self.scheduler_type}-{self.datset_type}-{self.num_epochs}"
+            )
 
 
 @dataclass
