@@ -3,7 +3,7 @@ import inspect
 from typing import Dict, List
 
 
-def get_available_scheduelrs() -> List:
+def get_available_schedulers() -> List:
     return ["ddpm", "ddim", "pndm", "lms"]
 
 def create_scheduler(scheduler_type: str, num_train_timesteps: int = 1000):
@@ -69,7 +69,7 @@ def parse_args():
         "--scheduler",
         type=str,
         default="ddpm",
-        choices=get_available_scheduelrs(),
+        choices=get_available_schedulers(),
         help="Scheduler to use for training",
     )
 
