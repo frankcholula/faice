@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Dict, Type
 from dotenv import load_dotenv
 import os
 
@@ -67,7 +67,10 @@ class BaseConfig:
 class ButterflyConfig(BaseConfig):
     num_epochs: int = 1
     output_dir: str = "runs/ddpm-butterflies-128"
+    dataset_type: str = "butterfly"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
+    image_size: int = 128
+
 
 
 @dataclass
@@ -79,4 +82,19 @@ class FaceConfig(BaseConfig):
     save_model_epochs: int = 1
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
-    calculate_fid: bool = False
+    calculate_fid: bool = True
+
+CONFIG_REGISTRY = Dict[str, Type[BaseConfig]] = {
+    "butterfly": ButterflyConfig,
+    "face": FaceConfig,
+}
+
+
+def get_config(dataset_type: str = "face")
+    if dataset_type not in CONFIG_REGISTRY:
+        raise ValueError(f"Dataset type {dataset_type} not recognized.")
+    return CONFIG_REGISTRY[dataset_type]()
+
+
+def get_all_dataset_types():
+    return list(CONFIG_REGISTRY.keys())
