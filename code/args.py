@@ -86,7 +86,7 @@ def parse_args():
         "--num_epochs", type=int, default=20, help="Number of epochs for training"
     )
     parser.add_argument(
-        "--image_size", type=int, default=256, help="Image size for training"
+        "--image_size", type=int, default=128, help="Image size for training"
     )
     parser.add_argument(
         "--output_dir", type=str, default="runs", help="Output directory for training"

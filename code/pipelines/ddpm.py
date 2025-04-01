@@ -25,6 +25,7 @@ def train_loop(
     accelerator, repo = setup_accelerator(config)
 
     # Initialize wandb
+    WandBLogger.login()
     wandb_logger = WandBLogger(config, accelerator)
     wandb_logger.setup(model)
 

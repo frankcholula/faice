@@ -80,19 +80,27 @@ def main():
     # Sanity check with a sample image
     with torch.no_grad():
         try:
+            # Determine device
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            
+            # Move model to the device first
+            model.to(device)
+            
             sample_batch = next(iter(train_dataloader))
-            sample_image = sample_batch["images"].to(
-                torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            )
+            sample_image = sample_batch["images"].to(device)
+            
             if len(sample_image.shape) == 3:  # Add batch dimension if missing
                 sample_image = sample_image.unsqueeze(0)
-
+            
+            # Create timestep tensor on the same device
+            timestep = torch.tensor([0], device=device)
+            
             # Just check if the model runs
-            _ = model(sample_image, timestep=0)
-            print("Model sanity check passed!")
+            _ = model(sample_image, timestep=timestep)
+            print(f"Model sanity check passed on {device}!")
         except Exception as e:
             print(f"Model sanity check error (but continuing): {e}")
-    
+
     train_args = (
         config,
         model,
