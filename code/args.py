@@ -1,22 +1,39 @@
 import argparse
 import inspect
 from typing import Dict, List
-from conf.training_config import ButterflyConfig, FaceConfig
 
 
 def get_available_scheduelrs() -> List:
     return ["ddpm", "ddim", "pndm", "lms"]
 
+def create_scheduler(scheduler_type: str, num_train_timesteps: int = 1000):
+    from diffusers import DDPMScheduler
+    scheduler_map = {
+        "ddpm": lambda: DDPMScheduler(num_train_timesteps=num_train_timesteps),
+    }
+    return scheduler_map.get(scheduler_type.lower(), scheduler_map["ddpm"])()
 
-def get_available_modles() -> List:
-    return ["unet", "unet3d", "controlnet"]
 
+def get_available_models() -> List:
+    return ["unet"]
+
+
+def create_model(model_type: str, config):
+    if model_type.lower() == "unet":
+        from models.unet import create_unet
+        return create_unet(config)
+    
 
 def get_available_pipelines() -> List:
-    return ["ddpm", "ddim"]
+    return ["ddpm"]
 
+
+def create_pipeline(pipeline_type: str):
+    if pipeline_type.lower() == "ddpm":
+        from pipelines.ddpm import train_loop
 
 def get_available_datasets() -> Dict:
+    from conf.training_config import ButterflyConfig, FaceConfig
     return {
         "butterfly": ButterflyConfig,
         "face": FaceConfig,
@@ -32,11 +49,11 @@ def parse_args():
         choices=get_available_datasets(),
         help="Dataset to use for training",
     )
-    parser.add_argument(
+    parser.add_argument(s
         "--model",
         type=str,
         default="unet",
-        choices=get_available_modles(),
+        choices=get_available_models(),
         help="Model to use for training",
     )
     parser.add_argument(
