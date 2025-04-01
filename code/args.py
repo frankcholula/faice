@@ -1,5 +1,6 @@
 import argparse
 import inspect
+import sys
 from typing import Dict, List
 
 
@@ -151,13 +152,18 @@ def get_config_and_components(verbose: bool = True):
     print(f"Selected model: {model_type}")
     print(f"Selected scheduler: {scheduler_type}")
     print(f"Selected pipeline: {pipeline_type}")
-    model = create_model(model_type, config)
-    scheduler = create_scheduler(scheduler_type)
-    pipeline = create_pipeline(pipeline_type)
     if verbose:
         print("\nDetailed Configuration Params")
         print("=" * 50)
         for k, v in inspect.getmembers(config):
             if not k.startswith("__") and not inspect.ismethod(v):
                 print(f"{k}: {v}")
+        print("=" * 50)
+    user_input = input("Do you want to continue with the above configuration? (y/n): ")
+    if user_input.lower() != "y":
+        print("Run cancelled by the user.")
+        sys.exit(0)
+    model = create_model(model_type, config)
+    scheduler = create_scheduler(scheduler_type)
+    pipeline = create_pipeline(pipeline_type)
     return config, model, scheduler, pipeline
