@@ -1,10 +1,10 @@
 .PHONY: trainb
 trainb:
-	python main.py --dataset butterfly
+	python main.py --dataset butterfly --num_epochs 1
 
 .PHONY: trainf
 trainf:
-	python main.py --dataset face
+	python main.py --dataset face --num_epochs 1
 
 .PHONY: tensorboardb
 tensorboardb:
