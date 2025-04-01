@@ -1,7 +1,6 @@
 import argparse
 import inspect
 from typing import Dict, List
-import os
 
 
 def get_available_schedulers() -> List:
@@ -48,9 +47,6 @@ def get_available_datasets() -> Dict:
 
 
 def parse_args():
-    config_class = get_available_datasets()[args.dataset]
-    config = config_class()
-
     parser = argparse.ArgumentParser(description="Training arguments")
     parser.add_argument(
         "--dataset",
@@ -73,6 +69,7 @@ def parse_args():
         choices=get_available_pipelines(),
         help="Pipeline to use for training",
     )
+
     parser.add_argument(
         "--scheduler",
         type=str,
@@ -81,42 +78,25 @@ def parse_args():
         help="Scheduler to use for training",
     )
 
-    # Use the config defaults in help messages but don't set argparse defaults
     parser.add_argument(
-        "--train_batch_size",
-        type=int,
-        help=f"Batch size for training (default: from config)",
+        "--train_batch_size", type=int, default=16, help="Batch size for training"
     )
     parser.add_argument(
-        "--eval_batch_size",
-        type=int,
-        help=f"Batch size for evaluation (default: from config)",
+        "--eval_batch_size", type=int, default=16, help="Batch size for evaluation"
     )
     parser.add_argument(
-        "--learning_rate",
-        type=float,
-        help=f"Learning rate for training (default: from config)",
+        "--learning_rate", type=float, default=1e-4, help="Learning rate for training"
     )
     parser.add_argument(
-        "--num_epochs",
-        type=int,
-        help=f"Number of epochs for training (default: from config)",
+        "--num_epochs", type=int, default=20, help="Number of epochs for training"
     )
     parser.add_argument(
-        "--image_size",
-        type=int,
-        help=f"Image size for training (default: from config)",
+        "--image_size", type=int, default=128, help="Image size for training"
     )
     parser.add_argument(
-        "--output_dir",
-        type=str,
-        help="Output directory for training (default: from config)",
+        "--output_dir", type=str, default="runs", help="Output directory for training"
     )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        help=f"Random seed for training (default: from config)",
-    )
+    parser.add_argument("--seed", type=int, default=0, help="Random seed for training")
     parser.add_argument(
         "--no_wandb",
         action="store_true",
@@ -134,17 +114,10 @@ def parse_args():
 
     args = parser.parse_args()
 
-    # Convert the args to a config object - use the selected dataset's config
-    config_class = get_available_datasets[args.dataset]
+    # Convert the args to a config object
+    config_class = get_available_datasets()[args.dataset]
     config = config_class()
 
-    # Standardize output directory if not explicitly overridden
-    if args.output_dir is not None:
-        config.output_dir = args.output_dir
-    else:
-        config.output_dir = f"runs/{pipeline}-{config.dataset}-{config.scheduler}-{config.num_epochs}"
-
-    # Override config with command-line args only if explicitly provided
     if args.train_batch_size is not None:
         config.train_batch_size = args.train_batch_size
     if args.eval_batch_size is not None:
@@ -155,12 +128,13 @@ def parse_args():
         config.num_epochs = args.num_epochs
     if args.image_size is not None:
         config.image_size = args.image_size
+    if args.output_dir is not None:
+        config.output_dir = args.output_dir
     if args.seed is not None:
         config.seed = args.seed
     if args.no_wandb:
         config.use_wandb = False
 
-    # Process any additional parameters
     if args.param:
         for key, value in args.param:
             if hasattr(config, key):
@@ -177,11 +151,6 @@ def parse_args():
                     print(f"WARNING: Couldn't convert {value} to {attr_type} for {key}")
             else:
                 print(f"WARNING: Configuration has no attribute '{key}'")
-
-    # Update the wandb run name with the output directory
-    if hasattr(config, "wandb_run_name") and config.use_wandb:
-        base_dir = os.path.basename(config.output_dir)
-        config.wandb_run_name = f"ddpm-{base_dir}-{config.num_epochs}"
 
     return config, args.model, args.scheduler, args.pipeline
 
