@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
-import os
 
 
 @dataclass
@@ -37,7 +36,7 @@ class BaseConfig:
 
     # wandb params
     use_wandb: bool = True  # use wandb for logging
-    wandb_entity: str = os.getenv("WANDB_ENTITY")
+    wandb_entity: Optional[str] = None
     wandb_project: str = "faice"
     wandb_run_name: Optional[str] = None
     wandb_watch_model: bool = True
@@ -62,7 +61,6 @@ class ButterflyConfig(BaseConfig):
     num_epochs: int = 1
     output_dir: str = "runs/ddpm-butterflies-128"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
-    wandb_run_name: str = f"ddpm-butterflies-128-{num_epochs}"
 
 
 @dataclass
@@ -75,4 +73,3 @@ class FaceConfig(BaseConfig):
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
     calculate_fid: bool = False
-    wandb_run_name: str = f"ddpm-celebahq-256-{num_epochs}"
