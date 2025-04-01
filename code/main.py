@@ -117,8 +117,8 @@ def main():
     try:
         sample_images = sorted(glob.glob(f"{config.output_dir}/samples/*.png"))
         print(f"Generated {len(sample_images)} sample images")
-    except:
-        pass
+    except Exception as e:
+        print(f"Error retrieving sample images: {e}")
 
 if __name__ == "__main__":
     main()
