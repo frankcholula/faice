@@ -1,13 +1,16 @@
 import argparse
 import inspect
 from typing import Dict, List
+import os
 
 
 def get_available_schedulers() -> List:
     return ["ddpm", "ddim", "pndm", "lms"]
 
+
 def create_scheduler(scheduler_type: str, num_train_timesteps: int = 1000):
     from diffusers import DDPMScheduler
+
     scheduler_map = {
         "ddpm": lambda: DDPMScheduler(num_train_timesteps=num_train_timesteps),
     }
@@ -21,8 +24,9 @@ def get_available_models() -> List:
 def create_model(model_type: str, config):
     if model_type.lower() == "unet":
         from models.unet import create_unet
+
         return create_unet(config)
-    
+
 
 def get_available_pipelines() -> List:
     return ["ddpm"]
@@ -33,8 +37,10 @@ def create_pipeline(pipeline_type: str = "ddpm"):
         from pipelines.ddpm import train_loop
     return train_loop
 
+
 def get_available_datasets() -> Dict:
     from conf.training_config import ButterflyConfig, FaceConfig
+
     return {
         "butterfly": ButterflyConfig,
         "face": FaceConfig,
@@ -42,6 +48,12 @@ def get_available_datasets() -> Dict:
 
 
 def parse_args():
+    # First create a default config instance to use for argparse help messages
+    config_classes = get_available_datasets()
+    default_config = config_classes[
+        "face"
+    ]()  # Use face as default just for help messages
+
     parser = argparse.ArgumentParser(description="Training arguments")
     parser.add_argument(
         "--dataset",
@@ -64,7 +76,6 @@ def parse_args():
         choices=get_available_pipelines(),
         help="Pipeline to use for training",
     )
-
     parser.add_argument(
         "--scheduler",
         type=str,
@@ -73,25 +84,42 @@ def parse_args():
         help="Scheduler to use for training",
     )
 
+    # Use the config defaults in help messages but don't set argparse defaults
     parser.add_argument(
-        "--train_batch_size", type=int, default=16, help="Batch size for training"
+        "--train_batch_size",
+        type=int,
+        help=f"Batch size for training (default: from config)",
     )
     parser.add_argument(
-        "--eval_batch_size", type=int, default=16, help="Batch size for evaluation"
+        "--eval_batch_size",
+        type=int,
+        help=f"Batch size for evaluation (default: from config)",
     )
     parser.add_argument(
-        "--learning_rate", type=float, default=1e-4, help="Learning rate for training"
+        "--learning_rate",
+        type=float,
+        help=f"Learning rate for training (default: from config)",
     )
     parser.add_argument(
-        "--num_epochs", type=int, default=20, help="Number of epochs for training"
+        "--num_epochs",
+        type=int,
+        help=f"Number of epochs for training (default: from config)",
     )
     parser.add_argument(
-        "--image_size", type=int, default=128, help="Image size for training"
+        "--image_size",
+        type=int,
+        help=f"Image size for training (default: from config)",
     )
     parser.add_argument(
-        "--output_dir", type=str, default="runs", help="Output directory for training"
+        "--output_dir",
+        type=str,
+        help="Output directory for training (default: from config)",
     )
-    parser.add_argument("--seed", type=int, default=0, help="Random seed for training")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help=f"Random seed for training (default: from config)",
+    )
     parser.add_argument(
         "--no_wandb",
         action="store_true",
@@ -109,10 +137,19 @@ def parse_args():
 
     args = parser.parse_args()
 
-    # Convert the args to a config object
-    config_class = get_available_datasets()[args.dataset]
+    # Convert the args to a config object - use the selected dataset's config
+    config_class = config_classes[args.dataset]
     config = config_class()
 
+    # Standardize output directory if not explicitly overridden
+    if args.output_dir is not None:
+        config.output_dir = args.output_dir
+    else:
+        # Make sure output_dir follows consistent pattern
+        dataset_name = args.dataset.lower()
+        config.output_dir = f"runs/ddpm-{dataset_name}-{config.image_size}"
+
+    # Override config with command-line args only if explicitly provided
     if args.train_batch_size is not None:
         config.train_batch_size = args.train_batch_size
     if args.eval_batch_size is not None:
@@ -123,13 +160,12 @@ def parse_args():
         config.num_epochs = args.num_epochs
     if args.image_size is not None:
         config.image_size = args.image_size
-    if args.output_dir is not None:
-        config.output_dir = args.output_dir
     if args.seed is not None:
         config.seed = args.seed
     if args.no_wandb:
         config.use_wandb = False
 
+    # Process any additional parameters
     if args.param:
         for key, value in args.param:
             if hasattr(config, key):
@@ -147,6 +183,11 @@ def parse_args():
             else:
                 print(f"WARNING: Configuration has no attribute '{key}'")
 
+    # Update the wandb run name with the output directory
+    if hasattr(config, "wandb_run_name") and config.use_wandb:
+        base_dir = os.path.basename(config.output_dir)
+        config.wandb_run_name = f"ddpm-{base_dir}-{config.num_epochs}"
+
     return config, args.model, args.scheduler, args.pipeline
 
 
@@ -160,6 +201,7 @@ def get_config_and_components():
     scheduler = create_scheduler(scheduler_type)
     pipeline = create_pipeline(pipeline_type)
     return config, model, scheduler, pipeline
+
 
 if __name__ == "__main__":
     config, model, scheduler, pipeline = get_config_and_components()
