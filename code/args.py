@@ -78,25 +78,15 @@ def parse_args():
         help="Scheduler to use for training",
     )
 
+    parser.add_argument("--train_batch_size", type=int, help="Batch size for training")
+    parser.add_argument("--eval_batch_size", type=int, help="Batch size for evaluation")
     parser.add_argument(
-        "--train_batch_size", type=int, default=16, help="Batch size for training"
+        "--learning_rate", type=float, help="Learning rate for training"
     )
-    parser.add_argument(
-        "--eval_batch_size", type=int, default=16, help="Batch size for evaluation"
-    )
-    parser.add_argument(
-        "--learning_rate", type=float, default=1e-4, help="Learning rate for training"
-    )
-    parser.add_argument(
-        "--num_epochs", type=int, default=20, help="Number of epochs for training"
-    )
-    parser.add_argument(
-        "--image_size", type=int, default=128, help="Image size for training"
-    )
-    parser.add_argument(
-        "--output_dir", type=str, default="runs", help="Output directory for training"
-    )
-    parser.add_argument("--seed", type=int, default=0, help="Random seed for training")
+    parser.add_argument("--num_epochs", type=int, help="Number of epochs for training")
+    parser.add_argument("--image_size", type=int, help="Image size for training")
+    parser.add_argument("--output_dir", type=str, help="Output directory for training")
+    parser.add_argument("--seed", type=int, help="Random seed for training")
     parser.add_argument(
         "--no_wandb",
         action="store_true",
