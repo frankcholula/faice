@@ -145,7 +145,7 @@ def parse_args():
     return config, args.model, args.scheduler, args.pipeline
 
 
-def get_config_and_components():
+def get_config_and_components(verbose: bool = True):
     config, model_type, scheduler_type, pipeline_type = parse_args()
     print(f"Selected dataset: {config.dataset_name}")
     print(f"Selected model: {model_type}")
@@ -154,13 +154,10 @@ def get_config_and_components():
     model = create_model(model_type, config)
     scheduler = create_scheduler(scheduler_type)
     pipeline = create_pipeline(pipeline_type)
+    if verbose:
+        print("\nDetailed Configuration Params")
+        print("=" * 50)
+        for k, v in inspect.getmembers(config):
+            if not k.startswith("__") and not inspect.ismethod(v):
+                print(f"{k}: {v}")
     return config, model, scheduler, pipeline
-
-
-if __name__ == "__main__":
-    config, model, scheduler, pipeline = get_config_and_components()
-    print("\nDetailed Configuration Params")
-    print("=" * 50)
-    for k, v in inspect.getmembers(config):
-        if not k.startswith("__") and not inspect.ismethod(v):
-            print(f"{k}: {v}")
