@@ -1,0 +1,116 @@
+import os
+import glob
+
+import torch
+from torchvision import transforms
+
+from PIL import Image
+from args import get_config_and_components
+from diffusers.optimization import get_cosine_schedule_with_warmup
+from conf.training_config import FaceConfig, ButterflyConfig
+
+
+def setup_dataset(config):
+    preprocess = transforms.Compose(
+        [
+            transforms.Resize((config.image_size, config.image_size)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5], [0.5]),
+        ]
+    )
+    if isinstance(config, FaceConfig):
+        from torch.utils.data import Dataset, DataLoader
+
+        class CelebaAHQDataset(Dataset):
+            def __init__(self, root_dir, transform=None):
+                self.root_dir = root_dir
+                self.transform = transform
+                self.image_paths = glob.glob(os.path.join(root_dir, "*.jpg"))
+
+            def __len__(self):
+                return len(self.image_paths)
+
+            def __getitem__(self, idx):
+                img_path = self.image_paths[idx]
+                image = Image.open(img_path).convert("RGB")
+                if self.transform:
+                    image = self.transform(image)
+                return {"images": image}
+
+        train_dataset = CelebaAHQDataset(
+            root_dir=config.train_dir, transform=preprocess
+        )
+        train_dataloader = DataLoader(
+            train_dataset, batch_size=config.train_batch_size, shuffle=True
+        )
+        test_dataset = CelebaAHQDataset(root_dir=config.test_dir, transform=preprocess)
+        test_dataloader = DataLoader(
+            test_dataset, batch_size=config.eval_batch_size, shuffle=False
+        )
+
+    elif isinstance(config, ButterflyConfig):
+        from datasets import load_dataset
+
+        dataset = load_dataset(config.dataset_name, split="train")
+
+        def transform(examples):
+            images = [preprocess(image.convert("RGB")) for image in examples["image"]]
+            return {"images": images}
+
+        dataset.set_transform(transform)
+        train_dataloader = torch.utils.data.DataLoader(
+            dataset, batch_size=config.train_batch_size, shuffle=True
+        )
+        test_dataloader = None
+
+    return train_dataloader, test_dataloader
+
+
+def main():
+    config, model, noise_scheduler, train_loop = get_config_and_components()
+    train_dataloader, test_dataloader = setup_dataset(config)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
+    lr_scheduler = get_cosine_schedule_with_warmup(
+        optimizer=optimizer,
+        num_warmup_steps=config.lr_warmup_steps,
+        num_training_steps=(len(train_dataloader) * config.num_epochs),
+    )
+
+    # Sanity check with a sample image
+    with torch.no_grad():
+        try:
+            sample_batch = next(iter(train_dataloader))
+            sample_image = sample_batch["images"].to(
+                torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            )
+            if len(sample_image.shape) == 3:  # Add batch dimension if missing
+                sample_image = sample_image.unsqueeze(0)
+
+            # Just check if the model runs
+            _ = model(sample_image, timestep=0)
+            print("Model sanity check passed!")
+        except Exception as e:
+            print(f"Model sanity check error (but continuing): {e}")
+    
+    train_args = (
+        config,
+        model,
+        noise_scheduler,
+        optimizer,
+        train_dataloader,
+        lr_scheduler,
+        test_dataloader,
+    )
+
+    train_loop(*train_args)
+    # Print summary
+    print(f"Training completed! Model saved to {config.output_dir}")
+    try:
+        sample_images = sorted(glob.glob(f"{config.output_dir}/samples/*.png"))
+        print(f"Generated {len(sample_images)} sample images")
+    except:
+        pass
+
+if __name__ == "__main__":
+    main()

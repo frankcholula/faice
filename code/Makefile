@@ -1,10 +1,10 @@
 .PHONY: trainb
 trainb:
-	python train_butterfly.py
+	python main.py --dataset butterfly
 
 .PHONY: trainf
 trainf:
-	python train_face.py
+	python main.py --dataset face
 
 .PHONY: tensorboardb
 tensorboardb:
@@ -12,4 +12,4 @@ tensorboardb:
 
 .PHONY: clean
 clean:
-	rm -rf ddpm-celebhq-256/logs/train_example/
+	rm -rf runs/ddpm-celebhq-256/logs/train_example/
