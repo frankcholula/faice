@@ -30,7 +30,7 @@ class WandBLogger:
             return
 
         wandb.init(
-            entity=os.environ.get("WANDB_ENTITY"),
+            entity=self.config.wandb_entity,
             project=self.config.wandb_project,
             name=self.config.wandb_run_name,
             config={

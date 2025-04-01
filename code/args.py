@@ -18,11 +18,11 @@ def create_scheduler(scheduler_type: str, num_train_timesteps: int = 1000):
 
 
 def get_available_models() -> List:
-    return ["unet"]
+    return ["unet2d"]
 
 
 def create_model(model_type: str, config):
-    if model_type.lower() == "unet":
+    if model_type.lower() == "unet2d":
         from models.unet import create_unet
 
         return create_unet(config)

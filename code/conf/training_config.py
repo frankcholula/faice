@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Optional
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 @dataclass
@@ -36,7 +39,7 @@ class BaseConfig:
 
     # wandb params
     use_wandb: bool = True  # use wandb for logging
-    wandb_entity: Optional[str] = None
+    wandb_entity: str = os.environ.get("WANDB_ENTITY")
     wandb_project: str = "faice"
     wandb_run_name: Optional[str] = None
     wandb_watch_model: bool = True
@@ -53,7 +56,7 @@ class BaseConfig:
         if self.dataset_name is None:
             raise NotImplementedError("dataset_name must be specified")
         if self.wandb_run_name is None:
-            self.wandb_run_name = f"ddpm-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+            raise NotImplementedError("wandb_run_name must be specified")
 
 
 @dataclass
