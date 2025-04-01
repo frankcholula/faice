@@ -28,9 +28,10 @@ def get_available_pipelines() -> List:
     return ["ddpm"]
 
 
-def create_pipeline(pipeline_type: str):
+def create_pipeline(pipeline_type: str = "ddpm"):
     if pipeline_type.lower() == "ddpm":
         from pipelines.ddpm import train_loop
+    return train_loop
 
 def get_available_datasets() -> Dict:
     from conf.training_config import ButterflyConfig, FaceConfig
@@ -149,8 +150,15 @@ def parse_args():
     return config, args.model, args.scheduler, args.pipeline
 
 
+def get_config_and_components():
+    config, model, scheduler_type, pipeline_type = parse_args()
+    model = create_model(model, config)
+    scheduler = create_scheduler(scheduler)
+    pipeline = create_pipeline(pipeline)
+    return config, model, scheduler, pipeline
+
 if __name__ == "__main__":
-    config, model, scheduler, pipeline = parse_args()
+    config, model, scheduler, pipeline = get_config_and_components()
     print(f"Selected dataset: {config.dataset_name}")
     print(f"Selected model: {model}")
     print(f"Selected scheduler: {scheduler}")
