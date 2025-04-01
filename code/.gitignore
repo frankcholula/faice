@@ -179,12 +179,7 @@ cython_debug/
 
 # Datasets and outputs
 datasets/
-ddpm-butterflies-128/
-ddpm-celebahq-256/
-!ddpm-celebahq-256/samples/
-!ddpm-celebahq-256/samples/**
-!ddpm-butterflies-128/samples/
-!ddpm-butterflies-128/samples/**
+runs/
 wandb/
 
 # Notebook
