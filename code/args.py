@@ -1,7 +1,8 @@
 import argparse
+import inspect
 from typing import Dict, List
 from conf.training_config import ButterflyConfig, FaceConfig
-
+from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler, LMSDiscreteScheduler
 
 def get_available_scheduelrs() -> List:
     return ["ddpm", "ddim", "pndm", "lms"]
@@ -78,3 +79,21 @@ def parse_args():
         action="store_true",
         help="Disable wandb logging",
     )
+
+    args = parser.parse_args()
+    args_dict = vars(args)
+
+    # Convert the args to a config object
+    config_class = get_available_datasets()[args.dataset]
+    config = config_class()
+    return config, args.model, args.scheduler, args.pipeline
+
+
+
+if __name__ == "__main__":
+    config, model, scheduler, pipeline = parse_args()
+    print("\nConfiguration Params")
+    print("=" * 50)
+    for k, v in inspect.getmembers(config):
+        if not k.startswith("__") and not inspect.ismethod(v):
+            print(f"{k}: {v}")
