@@ -48,11 +48,8 @@ def get_available_datasets() -> Dict:
 
 
 def parse_args():
-    # First create a default config instance to use for argparse help messages
-    config_classes = get_available_datasets()
-    default_config = config_classes[
-        "face"
-    ]()  # Use face as default just for help messages
+    config_class = get_available_datasets()[args.dataset]
+    config = config_class()
 
     parser = argparse.ArgumentParser(description="Training arguments")
     parser.add_argument(
@@ -138,16 +135,14 @@ def parse_args():
     args = parser.parse_args()
 
     # Convert the args to a config object - use the selected dataset's config
-    config_class = config_classes[args.dataset]
+    config_class = get_available_datasets[args.dataset]
     config = config_class()
 
     # Standardize output directory if not explicitly overridden
     if args.output_dir is not None:
         config.output_dir = args.output_dir
     else:
-        # Make sure output_dir follows consistent pattern
-        dataset_name = args.dataset.lower()
-        config.output_dir = f"runs/ddpm-{dataset_name}-{config.image_size}"
+        config.output_dir = f"runs/{pipeline}-{config.dataset}-{config.scheduler}-{config.num_epochs}"
 
     # Override config with command-line args only if explicitly provided
     if args.train_batch_size is not None:
