@@ -234,7 +234,7 @@ def train_loop(
             if "LDMP" in pipeline_name:
                 pass
                 # Encode image to latent space
-                vqvae = vqvae.to(device)
+                vqvae.to(device)
                 latents = vqvae.encode(clean_images).latents
                 # # Add noise (diffusion process)
                 noise = torch.randn_like(latents)
