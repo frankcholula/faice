@@ -229,7 +229,8 @@ def train_loop(
             ).long()
 
             # Sample noise to add to the images
-            noise = torch.randn(clean_images.shape).to(device)
+            input_shape = clean_images.shape
+            noise = torch.randn(input_shape).to(device)
 
             if "LDMP" in pipeline_name:
                 pass
@@ -240,6 +241,7 @@ def train_loop(
                 noise = torch.randn_like(latents)
                 # # Add noise to the clean images according to the noise magnitude at each timestep
                 # # (this is the forward diffusion process)
+                noise = noise.reshape(input_shape)
                 noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
             elif "Karras" in scheduler_name:
                 noisy_images = noise_scheduler.add_noise_to_input(
@@ -278,9 +280,9 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             if "LDMP" in pipeline_name:
-                pass
-                # pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
-                #                              unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+                # pass
+                pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
+                                             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
             else:
                 pipeline = selected_pipeline(
                     unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
