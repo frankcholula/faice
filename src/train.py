@@ -230,6 +230,7 @@ def train_loop(
 
             # Sample noise to add to the images
             input_shape = clean_images.shape
+            print('>'*9, 'input_shape', input_shape)
             noise = torch.randn(input_shape).to(device)
             print('>'*9, 'noise 1', noise)
 
@@ -238,6 +239,7 @@ def train_loop(
                 # Encode image to latent space
                 vqvae.to(device)
                 latents = vqvae.encode(clean_images).latents
+                print('>' * 9, 'latents', latents)
                 # # Add noise (diffusion process)
                 noise = torch.randn_like(latents).to(device)
                 print('>' * 9, 'noise 2', noise)
