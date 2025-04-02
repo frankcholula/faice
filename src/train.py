@@ -12,8 +12,11 @@ from dataclasses import asdict
 import numpy as np
 import torch
 from PIL import Image
-from diffusers import LDMPipeline
-from diffusers import DDIMScheduler
+from diffusers import DDPMPipeline, PNDMPipeline, DDIMPipeline, ScoreSdeVePipeline, LDMPipeline, \
+    ConsistencyModelPipeline, KarrasVePipeline, UniDiffuserPipeline
+from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler, ScoreSdeVeScheduler, KarrasVeScheduler, \
+    UniPCMultistepScheduler
+from diffusers.schedulers import ConsistencyDecoderScheduler, CMStochasticIterativeScheduler
 import torch.nn.functional as F
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from accelerate import Accelerator
@@ -41,11 +44,11 @@ from src.models.VQModels import vqvae
 sentry_sdk.init(SETTINGS.SENTRY_URL)
 
 pipeline_selector = {
-    # "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+    "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
     # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
-
+    #
     # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
     # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
@@ -113,7 +116,7 @@ def generate_images_for_test(config, pipeline, num_images=model_config.num_image
 
     for i in trange(num_batches):
         batch_seed = (
-            config.seed + i
+                config.seed + i
         )  # Use a different seed for each batch to ensure diversity
         if "DDIM" in pipeline_name:
             images = pipeline(
@@ -165,15 +168,15 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
 
 
 def train_loop(
-    config,
-    model,
-    noise_scheduler,
-    optimizer,
-    train_dataloader,
-    lr_scheduler,
-    device,
-    selected_pipeline,
-    wandb_run,
+        config,
+        model,
+        noise_scheduler,
+        optimizer,
+        train_dataloader,
+        lr_scheduler,
+        device,
+        selected_pipeline,
+        wandb_run,
 ):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
@@ -288,7 +291,7 @@ def train_loop(
                 )
 
             if (
-                epoch + 1
+                    epoch + 1
             ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
 
@@ -300,7 +303,7 @@ def train_loop(
                     calculate_fid(real_images, fake_images, device)
 
             if (
-                epoch + 1
+                    epoch + 1
             ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
