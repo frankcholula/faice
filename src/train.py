@@ -400,7 +400,7 @@ def main(data_dir):
                 # s_min=0.01,
                 # s_max=100,
             )
-        elif "LDPM" in scheduler_name:
+        elif "LDMP" in scheduler_name:
             noise_scheduler = selected_scheduler(num_train_timesteps=1000)
             vqvae_model = vqvae
             vqvae_model.to(device)
