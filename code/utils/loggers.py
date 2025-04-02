@@ -16,7 +16,7 @@ class WandBLogger:
     def login():
         if "WANDB_API_KEY" in os.environ:
             try:
-                wandb.login(key=os.environ["WANDB_API_KEY"])
+                wandb.login(key=os.environ.get("WANDB_API_KEY"))
                 print("Successfully logged into W&B.")
             except Exception as e:
                 print(f"Error logging into W&B: {e}")
@@ -40,8 +40,8 @@ class WandBLogger:
                 "image_size": self.config.image_size,
                 "seed": self.config.seed,
                 "dataset": self.config.dataset_name,
-                "model_architecture": "UNet2D",
-                "scheduler": "DDPM",
+                "model": self.config.model,
+                "scheduler": self.config.scheduler,
             },
         )
         if model is not None and self.config.wandb_watch_model:
