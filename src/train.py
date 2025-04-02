@@ -177,6 +177,7 @@ def train_loop(
         device,
         selected_pipeline,
         wandb_run,
+        vqvae_model=None
 ):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
@@ -238,7 +239,7 @@ def train_loop(
             if "LDMP" in pipeline_name:
                 pass
                 # Encode image to latent space
-                latents = vqvae.encode(clean_images).latents
+                latents = vqvae_model.encode(clean_images).latents
                 # # Add noise (diffusion process)
                 noise = torch.randn_like(latents).to(device)
                 # # Add noise to the clean images according to the noise magnitude at each timestep
@@ -357,6 +358,7 @@ def main(data_dir):
         model_config.output_dir = os.path.join(model_config.base_output_dir, f"{k}")
 
         # Get the name of scheduler
+        vqvae_model = None
         scheduler_name = selected_scheduler.__name__
         if "DDPM" in scheduler_name:
             noise_scheduler = selected_scheduler(
@@ -399,7 +401,9 @@ def main(data_dir):
                 # s_max=100,
             )
         elif "LDPM" in scheduler_name:
-            vqvae.to(device)
+            noise_scheduler = selected_scheduler(num_train_timesteps=1000)
+            vqvae_model = vqvae
+            vqvae_model.to(device)
         elif "CMS" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
@@ -421,6 +425,7 @@ def main(data_dir):
             device,
             selected_pipeline,
             wandb_run,
+            vqvae_model
         )
 
         notebook_launcher(train_loop, args, num_processes=1)
