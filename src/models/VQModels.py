@@ -14,11 +14,11 @@ vqvae = VQModel(
     in_channels=3,  # RGB images
     out_channels=3,
     layers_per_block=2,  # how many ResNet layers to use per UNet block
-    block_out_channels=(64, 64, 128, 128, 256, 256),
+    block_out_channels=(128, 128, 256, 256, 512, 512),
     act_fn="silu",
     latent_channels=3,
     num_vq_embeddings=512,  # Codebook size
-    vq_embed_dim=3,  # Latent dimension
+    vq_embed_dim=3*32,  # Latent dimension
     # the number of output channels for each UNet block
     down_block_types=(
         "DownEncoderBlock2D",  # a regular ResNet downsampling block
