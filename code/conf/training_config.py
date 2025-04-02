@@ -59,7 +59,7 @@ class BaseConfig:
             raise NotImplementedError("dataset_name must be specified")
         if self.wandb_run_name is None:
             self.wandb_run_name = (
-                f"{self.scheduler_type}-{self.datset_type}-{self.num_epochs}"
+                f"{self.scheduler_type}-{self.dataset_type}-{self.num_epochs}"
             )
 
 
@@ -70,7 +70,6 @@ class ButterflyConfig(BaseConfig):
     dataset_type: str = "butterfly"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
     image_size: int = 128
-
 
 
 @dataclass
@@ -84,13 +83,14 @@ class FaceConfig(BaseConfig):
     test_dir: str = "datasets/celeba_hq_split/test"
     calculate_fid: bool = True
 
-CONFIG_REGISTRY = Dict[str, Type[BaseConfig]] = {
+
+CONFIG_REGISTRY = {
     "butterfly": ButterflyConfig,
     "face": FaceConfig,
 }
 
 
-def get_config(dataset_type: str = "face")
+def get_config(dataset_type: str):
     if dataset_type not in CONFIG_REGISTRY:
         raise ValueError(f"Dataset type {dataset_type} not recognized.")
     return CONFIG_REGISTRY[dataset_type]()
