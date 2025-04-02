@@ -18,7 +18,7 @@ vqvae = VQModel(
     act_fn="silu",
     latent_channels=3,
     num_vq_embeddings=512,  # Codebook size
-    vq_embed_dim=64,  # Latent dimension
+    vq_embed_dim=3,  # Latent dimension
     # the number of output channels for each UNet block
     down_block_types=(
         "DownEncoderBlock2D",  # a regular ResNet downsampling block

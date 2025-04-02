@@ -238,7 +238,7 @@ def train_loop(
                 vqvae.to(device)
                 latents = vqvae.encode(clean_images).latents
                 # # Add noise (diffusion process)
-                # noise = torch.randn_like(latents).to(device)
+                noise = torch.randn_like(latents).to(device)
                 # # Add noise to the clean images according to the noise magnitude at each timestep
                 # # (this is the forward diffusion process)
                 noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
