@@ -1,169 +1,108 @@
 import argparse
 import inspect
 import sys
-from typing import Dict, List
-
-
-def get_available_schedulers() -> List:
-    return ["ddpm", "ddim", "pndm", "lms"]
+from pipelines import ddpm
+from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
+from models.unet import create_unet
+from conf.training_config import get_config, get_all_dataset_types
 
 
 def create_scheduler(scheduler_type: str, num_train_timesteps: int = 1000):
-    from diffusers import DDPMScheduler
-
-    scheduler_map = {
-        "ddpm": lambda: DDPMScheduler(num_train_timesteps=num_train_timesteps),
-    }
-    return scheduler_map.get(scheduler_type.lower(), scheduler_map["ddpm"])()
-
-
-def get_available_models() -> List:
-    return ["unet2d"]
+    if scheduler_type.lower() == "ddpm":
+        return DDPMScheduler(num_train_timesteps=num_train_timesteps)
+    elif scheduler_type.lower() == "ddim":
+        return DDIMScheduler(num_train_timesteps=num_train_timesteps)
+    elif scheduler_type.lower() == "pndm":
+        return PNDMScheduler(num_train_timesteps=num_train_timesteps)
+    else:
+        raise ValueError(f"Scheduler type '{scheduler_type}' is not supported.")
 
 
 def create_model(model_type: str, config):
     if model_type.lower() == "unet2d":
-        from models.unet import create_unet
-
         return create_unet(config)
+    else:
+        raise ValueError(f"Model type '{model_type}' is not supported.")
 
 
-def get_available_pipelines() -> List:
-    return ["ddpm"]
-
-
-def create_pipeline(pipeline_type: str = "ddpm"):
+def create_pipeline(pipeline_type: str):
     if pipeline_type.lower() == "ddpm":
-        from pipelines.ddpm import train_loop
-    return train_loop
-
-
-def get_available_datasets() -> Dict:
-    from conf.training_config import ButterflyConfig, FaceConfig
-
-    return {
-        "butterfly": ButterflyConfig,
-        "face": FaceConfig,
-    }
+        return ddpm.train_loop
+    else:
+        raise ValueError(f"Pipeline type '{pipeline_type}' is not supported.")
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Training arguments")
-    parser.add_argument(
-        "--dataset",
-        type=str,
-        default="face",
-        choices=get_available_datasets(),
-        help="Dataset to use for training",
-    )
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="unet",
-        choices=get_available_models(),
-        help="Model to use for training",
-    )
-    parser.add_argument(
-        "--pipeline",
-        type=str,
-        default="ddpm",
-        choices=get_available_pipelines(),
-        help="Pipeline to use for training",
-    )
+    parser = argparse.ArgumentParser(description="Diffusion Model Training")
 
     parser.add_argument(
-        "--scheduler",
-        type=str,
-        default="ddpm",
-        choices=get_available_schedulers(),
-        help="Scheduler to use for training",
+        "--dataset_type", choices=get_all_dataset_types(), help="Dataset to use"
     )
+    parser.add_argument("--model_type", help="Model architecture")
+    parser.add_argument("--scheduler_type", help="Noise scheduler")
+    parser.add_argument("--pipeline_type", help="Training pipeline")
 
     parser.add_argument("--train_batch_size", type=int, help="Batch size for training")
     parser.add_argument("--eval_batch_size", type=int, help="Batch size for evaluation")
-    parser.add_argument(
-        "--learning_rate", type=float, help="Learning rate for training"
-    )
-    parser.add_argument("--num_epochs", type=int, help="Number of epochs for training")
+    parser.add_argument("--num_epochs", type=int, help="Number of training epochs")
+    parser.add_argument("--learning_rate", type=float, help="Learning rate")
     parser.add_argument("--image_size", type=int, help="Image size for training")
-    parser.add_argument("--output_dir", type=str, help="Output directory for training")
-    parser.add_argument("--seed", type=int, help="Random seed for training")
+    parser.add_argument("--seed", type=int, help="Random seed")
+
+    parser.add_argument("--output_dir", help="Directory to save models and results")
     parser.add_argument(
-        "--no_wandb",
-        action="store_true",
-        help="Disable wandb logging",
+        "--train_dir", help="Directory with training images (for face dataset)"
+    )
+    parser.add_argument(
+        "--test_dir", help="Directory with test images (for face dataset)"
     )
 
-    # Add additional parameters
+    parser.add_argument("--no_wandb", action="store_true", help="Disable W&B logging")
     parser.add_argument(
-        "--param",
-        action="append",
-        nargs=2,
-        metavar=("key", "value"),
-        help="Additional parameters for training",
+        "--calculate_fid", action="store_true", help="Calculate FID score"
     )
 
     args = parser.parse_args()
+    dataset_type = args.dataset_type
+    config = get_config(dataset_type)
+    args_dict = vars(args)
 
-    # Convert the args to a config object
-    config_class = get_available_datasets()[args.dataset]
-    config = config_class()
+    # update config with command line arguments
+    for key, value in args_dict.items():
+        if value is not None:
+            if key == "no_wandb":
+                setattr(config, "use_wandb", not value)  # Handle special case
+            elif key != "dataset_type":
+                setattr(config, key, value)
 
-    if args.train_batch_size is not None:
-        config.train_batch_size = args.train_batch_size
-    if args.eval_batch_size is not None:
-        config.eval_batch_size = args.eval_batch_size
-    if args.learning_rate is not None:
-        config.learning_rate = args.learning_rate
-    if args.num_epochs is not None:
-        config.num_epochs = args.num_epochs
-    if args.image_size is not None:
-        config.image_size = args.image_size
-    if args.output_dir is not None:
-        config.output_dir = args.output_dir
-    if args.seed is not None:
-        config.seed = args.seed
-    if args.no_wandb:
-        config.use_wandb = False
-
-    if args.param:
-        for key, value in args.param:
-            if hasattr(config, key):
-                # Try to convert to the right type
-                attr_type = type(getattr(config, key))
-                try:
-                    if attr_type == bool:
-                        # Special handling for booleans
-                        value = value.lower() in ("yes", "true", "t", "1")
-                    else:
-                        value = attr_type(value)
-                    setattr(config, key, value)
-                except ValueError:
-                    print(f"WARNING: Couldn't convert {value} to {attr_type} for {key}")
-            else:
-                print(f"WARNING: Configuration has no attribute '{key}'")
-
-    return config, args.model, args.scheduler, args.pipeline
+    return config
 
 
-def get_config_and_components(verbose: bool = True):
-    config, model_type, scheduler_type, pipeline_type = parse_args()
-    print(f"Selected dataset: {config.dataset_name}")
-    print(f"Selected model: {model_type}")
-    print(f"Selected scheduler: {scheduler_type}")
-    print(f"Selected pipeline: {pipeline_type}")
-    if verbose:
-        print("\nDetailed Configuration Params")
-        print("=" * 50)
-        for k, v in inspect.getmembers(config):
-            if not k.startswith("__") and not inspect.ismethod(v):
-                print(f"{k}: {v}")
-        print("=" * 50)
-    user_input = input("Do you want to continue with the above configuration? (y/n): ")
-    if user_input.lower() != "y":
-        print("Run cancelled by the user.")
-        sys.exit(0)
-    model = create_model(model_type, config)
-    scheduler = create_scheduler(scheduler_type)
-    pipeline = create_pipeline(pipeline_type)
+def get_config_and_components():
+    """Get the config and create all necessary components."""
+    config = parse_args()
+    
+    print(f"Selected dataset: {config.dataset_type} ({config.dataset_name})")
+    print(f"Selected model: {config.model_type}")
+    print(f"Selected scheduler: {config.scheduler_type}")
+    print(f"Selected pipeline: {config.pipeline_type}")
+    
+    model = create_model(config.model_type, config)
+    scheduler = create_scheduler(config.scheduler_type)
+    pipeline = create_pipeline(config.pipeline_type)
+    
     return config, model, scheduler, pipeline
+
+
+def print_config(config):
+    """Print configuration parameters."""
+    print("\nConfiguration:")
+    print("=" * 50)
+    for key, value in inspect.getmembers(config):
+        if not key.startswith("__") and not inspect.ismethod(value):
+            print(f"{key}: {value}")
+
+
+if __name__ == "__main__":
+    config, model, scheduler, pipeline = get_config_and_components()
+    print_config(config)
