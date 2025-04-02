@@ -46,6 +46,7 @@ sentry_sdk.init(SETTINGS.SENTRY_URL)
 pipeline_selector = {
     # "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
     # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
+
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
     #
@@ -237,7 +238,7 @@ def train_loop(
             noise = torch.randn(input_shape).to(device)
 
             if "LDMP" in pipeline_name:
-                pass
+                # pass
                 # Encode image to latent space
                 latents = vqvae_model.encode(clean_images).latents
                 # # Add noise (diffusion process)
@@ -359,6 +360,7 @@ def main(data_dir):
 
         # Get the name of scheduler
         vqvae_model = None
+        pipeline_name = selected_pipeline.__name__
         scheduler_name = selected_scheduler.__name__
         if "DDPM" in scheduler_name:
             noise_scheduler = selected_scheduler(
@@ -376,6 +378,10 @@ def main(data_dir):
                 # clip_sample=False,
                 timestep_spacing="trailing",
             )
+            if "LDMP" in pipeline_name:
+                noise_scheduler = selected_scheduler(num_train_timesteps=1000)
+                vqvae_model = vqvae
+                vqvae_model.to(device)
         elif "PDNM" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
@@ -383,6 +389,10 @@ def main(data_dir):
                 beta_end=0.02,
                 beta_schedule="linear",
             )
+            if "LDMP" in pipeline_name:
+                noise_scheduler = selected_scheduler(num_train_timesteps=1000)
+                vqvae_model = vqvae
+                vqvae_model.to(device)
         elif "ScoreSdeVe" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
@@ -400,10 +410,6 @@ def main(data_dir):
                 # s_min=0.01,
                 # s_max=100,
             )
-        elif "LDMP" in scheduler_name:
-            noise_scheduler = selected_scheduler(num_train_timesteps=1000)
-            vqvae_model = vqvae
-            vqvae_model.to(device)
         elif "CMS" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
