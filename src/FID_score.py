@@ -15,9 +15,9 @@ import numpy as np
 from torchvision.transforms import functional as F
 from torchmetrics.image.fid import FrechetInceptionDistance
 
-from conf.log_conf import logger
-from conf.global_setting import BASE_DIR
-from conf.model_config import model_config
+from src.conf.log_conf import logger
+from src.conf.global_setting import BASE_DIR
+from src.conf.model_config import model_config
 
 
 def preprocess_image(image):
@@ -81,6 +81,8 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=mo
 def calculate_fid(real_images, fake_images, device):
     # fid = FrechetInceptionDistance(normalize=True).to(device)
     fid = FrechetInceptionDistance(normalize=True)
+    real_images = real_images.to(device)
+    fake_images = fake_images.to(device)
     fid.update(real_images, real=True)
     fid.update(fake_images, real=False)
 
@@ -89,22 +91,26 @@ def calculate_fid(real_images, fake_images, device):
     logger.info(f"FID score: {fid_score}")
 
 
-def test_calculate_fid(dataset_path, model_ckpt, scheduler_path):
+def test_calculate_fid(dataset_path, model_ckpt, scheduler_path, fake_image_dir=None):
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    # if torch.backends.mps.is_available():
-    #     device = torch.device("mps")
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
     logger.info("Calculate FID score")
     real_images = make_fid_input_images(dataset_path)
     # real_images = real_images.to(device)
-    fake_images = generate_images_from_model(model_ckpt, scheduler_path, device)
+    if fake_image_dir:
+        fake_images = make_fid_input_images(fake_image_dir)
+    else:
+        fake_images = generate_images_from_model(model_ckpt, scheduler_path, device)
     calculate_fid(real_images, fake_images, device)
 
 
 if __name__ == '__main__':
     dataset_dir = BASE_DIR + '/data/celeba_hq_256'
-    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_256_training/'
-    scheduler_dir = BASE_DIR + '/output/celeba_hq_256_training/scheduler/'
+    model_ckpt_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/'
+    scheduler_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/scheduler/'
 
     test_data = model_config.test_dir
+    fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
 
-    test_calculate_fid(test_data, model_ckpt_dir, scheduler_dir)
+    test_calculate_fid(test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data)
