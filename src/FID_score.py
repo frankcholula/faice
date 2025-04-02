@@ -15,9 +15,9 @@ import numpy as np
 from torchvision.transforms import functional as F
 from torchmetrics.image.fid import FrechetInceptionDistance
 
-from src.conf.log_conf import logger
-from src.conf.global_setting import BASE_DIR
-from src.conf.model_config import model_config
+from conf.log_conf import logger
+from conf.global_setting import BASE_DIR
+from conf.model_config import model_config
 
 
 def preprocess_image(image):
@@ -81,8 +81,8 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=mo
 def calculate_fid(real_images, fake_images, device):
     # fid = FrechetInceptionDistance(normalize=True).to(device)
     fid = FrechetInceptionDistance(normalize=True)
-    real_images = real_images.to(device)
-    fake_images = fake_images.to(device)
+    # real_images = real_images.to(device)
+    # fake_images = fake_images.to(device)
     fid.update(real_images, real=True)
     fid.update(fake_images, real=False)
 
@@ -112,5 +112,4 @@ if __name__ == '__main__':
 
     test_data = model_config.test_dir
     fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
-
     test_calculate_fid(test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data)

@@ -10,8 +10,8 @@ from torchvision import transforms
 import matplotlib.pyplot as plt
 from datasets import load_dataset
 
-from src.conf.global_setting import BASE_DIR
-from src.conf import model_config as config
+from conf.global_setting import (BASE_DIR)
+from conf.model_config import model_config as config
 
 
 def transform(examples):

@@ -6,10 +6,11 @@
 @Project : faice
 """
 from diffusers import UNet2DModel
-
-from src.conf.log_conf import logger
-from src.conf.model_config import model_config
 from peft import LoraConfig, get_peft_model, PeftModel
+
+from conf.log_conf import logger
+from conf.model_config import model_config
+
 
 
 def unet2d_model():

@@ -25,11 +25,11 @@ import sentry_sdk
 from sentry_sdk import capture_exception
 import wandb
 
-from src.conf.log_conf import logger
 from src.data_exploration.preprocess_data import get_data
-from src.conf.global_setting import BASE_DIR, SETTINGS
-from src.conf.model_config import model_config
-from src.conf.model_config import wandb_config
+from conf.global_setting import BASE_DIR, SETTINGS
+from conf.model_config import model_config
+from conf.log_conf import logger
+from conf.model_config import wandb_config
 from src.FID_score import calculate_fid, make_fid_input_images
 
 # from src.models.U_Net2D_with_pretrain import unet2d_model
