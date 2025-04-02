@@ -8,7 +8,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from conf.global_setting import BASE_DIR
+from src.conf.global_setting import BASE_DIR
 
 
 # ********************************************* MODEL SETTING ********************************************* #

@@ -7,8 +7,8 @@
 """
 from diffusers import UNet2DModel
 
-from conf.log_conf import logger
-from conf.model_config import model_config
+from src.conf.log_conf import logger
+from src.conf.model_config import model_config
 
 
 def freeze_layers(model, freeze_until_layer):

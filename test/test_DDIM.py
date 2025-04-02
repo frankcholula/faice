@@ -10,7 +10,7 @@ from diffusers import DDIMPipeline, DDIMScheduler
 import PIL.Image
 import numpy as np
 
-from conf.global_setting import BASE_DIR
+from src.conf import BASE_DIR
 
 
 def test_ddim(model_path):

@@ -10,7 +10,7 @@ import torch
 import PIL.Image
 import numpy as np
 
-from conf.global_setting import BASE_DIR
+from src.conf.global_setting import BASE_DIR
 
 
 def test_ScoreSdeVe(model_path):

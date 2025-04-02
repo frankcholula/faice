@@ -7,7 +7,7 @@
 """
 from diffusers import UNet2DModel
 
-from conf.model_config import model_config
+from src.conf.model_config import model_config
 
 
 def unet2d_model():

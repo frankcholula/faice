@@ -7,7 +7,7 @@
 """
 from loguru import logger
 
-from conf.global_setting import SETTINGS
+from src.conf.global_setting import SETTINGS
 
 logger.add(SETTINGS.debug_log_file_path, rotation="50 MB", level="DEBUG", format=SETTINGS.log_format,
            enqueue=True)
