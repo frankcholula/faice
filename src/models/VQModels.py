@@ -6,7 +6,7 @@
 @Project : faice
 """
 from diffusers import VQModel
-from conf import model_config
+from conf.model_config import model_config
 
 # TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'
 vqvae = VQModel(
@@ -21,20 +21,22 @@ vqvae = VQModel(
     vq_embed_dim=64,  # Latent dimension
     # the number of output channels for each UNet block
     down_block_types=(
-        "DownBlock2D",  # a regular ResNet downsampling block
-        "DownBlock2D",
-        "DownBlock2D",
-        "DownBlock2D",
-        "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
-        "DownBlock2D",
+        "DownEncoderBlock2D",  # a regular ResNet downsampling block
+        "DownEncoderBlock2D",
+        "DownEncoderBlock2D",
+        "DownEncoderBlock2D",
+        "AttnDownEncoderBlock2D",  # a ResNet downsampling block with spatial self-attention
+        "DownEncoderBlock2D",
     ),
     up_block_types=(
-        "UpBlock2D",  # a regular ResNet upsampling block
-        "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
-        "UpBlock2D",
-        "UpBlock2D",
-        "UpBlock2D",
-        "UpBlock2D",
+        "UpDecoderBlock2D",  # a regular ResNet upsampling block
+        "AttnUpDecoderBlock2D",  # a ResNet upsampling block with spatial self-attention
+        "UpDecoderBlock2D",
+        "UpDecoderBlock2D",
+        "UpDecoderBlock2D",
+        "UpDecoderBlock2D",
     ),
 )
+
+# vqvae = VQModel()
 
