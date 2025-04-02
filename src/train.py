@@ -230,23 +230,18 @@ def train_loop(
 
             # Sample noise to add to the images
             input_shape = clean_images.shape
-            print('>'*9, 'input_shape', input_shape)
             noise = torch.randn(input_shape).to(device)
-            print('>'*9, 'noise 1', noise.shape)
 
             if "LDMP" in pipeline_name:
                 pass
                 # Encode image to latent space
                 vqvae.to(device)
                 latents = vqvae.encode(clean_images).latents
-                print('>' * 9, 'latents', latents.shape)
                 # # Add noise (diffusion process)
-                noise = torch.randn_like(latents).to(device)
-                print('>' * 9, 'noise 2', noise.shape)
+                # noise = torch.randn_like(latents).to(device)
                 # # Add noise to the clean images according to the noise magnitude at each timestep
                 # # (this is the forward diffusion process)
                 noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
-                print('>' * 9, 'noisy_images', noisy_images.shape)
             elif "Karras" in scheduler_name:
                 noisy_images = noise_scheduler.add_noise_to_input(
                     clean_images, sigma=0.02, generator=torch.manual_seed(config.seed)
