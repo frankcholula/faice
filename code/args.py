@@ -3,7 +3,7 @@ import inspect
 import sys
 from pipelines import ddpm
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
-from models.unet import create_unet
+from models.unet import create_unet2d
 from conf.training_config import get_config, get_all_datasets
 
 
@@ -20,7 +20,7 @@ def create_scheduler(scheduler: str, num_train_timesteps: int = 1000):
 
 def create_model(model: str, config):
     if model.lower() == "unet2d":
-        return create_unet(config)
+        return create_unet2d(config)
     else:
         raise ValueError(f"Model type '{model}' is not supported.")
 
@@ -35,33 +35,55 @@ def create_pipeline(pipeline: str):
 def parse_args():
     parser = argparse.ArgumentParser(description="Diffusion Model Training")
 
-    parser.add_argument(
+    # define argument groups
+    dataset_group = parser.add_argument_group("Dataset and Augmentation")
+    # TODO: tweak hyperparameters for training in training_group
+    training_group = parser.add_argument_group("Training and Evaluation")
+    logging_group = parser.add_argument_group("Logging and Output")  # Don't touch this
+    # TODO: implement more models, schedulers, and pipelines in model_group
+    model_group = parser.add_argument_group("Model, Scheduler, and Pipeline")
+
+    dataset_group.add_argument(
         "--dataset", choices=get_all_datasets(), help="Dataset to use"
     )
-    parser.add_argument("--model", help="Model architecture")
-    parser.add_argument("--scheduler", help="Noise scheduler")
-    parser.add_argument("--pipeline", help="Training pipeline")
-
-    parser.add_argument("--train_batch_size", type=int, help="Batch size for training")
-    parser.add_argument("--eval_batch_size", type=int, help="Batch size for evaluation")
-    parser.add_argument("--num_epochs", type=int, help="Number of training epochs")
-    parser.add_argument("--learning_rate", type=float, help="Learning rate")
-    parser.add_argument("--image_size", type=int, help="Image size for training")
-    parser.add_argument("--seed", type=int, help="Random seed")
-
-    parser.add_argument("--output_dir", help="Directory to save models and results")
-    parser.add_argument(
+    dataset_group.add_argument(
         "--train_dir", help="Directory with training images (for face dataset)"
     )
-    parser.add_argument(
+    dataset_group.add_argument(
         "--test_dir", help="Directory with test images (for face dataset)"
     )
 
-    parser.add_argument("--no_wandb", action="store_true", help="Disable W&B logging")
-    parser.add_argument(
+    training_group.add_argument(
+        "--train_batch_size", type=int, help="Batch size for training"
+    )
+    training_group.add_argument(
+        "--eval_batch_size", type=int, help="Batch size for evaluation"
+    )
+    training_group.add_argument(
+        "--num_epochs", type=int, help="Number of training epochs"
+    )
+    training_group.add_argument("--learning_rate", type=float, help="Learning rate")
+    training_group.add_argument(
+        "--image_size", type=int, help="Image size for training"
+    )
+    training_group.add_argument(
         "--calculate_fid", action="store_true", help="Calculate FID score"
     )
 
+    model_group.add_argument("--model", help="Model architecture")
+    model_group.add_argument("--scheduler", help="Noise scheduler")
+    model_group.add_argument("--pipeline", help="Training pipeline")
+
+    logging_group.add_argument(
+        "--output_dir", help="Directory to save models and results"
+    )
+    # expose some wandb arguments
+    logging_group.add_argument(
+        "--no_wandb", action="store_true", help="Disable W&B logging"
+    )
+    logging_group.add_argument("--wandb_run_name", type=str, help="W&B run name")
+
+    parser.add_argument("--verbose", action="store_true", help="Print detailed config")
     args = parser.parse_args()
     dataset = args.dataset
     config = get_config(dataset)
@@ -75,6 +97,9 @@ def parse_args():
             elif key != "dataset":
                 setattr(config, key, value)
 
+    # set wandb run name here
+    if not hasattr(config, "wandb_run_name") or args.wandb_run_name is None:
+        config.wandb_run_name = f"{config.scheduler}-{dataset}-{config.num_epochs}"
     return config
 
 
@@ -86,7 +111,19 @@ def get_config_and_components():
     print(f"Selected model: {config.model}")
     print(f"Selected scheduler: {config.scheduler}")
     print(f"Selected pipeline: {config.pipeline}")
+    print(f"W&B run name will be: {config.wandb_run_name}")
 
+    verbose = hasattr(config, "verbose") and config.verbose
+    if verbose:
+        print_config(config)
+    confirmation = (
+        input("\nDo you want to proceed with this configuration? (y/n): ")
+        .strip()
+        .lower()
+    )
+    if confirmation != "y" and confirmation != "yes":
+        print("Training aborted by user.")
+        sys.exit(0)
     model = create_model(config.model, config)
     scheduler = create_scheduler(config.scheduler)
     pipeline = create_pipeline(config.pipeline)
@@ -96,13 +133,8 @@ def get_config_and_components():
 
 def print_config(config):
     """Print configuration parameters."""
-    print("\nConfiguration:")
+    print("\nDetailed Configuration:")
     print("=" * 50)
     for key, value in inspect.getmembers(config):
         if not key.startswith("__") and not inspect.ismethod(value):
             print(f"{key}: {value}")
-
-
-if __name__ == "__main__":
-    config, model, scheduler, pipeline = get_config_and_components()
-    print_config(config)

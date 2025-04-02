@@ -57,10 +57,6 @@ class BaseConfig:
             raise NotImplementedError("output_dir must be specified")
         if self.dataset_name is None:
             raise NotImplementedError("dataset_name must be specified")
-        if self.wandb_run_name is None:
-            self.wandb_run_name = (
-                f"{self.scheduler}-{self.dataset}-{self.num_epochs}"
-            )
 
 
 @dataclass
@@ -75,6 +71,7 @@ class ButterflyConfig(BaseConfig):
 @dataclass
 class FaceConfig(BaseConfig):
     output_dir: str = "runs/ddpm-celebahq-256"
+    dataset: str = "face"
     dataset_name: str = "uos-celebahq-256x256"
     num_epochs: int = 1
     save_image_epochs: int = 1
