@@ -96,10 +96,10 @@ def parse_args():
                 setattr(config, "use_wandb", not value)  # Handle special case
             elif key != "dataset":
                 setattr(config, key, value)
-
-    # set wandb run name here
-    if not hasattr(config, "wandb_run_name") or args.wandb_run_name is None:
+    if args.wandb_run_name is None:
         config.wandb_run_name = f"{config.scheduler}-{dataset}-{config.num_epochs}"
+    if args.output_dir is None:
+        config.output_dir = f"runs/{config.scheduler}-{dataset}-{config.num_epochs}"
     return config
 
 
@@ -111,7 +111,8 @@ def get_config_and_components():
     print(f"Selected model: {config.model}")
     print(f"Selected scheduler: {config.scheduler}")
     print(f"Selected pipeline: {config.pipeline}")
-    print(f"W&B run name will be: {config.wandb_run_name}")
+    print(f"W&B run name: {config.wandb_run_name}")
+    print(f"Local output directory: {config.output_dir}")
 
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:
