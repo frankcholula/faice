@@ -44,7 +44,7 @@ from src.models.VQModels import vqvae
 sentry_sdk.init(SETTINGS.SENTRY_URL)
 
 pipeline_selector = {
-    "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+    # "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
     # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
@@ -238,7 +238,6 @@ def train_loop(
             if "LDMP" in pipeline_name:
                 pass
                 # Encode image to latent space
-                vqvae.to(device)
                 latents = vqvae.encode(clean_images).latents
                 # # Add noise (diffusion process)
                 noise = torch.randn_like(latents).to(device)
@@ -399,6 +398,8 @@ def main(data_dir):
                 # s_min=0.01,
                 # s_max=100,
             )
+        elif "LDPM" in scheduler_name:
+            vqvae.to(device)
         elif "CMS" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
