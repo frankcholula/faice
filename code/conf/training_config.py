@@ -13,12 +13,12 @@ class BaseConfig:
     """
 
     # model params
-    model_type: str = "unet2d"
-    scheduler_type: str = "ddpm"
-    pipeline_type: str = "ddpm"
+    model: str = "unet2d"
+    scheduler: str = "ddpm"
+    pipeline: str = "ddpm"
 
     # dataset params need to be set by subclass
-    dataset_type: str = field(default=None)
+    dataset: str = field(default=None)
     dataset_name: str = field(default=None)
     image_size: int = 128
 
@@ -59,7 +59,7 @@ class BaseConfig:
             raise NotImplementedError("dataset_name must be specified")
         if self.wandb_run_name is None:
             self.wandb_run_name = (
-                f"{self.scheduler_type}-{self.dataset_type}-{self.num_epochs}"
+                f"{self.scheduler}-{self.dataset}-{self.num_epochs}"
             )
 
 
@@ -67,7 +67,7 @@ class BaseConfig:
 class ButterflyConfig(BaseConfig):
     num_epochs: int = 1
     output_dir: str = "runs/ddpm-butterflies-128"
-    dataset_type: str = "butterfly"
+    dataset: str = "butterfly"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
     image_size: int = 128
 
@@ -90,11 +90,11 @@ CONFIG_REGISTRY = {
 }
 
 
-def get_config(dataset_type: str):
-    if dataset_type not in CONFIG_REGISTRY:
-        raise ValueError(f"Dataset type {dataset_type} not recognized.")
-    return CONFIG_REGISTRY[dataset_type]()
+def get_config(dataset: str):
+    if dataset not in CONFIG_REGISTRY:
+        raise ValueError(f"Dataset {dataset} not recognized.")
+    return CONFIG_REGISTRY[dataset]()
 
 
-def get_all_dataset_types():
+def get_all_datasets():
     return list(CONFIG_REGISTRY.keys())

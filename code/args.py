@@ -4,43 +4,43 @@ import sys
 from pipelines import ddpm
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from models.unet import create_unet
-from conf.training_config import get_config, get_all_dataset_types
+from conf.training_config import get_config, get_all_datasets
 
 
-def create_scheduler(scheduler_type: str, num_train_timesteps: int = 1000):
-    if scheduler_type.lower() == "ddpm":
+def create_scheduler(scheduler: str, num_train_timesteps: int = 1000):
+    if scheduler.lower() == "ddpm":
         return DDPMScheduler(num_train_timesteps=num_train_timesteps)
-    elif scheduler_type.lower() == "ddim":
+    elif scheduler.lower() == "ddim":
         return DDIMScheduler(num_train_timesteps=num_train_timesteps)
-    elif scheduler_type.lower() == "pndm":
+    elif scheduler.lower() == "pndm":
         return PNDMScheduler(num_train_timesteps=num_train_timesteps)
     else:
-        raise ValueError(f"Scheduler type '{scheduler_type}' is not supported.")
+        raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
 
 
-def create_model(model_type: str, config):
-    if model_type.lower() == "unet2d":
+def create_model(model: str, config):
+    if model.lower() == "unet2d":
         return create_unet(config)
     else:
-        raise ValueError(f"Model type '{model_type}' is not supported.")
+        raise ValueError(f"Model type '{model}' is not supported.")
 
 
-def create_pipeline(pipeline_type: str):
-    if pipeline_type.lower() == "ddpm":
+def create_pipeline(pipeline: str):
+    if pipeline.lower() == "ddpm":
         return ddpm.train_loop
     else:
-        raise ValueError(f"Pipeline type '{pipeline_type}' is not supported.")
+        raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Diffusion Model Training")
 
     parser.add_argument(
-        "--dataset_type", choices=get_all_dataset_types(), help="Dataset to use"
+        "--dataset", choices=get_all_datasets(), help="Dataset to use"
     )
-    parser.add_argument("--model_type", help="Model architecture")
-    parser.add_argument("--scheduler_type", help="Noise scheduler")
-    parser.add_argument("--pipeline_type", help="Training pipeline")
+    parser.add_argument("--model", help="Model architecture")
+    parser.add_argument("--scheduler", help="Noise scheduler")
+    parser.add_argument("--pipeline", help="Training pipeline")
 
     parser.add_argument("--train_batch_size", type=int, help="Batch size for training")
     parser.add_argument("--eval_batch_size", type=int, help="Batch size for evaluation")
@@ -63,8 +63,8 @@ def parse_args():
     )
 
     args = parser.parse_args()
-    dataset_type = args.dataset_type
-    config = get_config(dataset_type)
+    dataset = args.dataset
+    config = get_config(dataset)
     args_dict = vars(args)
 
     # update config with command line arguments
@@ -72,7 +72,7 @@ def parse_args():
         if value is not None:
             if key == "no_wandb":
                 setattr(config, "use_wandb", not value)  # Handle special case
-            elif key != "dataset_type":
+            elif key != "dataset":
                 setattr(config, key, value)
 
     return config
@@ -81,16 +81,16 @@ def parse_args():
 def get_config_and_components():
     """Get the config and create all necessary components."""
     config = parse_args()
-    
-    print(f"Selected dataset: {config.dataset_type} ({config.dataset_name})")
-    print(f"Selected model: {config.model_type}")
-    print(f"Selected scheduler: {config.scheduler_type}")
-    print(f"Selected pipeline: {config.pipeline_type}")
-    
-    model = create_model(config.model_type, config)
-    scheduler = create_scheduler(config.scheduler_type)
-    pipeline = create_pipeline(config.pipeline_type)
-    
+
+    print(f"Selected dataset: {config.dataset} ({config.dataset_name})")
+    print(f"Selected model: {config.model}")
+    print(f"Selected scheduler: {config.scheduler}")
+    print(f"Selected pipeline: {config.pipeline}")
+
+    model = create_model(config.model, config)
+    scheduler = create_scheduler(config.scheduler)
+    pipeline = create_pipeline(config.pipeline)
+
     return config, model, scheduler, pipeline
 
 

@@ -40,7 +40,7 @@ class WandBLogger:
                 "image_size": self.config.image_size,
                 "seed": self.config.seed,
                 "dataset": self.config.dataset_name,
-                "model_architecture": self.config.model,
+                "model": self.config.model,
                 "scheduler": self.config.scheduler,
             },
         )
