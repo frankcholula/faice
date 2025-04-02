@@ -25,7 +25,7 @@ import sentry_sdk
 from sentry_sdk import capture_exception
 import wandb
 
-from src.conf import logger
+from src.conf.log_conf import logger
 from src.data_exploration.preprocess_data import get_data
 from src.conf.global_setting import BASE_DIR, SETTINGS
 from src.conf.model_config import model_config
