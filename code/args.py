@@ -96,9 +96,9 @@ def parse_args():
                 setattr(config, "use_wandb", not value)  # Handle special case
             elif key != "dataset":
                 setattr(config, key, value)
-    if args.wandb_run_name is None:
+    if config.wandb_run_name is None:
         config.wandb_run_name = f"{config.scheduler}-{dataset}-{config.num_epochs}"
-    if args.output_dir is None:
+    if config.output_dir is None:
         config.output_dir = f"runs/{config.scheduler}-{dataset}-{config.num_epochs}"
     return config
 

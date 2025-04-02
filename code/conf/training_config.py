@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Optional, Dict, Type
+from dataclasses import dataclass
+from typing import Optional
 from dotenv import load_dotenv
 import os
 
@@ -18,8 +18,8 @@ class BaseConfig:
     pipeline: str = "ddpm"
 
     # dataset params need to be set by subclass
-    dataset: str = field(default=None)
-    dataset_name: str = field(default=None)
+    dataset: str = None
+    dataset_name: str = None
     image_size: int = 128
 
     # training params
@@ -35,7 +35,7 @@ class BaseConfig:
     # saving params
     save_image_epochs: int = 5
     save_model_epochs: int = 10
-    output_dir: str = field(default=None)  # need to be set by subclass
+    output_dir: str = None
     overwrite_output_dir: bool = True
 
     # hugging face hub params
