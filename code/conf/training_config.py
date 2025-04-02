@@ -61,16 +61,20 @@ class BaseConfig:
 
 @dataclass
 class ButterflyConfig(BaseConfig):
-    num_epochs: int = 1
-    output_dir: str = "runs/ddpm-butterflies-128"
     dataset: str = "butterfly"
     dataset_name: str = "huggan/smithsonian_butterflies_subset"
+    num_epochs: int = 1
+    ouput_dir: str = None
     image_size: int = 128
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.output_dir is None:
+            self.output_dir = f"runs/{self.scheduler}-{self.dataset}-{self.num_epochs}"
 
 
 @dataclass
 class FaceConfig(BaseConfig):
-    output_dir: str = "runs/ddpm-celebahq-256"
     dataset: str = "face"
     dataset_name: str = "uos-celebahq-256x256"
     num_epochs: int = 1
@@ -79,6 +83,11 @@ class FaceConfig(BaseConfig):
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
     calculate_fid: bool = True
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.output_dir is None:
+            self.output_dir = f"runs/{self.scheduler}-{self.dataset}-{self.num_epochs}"
 
 
 CONFIG_REGISTRY = {
