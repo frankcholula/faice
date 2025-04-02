@@ -18,24 +18,24 @@ vqvae = VQModel(
     act_fn="silu",
     latent_channels=3,
     num_vq_embeddings=512,  # Codebook size
-    vq_embed_dim=3*32*32,  # Latent dimension
+    vq_embed_dim=3,  # Latent dimension
     # the number of output channels for each UNet block
-    down_block_types=(
-        "DownEncoderBlock2D",  # a regular ResNet downsampling block
-        "DownEncoderBlock2D",
-        "DownEncoderBlock2D",
-        "DownEncoderBlock2D",
-        "AttnDownEncoderBlock2D",  # a ResNet downsampling block with spatial self-attention
-        "DownEncoderBlock2D",
-    ),
-    up_block_types=(
-        "UpDecoderBlock2D",  # a regular ResNet upsampling block
-        "AttnUpDecoderBlock2D",  # a ResNet upsampling block with spatial self-attention
-        "UpDecoderBlock2D",
-        "UpDecoderBlock2D",
-        "UpDecoderBlock2D",
-        "UpDecoderBlock2D",
-    ),
+    # down_block_types=(
+    #     "DownEncoderBlock2D",  # a regular ResNet downsampling block
+    #     "DownEncoderBlock2D",
+    #     "DownEncoderBlock2D",
+    #     "DownEncoderBlock2D",
+    #     "AttnDownEncoderBlock2D",  # a ResNet downsampling block with spatial self-attention
+    #     "DownEncoderBlock2D",
+    # ),
+    # up_block_types=(
+    #     "UpDecoderBlock2D",  # a regular ResNet upsampling block
+    #     "AttnUpDecoderBlock2D",  # a ResNet upsampling block with spatial self-attention
+    #     "UpDecoderBlock2D",
+    #     "UpDecoderBlock2D",
+    #     "UpDecoderBlock2D",
+    #     "UpDecoderBlock2D",
+    # ),
 )
 
 # vqvae = VQModel()
