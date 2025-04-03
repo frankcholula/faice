@@ -56,19 +56,19 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
     def preprocess_image(image, real):
         # Process fake images, need to convert to BCHW but no need to rescale.
         if real:
-            print("Processing real image...")
-            print(f"  Image shape: {image.shape} and  type: {type(image)}")
-            print(f"  Image min: {image.min().item()} and max: {image.max().item()}")
-            is_bchw = len(image.shape) == 4 and image.shape[1] == 3
-            print(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
+            # print("Processing real image...")
+            # print(f"  Image shape: {image.shape} and  type: {type(image)}")
+            # print(f"  Image min: {image.min().item()} and max: {image.max().item()}")
+            # is_bchw = len(image.shape) == 4 and image.shape[1] == 3
+            # print(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
             image = (image + 1.0) / 2.0
         else:
             # Process fake images, need to convert to BCHW but no need to rescale.
-            print("Processing fake image...")
-            print(f"  Image shape: {image.shape} and type: {type(image)}")
-            print(f"  Image min: {np.min(image)} and max: {np.max(image)}")
-            is_bchw = len(image.shape) == 4 and image.shape[1] == 3
-            print(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
+            # print("Processing fake image...")
+            # print(f"  Image shape: {image.shape} and type: {type(image)}")
+            # print(f"  Image min: {np.min(image)} and max: {np.max(image)}")
+            # is_bchw = len(image.shape) == 4 and image.shape[1] == 3
+            # print(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
             image = torch.tensor(image, device=device)
             image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
 
