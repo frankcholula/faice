@@ -34,11 +34,10 @@ from conf.model_config import model_config
 from conf.log_conf import logger
 from conf.model_config import wandb_config
 from src.FID_score import calculate_fid, make_fid_input_images
-
 # from src.models.U_Net2D_with_pretrain import unet2d_model
 from src.models.U_Net2D import unet2d_model
-
 from src.models.VQModels import vqvae
+from src.utils.tools import timer
 
 # Capture the error with Sentry
 sentry_sdk.init(SETTINGS.SENTRY_URL)
@@ -449,7 +448,8 @@ if __name__ == "__main__":
     data_path = BASE_DIR + "/data/celeba_hq_split/train"
 
     try:
-        main(data_path)
+        with timer:
+            main(data_path)
     except Exception as exc:
         capture_exception(exc)
         print(exc)
