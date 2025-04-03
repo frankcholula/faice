@@ -447,10 +447,10 @@ if __name__ == "__main__":
     # data_path = BASE_DIR + "/data/celebahq256_3000/train"
     data_path = BASE_DIR + "/data/celeba_hq_split/train"
 
-    try:
-        with timer:
+    with timer:
+        try:
             main(data_path)
-    except Exception as exc:
-        capture_exception(exc)
-        print(exc)
-        raise exc
+        except Exception as exc:
+            capture_exception(exc)
+            print(exc)
+            raise exc
