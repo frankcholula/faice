@@ -301,7 +301,7 @@ def train_loop(
                     fake_images = generate_images_for_test(config, pipeline)
                     real_images = make_fid_input_images(config.test_dir)
 
-                    calculate_fid(real_images, fake_images, device)
+                    calculate_fid(real_images, fake_images)
 
             if (
                     epoch + 1
