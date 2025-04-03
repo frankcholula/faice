@@ -50,8 +50,8 @@ pipeline_selector = {
     #                      "scheduler": DDPMScheduler},
     # "Consistency_PNDM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": PNDMScheduler}, # TypeError: PNDMScheduler.step() got an unexpected keyword argument 'generator'
-    "Consistency_CMS": {"pipeline": ConsistencyModelPipeline,
-                        "scheduler": CMStochasticIterativeScheduler},
+    # "Consistency_CMS": {"pipeline": ConsistencyModelPipeline,
+    #                     "scheduler": CMStochasticIterativeScheduler}, # IndexError: index 0 is out of bounds for dimension 0 with size 0
     "Consistency_Karras": {"pipeline": ConsistencyModelPipeline,
                            "scheduler": KarrasVeScheduler},
 
