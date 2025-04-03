@@ -59,7 +59,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
         else:
             # Process fake images, need to convert to BCHW but no need to rescale.
             image = torch.tensor(image, device=device)
-            image = image.permuet(0, 3, 1, 2)  # Convert from BHWC to BCHW format
+            image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
         image = F.center_crop(image, (config.image_size, config.image_size))
         return image
 
