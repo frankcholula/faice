@@ -2,6 +2,7 @@ import os
 import wandb
 import torch
 from torchmetrics.image.fid import FrechetInceptionDistance
+from torchvision.transforms import functional as F
 from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
@@ -51,15 +52,23 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
     # Create FID instance with normalize=True since we'll provide images in [0,1] range
     fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
 
-    # Process real images, no need to convert to BCHW format
+    def preprocess_image(image, real):
+        # Process fake images, need to convert to BCHW but no need to rescale.
+        if real:
+            image = (image + 1.0) / 2.0
+        else:
+            # Process fake images, need to convert to BCHW but no need to rescale.
+            image = torch.tensor(image, device=device)
+            image = image.permuet(0, 3, 1, 2)  # Convert from BHWC to BCHW format
+        image = F.center_crop(image, (config.image_size, config.image_size))
+        return image
+
     with torch.no_grad():
         for batch in tqdm(test_dataloader, desc="Calculating FID (real images)"):
             real_images = batch["images"].to(device)
-            # Convert from [-1, 1] to [0, 1] range
-            real_images = (real_images + 1.0) / 2.0
-            fid.update(real_images, real=True)
+            processed_real = preprocess_image(real_images, real=True)
+            fid.update(processed_real, real=True)
 
-    # Process fake images, need to convert to BCHW but no need to rescale.
     with torch.no_grad():
         for i in tqdm(
             range(0, len(test_dataloader.dataset), config.eval_batch_size),
@@ -74,12 +83,8 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
                 output_type="np.array",
             ).images
 
-            # Convert numpy arrays to tensors
-            fake_images = torch.tensor(output)
-            # Rearrange from BHWC to BCHW format
-            fake_images = fake_images.permute(0, 3, 1, 2)
-            fake_images = fake_images.to(device)
-            fid.update(fake_images, real=False)
+            processed_fake = preprocess_image(output, real=False)
+            fid.update(processed_fake, real=False)
 
     # Compute final FID score
     fid_score = fid.compute().item()
