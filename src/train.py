@@ -49,7 +49,7 @@ pipeline_selector = {
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
     # "Consistency_PNDM": {"pipeline": ConsistencyModelPipeline,
-    #                      "scheduler": PNDMScheduler},
+    #                      "scheduler": PNDMScheduler}, # TypeError: PNDMScheduler.step() got an unexpected keyword argument 'generator'
     "Consistency_CMS": {"pipeline": ConsistencyModelPipeline,
                         "scheduler": CMStochasticIterativeScheduler},
     "Consistency_Karras": {"pipeline": ConsistencyModelPipeline,
