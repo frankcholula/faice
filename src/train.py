@@ -433,8 +433,7 @@ def main(data_dir):
             vqvae_model
         )
 
-        with timer:
-            notebook_launcher(train_loop, args, num_processes=1)
+        notebook_launcher(train_loop, args, num_processes=1)
 
         if wandb_config.use_wandb:
             wandb_run.alert(title="Finish", text=f"The {k} training is done")
@@ -449,7 +448,8 @@ if __name__ == "__main__":
     data_path = BASE_DIR + "/data/celeba_hq_split/train"
 
     try:
-        main(data_path)
+        with timer():
+            main(data_path)
     except Exception as exc:
         capture_exception(exc)
         print(exc)
