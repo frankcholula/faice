@@ -48,7 +48,13 @@ pipeline_selector = {
 
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
-    #
+    "Consistency_PNDM": {"pipeline": ConsistencyModelPipeline,
+                         "scheduler": PNDMScheduler},
+    "Consistency_CMS": {"pipeline": ConsistencyModelPipeline,
+                        "scheduler": CMStochasticIterativeScheduler},
+    "Consistency_Karras": {"pipeline": ConsistencyModelPipeline,
+                           "scheduler": KarrasVeScheduler},
+
     # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
     # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
@@ -60,9 +66,8 @@ pipeline_selector = {
     #     "pipeline": LDMPipeline,
     #     "scheduler": DDIMScheduler,
     # },  # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
-    "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
-    # "Consistency": {"pipeline": ConsistencyModelPipeline,
-    #                 "scheduler": CMStochasticIterativeScheduler},
+    # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+
 }
 
 
