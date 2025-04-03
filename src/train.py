@@ -43,17 +43,10 @@ from src.utils.tools import timer
 sentry_sdk.init(SETTINGS.SENTRY_URL)
 
 pipeline_selector = {
-    # "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
-    # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
-
-    # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
-    #                      "scheduler": DDPMScheduler},
-    # "Consistency_PNDM": {"pipeline": ConsistencyModelPipeline,
-    #                      "scheduler": PNDMScheduler}, # TypeError: PNDMScheduler.step() got an unexpected keyword argument 'generator'
-    # "Consistency_CMS": {"pipeline": ConsistencyModelPipeline,
-    #                     "scheduler": CMStochasticIterativeScheduler}, # IndexError: index 0 is out of bounds for dimension 0 with size 0
-    "Consistency_Karras": {"pipeline": ConsistencyModelPipeline,
-                           "scheduler": KarrasVeScheduler},
+    "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+    "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
+    "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
+                         "scheduler": DDPMScheduler},
 
     # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
@@ -67,6 +60,13 @@ pipeline_selector = {
     #     "scheduler": DDIMScheduler,
     # },  # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
     # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+
+    # "Consistency_PNDM": {"pipeline": ConsistencyModelPipeline,
+    #                      "scheduler": PNDMScheduler}, # TypeError: PNDMScheduler.step() got an unexpected keyword argument 'generator'
+    # "Consistency_CMS": {"pipeline": ConsistencyModelPipeline,
+    #                     "scheduler": CMStochasticIterativeScheduler}, # IndexError: index 0 is out of bounds for dimension 0 with size 0
+    # "Consistency_Karras": {"pipeline": ConsistencyModelPipeline,
+    #                        "scheduler": KarrasVeScheduler}, # AttributeError: 'tuple' object has no attribute 'shape'
 
 }
 
