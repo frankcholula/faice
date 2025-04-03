@@ -55,11 +55,12 @@ pipeline_selector = {
 
     # unexpected keyword argument num_train_timesteps
     # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
-    "LDMP_DDIM": {
-        "pipeline": LDMPipeline,
-        "scheduler": DDIMScheduler,
-    },  # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
-    # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
+
+    # "LDMP_DDIM": {
+    #     "pipeline": LDMPipeline,
+    #     "scheduler": DDIMScheduler,
+    # },  # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
+    "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
     # "Consistency": {"pipeline": ConsistencyModelPipeline,
     #                 "scheduler": CMStochasticIterativeScheduler},
 }
@@ -360,6 +361,10 @@ def main(data_dir):
         # Get the name of scheduler
         vqvae_model = None
         pipeline_name = selected_pipeline.__name__
+        if "LDMP" in pipeline_name:
+            vqvae_model = vqvae
+            vqvae_model.to(device)
+
         scheduler_name = selected_scheduler.__name__
         if "DDPM" in scheduler_name:
             noise_scheduler = selected_scheduler(
@@ -377,10 +382,6 @@ def main(data_dir):
                 # clip_sample=False,
                 timestep_spacing="trailing",
             )
-            if "LDMP" in pipeline_name:
-                noise_scheduler = selected_scheduler(num_train_timesteps=1000)
-                vqvae_model = vqvae
-                vqvae_model.to(device)
         elif "PDNM" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
@@ -388,10 +389,6 @@ def main(data_dir):
                 beta_end=0.02,
                 beta_schedule="linear",
             )
-            if "LDMP" in pipeline_name:
-                noise_scheduler = selected_scheduler(num_train_timesteps=1000)
-                vqvae_model = vqvae
-                vqvae_model.to(device)
         elif "ScoreSdeVe" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
