@@ -6,10 +6,7 @@ from torchvision.transforms import functional as F
 from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+import numpy as np
 
 
 def make_grid(images, rows, cols):
@@ -59,21 +56,22 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
     def preprocess_image(image, real):
         # Process fake images, need to convert to BCHW but no need to rescale.
         if real:
-            logger.debug("Processing real image...")
-            logger.debug(f"  Image shape: {image.shape} and dtype: {image.dtype}")
-            logger.debug(f"  Image min: {image.min()} and max: {image.max()}")
+            print("Processing real image...")
+            print(f"  Image shape: {image.shape} and  type: {type(image)}")
+            print(f"  Image min: {image.min().item()} and max: {image.max().item()}")
             is_bchw = len(image.shape) == 4 and image.shape[1] == 3
-            logger.debug(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
+            print(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
             image = (image + 1.0) / 2.0
         else:
             # Process fake images, need to convert to BCHW but no need to rescale.
-            logger.debug("Processing fake image...")
-            logger.debug(f"  Image shape: {image.shape} and dtype: {image.dtype}")
-            logger.debug(f"  Image min: {image.min()} and max: {image.max()}")
+            print("Processing fake image...")
+            print(f"  Image shape: {image.shape} and type: {type(image)}")
+            print(f"  Image min: {np.min(image)} and max: {np.max(image)}")
             is_bchw = len(image.shape) == 4 and image.shape[1] == 3
-            logger.debug(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
+            print(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
             image = torch.tensor(image, device=device)
             image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
+
         image = F.center_crop(image, (config.image_size, config.image_size))
         return image
 
@@ -102,7 +100,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
 
     # Compute final FID score
     fid_score = fid.compute().item()
-    logger.info(f"FID Score: {fid_score}")
+    print(f"FID Score: {fid_score}")
     return fid_score
 
 
