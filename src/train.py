@@ -48,8 +48,8 @@ pipeline_selector = {
 
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
-    "Consistency_PNDM": {"pipeline": ConsistencyModelPipeline,
-                         "scheduler": PNDMScheduler},
+    # "Consistency_PNDM": {"pipeline": ConsistencyModelPipeline,
+    #                      "scheduler": PNDMScheduler},
     "Consistency_CMS": {"pipeline": ConsistencyModelPipeline,
                         "scheduler": CMStochasticIterativeScheduler},
     "Consistency_Karras": {"pipeline": ConsistencyModelPipeline,
