@@ -43,8 +43,8 @@ from src.utils.tools import timer
 sentry_sdk.init(SETTINGS.SENTRY_URL)
 
 pipeline_selector = {
-    "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
-    "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
+    # "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+    # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
     "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
                          "scheduler": DDPMScheduler},
 

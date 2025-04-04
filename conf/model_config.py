@@ -14,12 +14,12 @@ from conf.global_setting import BASE_DIR
 # ********************************************* MODEL SETTING ********************************************* #
 @dataclass
 class TrainingConfig:
-    image_size = 256  # the generated image resolution
-    train_batch_size = 36
-    eval_batch_size = 36  # how many images to sample during evaluation
-    num_epochs = 50
+    image_size = 128  # the generated image resolution
+    train_batch_size = 64
+    eval_batch_size = 64  # how many images to sample during evaluation
+    num_epochs = 1000
     gradient_accumulation_steps = 1
-    learning_rate = 1e-4
+    learning_rate = 2e-5
     lr_warmup_steps = 500
     save_image_epochs = 10
     save_model_epochs = 30
