@@ -45,10 +45,33 @@ def evaluate(config, epoch, pipeline):
             }
         )
 
+
 def calculate_inception_score(config, pipeline, test_dataloader, device=None):
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
+    inception_score = InceptionScore(
+        feature="logits_unbiased", splits=10, normalize=True
+    ).to(device)
+
+    def preprocess_image(image):
+        # Process fake images, need to convert to BCHW but no need to rescale.
+        image = torch.tensor(image, device=device)
+        image = image.permute(0, 3, 1, 2)
+        return image
+    
+    with torch.no_grad():
+        for batch in tqdm(test_dataloader, desc="Calculating Inception Score"):
+            output = pipeline(
+                batch_size=min(config.eval_batch_size, len(test_dataloader.dataset)),
+                generator=torch.manual_seed(config.seed),
+                output_type="np.array",
+            ).images
+            processed_fake = preprocess_image(output)
+            inception_score.update(processed_fake)
+    inception_mean, inception_std = inception_score.compute()
+    print(f"Inception Score: {inception_mean:.2f} ± {inception_std:.2f}")
+    return inception_mean, inception_std
+
 
 def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=True):
     """Calculate FID score between generated images and test dataset"""
@@ -61,19 +84,8 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     def preprocess_image(image, real):
         # Process fake images, need to convert to BCHW but no need to rescale.
         if real:
-            # print("Processing real image...")
-            # print(f"  Image shape: {image.shape} and  type: {type(image)}")
-            # print(f"  Image min: {image.min().item()} and max: {image.max().item()}")
-            # is_bchw = len(image.shape) == 4 and image.shape[1] == 3
-            # print(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
             image = (image + 1.0) / 2.0
         else:
-            # Process fake images, need to convert to BCHW but no need to rescale.
-            # print("Processing fake image...")
-            # print(f"  Image shape: {image.shape} and type: {type(image)}")
-            # print(f"  Image min: {np.min(image)} and max: {np.max(image)}")
-            # is_bchw = len(image.shape) == 4 and image.shape[1] == 3
-            # print(f"  Format: {'BCHW' if is_bchw else 'NOT BCHW'}")
             image = torch.tensor(image, device=device)
             image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
 
@@ -96,7 +108,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
             if save:
                 for image in processed_real:
                     save_image(image, os.path.join(real_dir, f"{real_count:03d}.jpg"))
-                    real_count +=1
+                    real_count += 1
             fid.update(processed_real, real=True)
 
     with torch.no_grad():
@@ -119,7 +131,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                         image,
                         os.path.join(fake_dir, f"{fake_count:03d}.jpg"),
                     )
-                    fake_count +=1
+                    fake_count += 1
             fid.update(processed_fake, real=False)
 
     # Compute final FID score
