@@ -3,10 +3,10 @@ import wandb
 import torch
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchvision.transforms import functional as F
+from torchvision.utils import save_image
 from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
-import numpy as np
 
 
 def make_grid(images, rows, cols):
@@ -45,7 +45,7 @@ def evaluate(config, epoch, pipeline):
         )
 
 
-def calculate_fid_score(config, pipeline, test_dataloader, device=None):
+def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=True):
     """Calculate FID score between generated images and test dataset"""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -75,10 +75,23 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
         image = F.center_crop(image, (config.image_size, config.image_size))
         return image
 
+    real_count = 0
+    fake_count = 0
+
+    if save:
+        real_dir = os.path.join(config.output_dir, "fid", "real")
+        fake_dir = os.path.join(config.output_dir, "fid", "fake")
+        os.makedirs(real_dir, exist_ok=True)
+        os.makedirs(fake_dir, exist_ok=True)
+
     with torch.no_grad():
         for batch in tqdm(test_dataloader, desc="Calculating FID (real images)"):
             real_images = batch["images"].to(device)
             processed_real = preprocess_image(real_images, real=True)
+            if save:
+                for i, image in enumerate(processed_real):
+                    save_image(image, os.path.join(real_dir, f"{real_count:04d}.jpg"))
+                real_count += len(processed_real)
             fid.update(processed_real, real=True)
 
     with torch.no_grad():
@@ -94,8 +107,14 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
                 generator=torch.manual_seed(config.seed + i),
                 output_type="np.array",
             ).images
-
             processed_fake = preprocess_image(output, real=False)
+            if save:
+                for j, image in enumerate(processed_fake):
+                    save_image(
+                        image,
+                        os.path.join(fake_dir, f"{fake_count:04d}.jpg"),
+                    )
+                fake_count += len(processed_fake)
             fid.update(processed_fake, real=False)
 
     # Compute final FID score
