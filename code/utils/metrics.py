@@ -129,7 +129,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
         os.makedirs(fake_dir, exist_ok=True)
 
     with torch.no_grad():
-        for batch in tqdm(test_dataloader, desc="Calculating FID (real images)"):
+        for batch in tqdm(test_dataloader, desc="Loading Real Images for FID Calculation..."):
             real_images = batch["images"].to(device)
             processed_real = preprocess_image(
                 real_images,
@@ -146,7 +146,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     with torch.no_grad():
         for batch in tqdm(
             range(0, len(test_dataloader.dataset), config.eval_batch_size),
-            desc="Calculating FID (generated images)",
+            desc="Loading Fake Images for FID Calculation..",
         ):
             # Generate images as numpy arrays
             output = pipeline(
@@ -156,7 +156,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                 generator=torch.manual_seed(config.seed + batch),
                 output_type="np.array",
             ).images
-            processed_fake = preprocess_1image(
+            processed_fake = preprocess_image(
                 output,
                 img_src="generated",
                 device=device,
