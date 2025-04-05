@@ -4,7 +4,7 @@ trainb:
 
 .PHONY: trainf
 trainf:
-	python main.py --dataset face --num_epochs 1 --calculate_is
+	python main.py --dataset face --num_epochs 1 --calculate_fid --calculate_is --verbose
 
 .PHONY: tensorboardb
 tensorboardb:
