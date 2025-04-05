@@ -3,7 +3,7 @@ EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation wit
 
 ## Code Layout
 ```bash
-.
+faice/code
 ├── Makefile
 ├── Training_Diffusion_Models.ipynb
 ├── args.py
