@@ -3,32 +3,29 @@ EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation wit
 
 ## Code Layout
 ```bash
-faice/code
+.
 ├── Makefile
 ├── Training_Diffusion_Models.ipynb
+├── args.py
+├── conf
+│   └── training_config.py
 ├── datasets
 │   └── celeba_hq_split
-│       ├── test
-│       └── train
-├── ddpm-butterflies-128
-│   ├── logs
-│   ├── model_index.json
-│   ├── samples
-│   ├── scheduler
-│   └── unet
-├── ddpm-celebahq-256
-│   ├── logs
-│   ├── model_index.json
-│   ├── samples
-│   ├── scheduler
-│   └── unet
-├── diffusion_pipeline.py
-├── poetry.lock
-├── pyproject.toml
-├── train_butterfly.py
-├── train_face.py
-├── wandb
-└── .env
+├── main.py
+├── models
+│   └── unet.py
+├── pipelines
+│   └── ddpm.py
+├── runs
+│   ├── ddpm-face-10
+│   └── ddpm-butterfly-10
+├── tests
+├── utils
+│   ├── loggers.py
+│   ├── metrics.py
+│   └── training.py
+└── wandb
+
 ```
 
 ## Dataset
