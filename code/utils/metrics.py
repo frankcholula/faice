@@ -89,32 +89,32 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
             real_images = batch["images"].to(device)
             processed_real = preprocess_image(real_images, real=True)
             if save:
-                for i, image in enumerate(processed_real):
-                    save_image(image, os.path.join(real_dir, f"{real_count:04d}.jpg"))
-                real_count += len(processed_real)
+                for image in processed_real:
+                    save_image(image, os.path.join(real_dir, f"{real_count:03d}.jpg"))
+                    real_count +=1
             fid.update(processed_real, real=True)
 
     with torch.no_grad():
-        for i in tqdm(
+        for batch in tqdm(
             range(0, len(test_dataloader.dataset), config.eval_batch_size),
             desc="Calculating FID (generated images)",
         ):
             # Generate images as numpy arrays
             output = pipeline(
                 batch_size=min(
-                    config.eval_batch_size, len(test_dataloader.dataset) - i
+                    config.eval_batch_size, len(test_dataloader.dataset) - batch
                 ),
-                generator=torch.manual_seed(config.seed + i),
+                generator=torch.manual_seed(config.seed + batch),
                 output_type="np.array",
             ).images
             processed_fake = preprocess_image(output, real=False)
             if save:
-                for j, image in enumerate(processed_fake):
+                for image in processed_fake:
                     save_image(
                         image,
-                        os.path.join(fake_dir, f"{fake_count:04d}.jpg"),
+                        os.path.join(fake_dir, f"{fake_count:03d}.jpg"),
                     )
-                fake_count += len(processed_fake)
+                    fake_count +=1
             fid.update(processed_fake, real=False)
 
     # Compute final FID score
