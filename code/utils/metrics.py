@@ -54,10 +54,13 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
         feature="logits_unbiased", splits=10, normalize=True
     ).to(device)
 
-    def preprocess_image(image):
+    def preprocess_image(image, real):
         # Process fake images, need to convert to BCHW but no need to rescale.
-        image = torch.tensor(image, device=device)
-        image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
+        if real:
+            image = (image + 1.0) / 2.0
+        else:
+            image = torch.tensor(image, device=device)
+            image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
         return image
 
     fake_dir = os.path.join(config.output_dir, "fid", "fake")
@@ -80,7 +83,7 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
             for batch in tqdm(test_dataloader, desc="Calculating Inception Score"):
                 output = pipeline(
                     batch_size=min(
-                        config.eval_batch_size, len(test_dataloader.dataset)
+                        config.eval_batch_size, len(test_dataloader.dataset) - batch
                     ),
                     generator=torch.manual_seed(config.seed),
                     output_type="np.array",
