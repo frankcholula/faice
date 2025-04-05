@@ -35,7 +35,7 @@ class WandBLogger:
             name=self.config.wandb_run_name,
             config={
                 "learning_rate": self.config.learning_rate,
-                "epochs": self.config.num_epochs,
+                "num_epochs": self.config.num_epochs,
                 "train_batch_size": self.config.train_batch_size,
                 "image_size": self.config.image_size,
                 "seed": self.config.seed,

@@ -73,11 +73,15 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 img_tensor = transforms.ToTensor()(img).unsqueeze(0).to(device)
                 fake_images.append(img_tensor)
                 if len(fake_images) == config.eval_batch_size:
-                    processed_fake = preprocess_image(torch.cat(fake_images, dim=0), real=True)
+                    processed_fake = preprocess_image(
+                        torch.cat(fake_images, dim=0), real=True
+                    )
                     inception_score.update(processed_fake)
                     fake_images = []
             if fake_images:
-                processed_fake = preprocess_image(torch.cat(fake_images, dim=0), real=True)
+                processed_fake = preprocess_image(
+                    torch.cat(fake_images, dim=0), real=True
+                )
                 inception_score.update(processed_fake)
         else:
             for batch in tqdm(test_dataloader, desc="Calculating Inception Score"):
