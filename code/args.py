@@ -69,7 +69,9 @@ def parse_args():
     training_group.add_argument(
         "--calculate_fid", action="store_true", help="Calculate FID score"
     )
-
+    training_group.add_argument(
+        "--calculate_is", action="store_true", help="Calculate Inception score"
+    )
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument("--scheduler", help="Noise scheduler")
     model_group.add_argument("--pipeline", help="Training pipeline")
