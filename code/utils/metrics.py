@@ -108,7 +108,7 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 inception_score.update(processed_fake)
     inception_mean, inception_std = inception_score.compute()
     print(f"Inception Score: {inception_mean:.2f} ± {inception_std:.2f}")
-    return round(inception_mean,5), round(inception_std, 5)
+    return round(inception_mean, 5), round(inception_std, 5)
 
 
 def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=True):
@@ -129,7 +129,9 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
         os.makedirs(fake_dir, exist_ok=True)
 
     with torch.no_grad():
-        for batch in tqdm(test_dataloader, desc="Loading Real Images for FID Calculation..."):
+        for batch in tqdm(
+            test_dataloader, desc="Loading Real Images for FID Calculation..."
+        ):
             real_images = batch["images"].to(device)
             processed_real = preprocess_image(
                 real_images,
