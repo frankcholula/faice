@@ -37,5 +37,10 @@ python main.py --dataset face --num_epochs 1 --calculate_fid --calculate_is --ve
 As seen in the code layout above, please download the attached dataset `celeba_hq_split.zip` from the email and extract it into the `datasets` folder in order to run the code.
 
 ## Credentials
-Please use the provided API key and entity in the `.env` file in order to store the runs.
+Please use the provided API key and entity in the `.env` file in order to store the runs on Weights & Biases.
+```bash
+# sample .env file
+WANDB_ENTITY=<your_wandb_entity>
+WANDB_API_KEY=<your_wandb_api_key>
+```
 **DO NOT COMMIT THE CREDENTIALS.**
