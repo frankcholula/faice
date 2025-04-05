@@ -218,7 +218,8 @@ def train_loop(
     scheduler_name = noise_scheduler.__class__.__name__
 
     # Now you train the model
-    for epoch in range(config.num_epochs):
+    for epoch in trange(config.num_epochs):
+        logger.info(f"Start Epoch {epoch}")
         progress_bar = tqdm(
             total=len(train_dataloader), disable=not accelerator.is_local_main_process
         )
