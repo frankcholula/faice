@@ -5,6 +5,7 @@ from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
 from torchvision.transforms import functional as F
 from torchvision.utils import save_image
+from torchvision import transforms
 from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
@@ -56,18 +57,36 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
     def preprocess_image(image):
         # Process fake images, need to convert to BCHW but no need to rescale.
         image = torch.tensor(image, device=device)
-        image = image.permute(0, 3, 1, 2)
+        image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
         return image
-    
+
+    fake_dir = os.path.join(config.output_dir, "fid", "fake")
+    fake_images = []
     with torch.no_grad():
-        for batch in tqdm(test_dataloader, desc="Calculating Inception Score"):
-            output = pipeline(
-                batch_size=min(config.eval_batch_size, len(test_dataloader.dataset)),
-                generator=torch.manual_seed(config.seed),
-                output_type="np.array",
-            ).images
-            processed_fake = preprocess_image(output)
-            inception_score.update(processed_fake)
+        if os.path.exists(fake_dir) and len(os.listdir(fake_dir)) > 0:
+            for filename in tqdm(os.listdir(fake_dir), desc="Loading Fake Images..."):
+                image_path = os.path.join(fake_dir, filename)
+                img = Image.open(image_path).convert("RGB")
+                img_tensor = transforms.ToTensor()(img).unsqueeze(0).to(device)
+                fake_images.append(img_tensor)
+                if len(fake_images) == config.eval_batch_size:
+                    processed_fake = preprocess_image(torch.cat(fake_images, dim=0))
+                    inception_score.update(processed_fake)
+                    fake_images = []
+            if fake_images:
+                processed_fake = preprocess_image(fake_images)
+                inception_score.update(processed_fake)
+        else:
+            for batch in tqdm(test_dataloader, desc="Calculating Inception Score"):
+                output = pipeline(
+                    batch_size=min(
+                        config.eval_batch_size, len(test_dataloader.dataset)
+                    ),
+                    generator=torch.manual_seed(config.seed),
+                    output_type="np.array",
+                ).images
+                processed_fake = preprocess_image(output)
+                inception_score.update(processed_fake)
     inception_mean, inception_std = inception_score.compute()
     print(f"Inception Score: {inception_mean:.2f} ± {inception_std:.2f}")
     return inception_mean, inception_std
