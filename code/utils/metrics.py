@@ -2,6 +2,7 @@ import os
 import wandb
 import torch
 from torchmetrics.image.fid import FrechetInceptionDistance
+from torchmetrics.image.inception import InceptionScore
 from torchvision.transforms import functional as F
 from torchvision.utils import save_image
 from PIL import Image
@@ -44,6 +45,10 @@ def evaluate(config, epoch, pipeline):
             }
         )
 
+def calculate_inception_score(config, pipeline, test_dataloader, device=None):
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
 
 def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=True):
     """Calculate FID score between generated images and test dataset"""

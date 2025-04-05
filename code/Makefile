@@ -13,3 +13,7 @@ tensorboardb:
 .PHONY: clean
 clean:
 	rm -rf runs/ddpm-celebhq-256/logs/train_example/
+
+.PHONY: calculate_fid
+calculate_fid:
+	python -m pytorch_fid runs/ddpm-face-1/fid/real runs/ddpm-face-1/fid/fake --device cuda:0
