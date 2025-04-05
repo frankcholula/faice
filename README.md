@@ -27,6 +27,11 @@ faice/code
 └── wandb
 
 ```
+## Running the experiments
+Sample command posted below. Consult the `Makefile` for other available commands.
+```bash
+python main.py --dataset face --num_epochs 1 --calculate_fid --calculate_is --verbose
+```
 
 ## Dataset
 As seen in the code layout above, please download the attached dataset `celeba_hq_split.zip` from the email and extract it into the `datasets` folder in order to run the code.
