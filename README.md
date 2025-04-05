@@ -27,7 +27,7 @@ faice/code
 └── wandb
 
 ```
-## Running the experiments
+## Running the Experiments
 Sample command posted below. Consult the `Makefile` for other available commands.
 ```bash
 python main.py --dataset face --num_epochs 1 --calculate_fid --calculate_is --verbose
