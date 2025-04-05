@@ -3767,6 +3767,28 @@ files = [
 dev = ["backports.zoneinfo ; python_version < \"3.9\"", "black", "build", "freezegun", "mdx_truly_sane_lists", "mike", "mkdocs", "mkdocs-awesome-pages-plugin", "mkdocs-gen-files", "mkdocs-literate-nav", "mkdocs-material (>=8.5)", "mkdocstrings[python]", "msgspec ; implementation_name != \"pypy\"", "mypy", "orjson ; implementation_name != \"pypy\"", "pylint", "pytest", "tzdata", "validate-pyproject[all]"]
 
 [[package]]
+name = "pytorch-fid"
+version = "0.3.0"
+description = "Package for calculating Frechet Inception Distance (FID) using PyTorch"
+optional = false
+python-versions = ">=3.5"
+groups = ["main"]
+files = [
+    {file = "pytorch-fid-0.3.0.tar.gz", hash = "sha256:1c80d112c9cf5ebcbcc428a0b7ea615c302805ad6780ec29e8e2955ba31571c8"},
+    {file = "pytorch_fid-0.3.0-py3-none-any.whl", hash = "sha256:0e1d4fe66441a8dff2a2aca31394e9389fb197dfeff046f2f971f271d4137767"},
+]
+
+[package.dependencies]
+numpy = "*"
+pillow = "*"
+scipy = "*"
+torch = ">=1.0.1"
+torchvision = ">=0.2.2"
+
+[package.extras]
+dev = ["flake8", "flake8-bugbear", "flake8-isort", "nox"]
+
+[[package]]
 name = "pytz"
 version = "2025.2"
 description = "World timezone definitions, modern and historical"
@@ -5664,4 +5686,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <4.0"
-content-hash = "e0e48ac9489dce9e248e5a6b7bb074b9109fc766e8c121ce6c7d6ecd3379e76a"
+content-hash = "7bfde2d37106b57ff95040fa8683f057adbabd49d58befeb68cc67c5878563c1"

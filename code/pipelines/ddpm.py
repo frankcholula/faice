@@ -7,7 +7,7 @@ from tqdm.auto import tqdm
 from diffusers import DDPMPipeline
 
 # Configuration
-from utils.metrics import calculate_fid_score
+from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
@@ -129,4 +129,13 @@ def train_loop(
 
         wandb_logger.log_fid_score(fid_score)
 
+    if (
+        accelerator.is_main_process
+        and config.calculate_is
+        and test_dataloader is not None
+    ):
+        inception_score = calculate_inception_score(
+            config, pipeline, test_dataloader, device=accelerator.device
+        )
+        wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()

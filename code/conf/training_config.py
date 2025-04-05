@@ -51,6 +51,7 @@ class BaseConfig:
 
     # evaluation
     calculate_fid: bool = False
+    calculate_is: bool = False
 
     def __post_init__(self):
         if self.dataset_name is None:
@@ -74,7 +75,6 @@ class FaceConfig(BaseConfig):
     save_model_epochs: int = 1
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
-    calculate_fid: bool = True
 
 
 CONFIG_REGISTRY = {

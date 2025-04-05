@@ -35,7 +35,7 @@ class WandBLogger:
             name=self.config.wandb_run_name,
             config={
                 "learning_rate": self.config.learning_rate,
-                "epochs": self.config.num_epochs,
+                "num_epochs": self.config.num_epochs,
                 "train_batch_size": self.config.train_batch_size,
                 "image_size": self.config.image_size,
                 "seed": self.config.seed,
@@ -63,6 +63,16 @@ class WandBLogger:
             return
 
         wandb.run.summary["fid_score"] = fid_score
+
+    def log_inception_score(self, inception_score):
+        if (
+            not self.config.use_wandb
+            or not self.accelerator.is_main_process
+            or inception_score is None
+        ):
+            return
+
+        wandb.run.summary["inception_score"] = inception_score
 
     def finish(self):
         """Clean up and finish the wandb run."""
