@@ -47,21 +47,22 @@ def evaluate(config, epoch, pipeline):
         )
 
 
+def preprocess_image(image, img_src, device, img_size):
+    if img_src == "loaded":
+        image = (image + 1.0) / 2.0
+    elif img_src == "generated":
+        image = torch.tensor(image, device=device)
+        image = image.permute(0, 3, 1, 2)
+    image = F.center_crop(image, (img_size, img_size))
+    return image
+
+
 def calculate_inception_score(config, pipeline, test_dataloader, device=None):
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     inception_score = InceptionScore(
         feature="logits_unbiased", splits=10, normalize=True
     ).to(device)
-
-    def preprocess_image(image, real):
-        # Process fake images, need to convert to BCHW but no need to rescale.
-        if real:
-            image = (image + 1.0) / 2.0
-        else:
-            image = torch.tensor(image, device=device)
-            image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
-        return image
 
     fake_dir = os.path.join(config.output_dir, "fid", "fake")
     fake_images = []
@@ -74,13 +75,19 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 fake_images.append(img_tensor)
                 if len(fake_images) == config.eval_batch_size:
                     processed_fake = preprocess_image(
-                        torch.cat(fake_images, dim=0), real=True
+                        torch.cat(fake_images, dim=0),
+                        img_src="loaded",
+                        device=device,
+                        img_size=config.image_size,
                     )
                     inception_score.update(processed_fake)
                     fake_images = []
             if fake_images:
                 processed_fake = preprocess_image(
-                    torch.cat(fake_images, dim=0), real=True
+                    torch.cat(fake_images, dim=0),
+                    img_src="loaded",
+                    device=device,
+                    img_size=config.image_size,
                 )
                 inception_score.update(processed_fake)
         else:
@@ -92,7 +99,12 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                     generator=torch.manual_seed(config.seed),
                     output_type="np.array",
                 ).images
-                processed_fake = preprocess_image(output, real=False)
+                processed_fake = preprocess_image(
+                    output,
+                    img_src="generated",
+                    device=device,
+                    img_size=config.image_size,
+                )
                 inception_score.update(processed_fake)
     inception_mean, inception_std = inception_score.compute()
     print(f"Inception Score: {inception_mean:.2f} ± {inception_std:.2f}")
@@ -107,17 +119,6 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     # Create FID instance with normalize=True since we'll provide images in [0,1] range
     fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
 
-    def preprocess_image(image, real):
-        # Process fake images, need to convert to BCHW but no need to rescale.
-        if real:
-            image = (image + 1.0) / 2.0
-        else:
-            image = torch.tensor(image, device=device)
-            image = image.permute(0, 3, 1, 2)  # Convert from BHWC to BCHW format
-
-        image = F.center_crop(image, (config.image_size, config.image_size))
-        return image
-
     real_count = 0
     fake_count = 0
 
@@ -130,7 +131,12 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     with torch.no_grad():
         for batch in tqdm(test_dataloader, desc="Calculating FID (real images)"):
             real_images = batch["images"].to(device)
-            processed_real = preprocess_image(real_images, real=True)
+            processed_real = preprocess_image(
+                real_images,
+                img_src="loaded",
+                device=device,
+                img_size=config.image_size,
+            )
             if save:
                 for image in processed_real:
                     save_image(image, os.path.join(real_dir, f"{real_count:03d}.jpg"))
@@ -150,7 +156,12 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                 generator=torch.manual_seed(config.seed + batch),
                 output_type="np.array",
             ).images
-            processed_fake = preprocess_image(output, real=False)
+            processed_fake = preprocess_1image(
+                output,
+                img_src="generated",
+                device=device,
+                img_size=config.image_size,
+            )
             if save:
                 for image in processed_fake:
                     save_image(
