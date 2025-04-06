@@ -13,6 +13,7 @@ from diffusers import DDPMScheduler
 from PIL import Image
 import numpy as np
 from torchvision.transforms import functional as F
+from torchvision import transforms
 from torchmetrics.image.fid import FrechetInceptionDistance
 
 from conf.log_conf import logger
@@ -20,10 +21,20 @@ from conf.global_setting import BASE_DIR
 from conf.model_config import model_config
 
 
+def resize_image(image, size=(128, 128)):
+    transform = transforms.Resize(size)
+    resized_image = transform(image)
+    return resized_image
+
+
 def preprocess_image(image):
     image = torch.tensor(image).unsqueeze(0)
     image = image.permute(0, 3, 1, 2) / 255.0
-    return F.center_crop(image, (model_config.image_size, model_config.image_size))
+
+    # Resize the image to (model_config.image_size, model_config.image_size)
+    image = resize_image(image, (model_config.image_size, model_config.image_size))
+    # return F.center_crop(image, (model_config.image_size, model_config.image_size))
+    return image
 
 
 def make_fid_input_images(images_path):
@@ -99,7 +110,7 @@ def test_calculate_fid(dataset_path, model_ckpt, scheduler_path, fake_image_dir=
         fake_images = make_fid_input_images(fake_image_dir)
     else:
         fake_images = generate_images_from_model(model_ckpt, scheduler_path, device)
-    calculate_fid(real_images, fake_images, device)
+    calculate_fid(real_images, fake_images)
 
 
 if __name__ == '__main__':
