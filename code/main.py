@@ -11,14 +11,6 @@ from conf.training_config import FaceConfig, ButterflyConfig
 from utils.transforms import build_transforms
 
 def setup_dataset(config):
-    # preprocess = transforms.Compose(
-    #     [
-    #         transforms.Resize((config.image_size, config.image_size)),
-    #         transforms.RandomHorizontalFlip(),
-    #         transforms.ToTensor(),
-    #         transforms.Normalize([0.5], [0.5]),
-    #     ]
-    # )
     preprocess = transforms.Compose(build_transforms(config))
 
     if isinstance(config, FaceConfig):
