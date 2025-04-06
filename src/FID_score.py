@@ -29,12 +29,12 @@ def resize_image(image, size=(128, 128)):
 
 
 def preprocess_image(image):
-    image = resize_image_with_opencv(image, new_size=(model_config.image_size, model_config.image_size))
+    # image = resize_image_with_opencv(image, new_size=(model_config.image_size, model_config.image_size))
     image = torch.tensor(image).unsqueeze(0)
     image = image.permute(0, 3, 1, 2) / 255.0
 
     # Resize the image to (model_config.image_size, model_config.image_size)
-    # image = resize_image(image, (model_config.image_size, model_config.image_size))
+    image = resize_image(image, (model_config.image_size, model_config.image_size))
     # return F.center_crop(image, (model_config.image_size, model_config.image_size))
     return image
 
@@ -73,6 +73,8 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=mo
     all_fake_images = []
 
     for i in range(num_batches):
+        if i == num_batches - 1:
+            batch_size = num_images - i * batch_size
         batch_seed = model_config.seed + i  # Use a different seed for each batch to ensure diversity
         images = pipeline(
             batch_size=batch_size,
@@ -86,7 +88,8 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=mo
         all_fake_images.append(fake_images)
 
     # Concatenate all batches into a single tensor
-    fake_images = torch.cat(all_fake_images)[:num_images]  # Ensure exactly 300 images
+    # fake_images = torch.cat(all_fake_images)[:num_images]  # Ensure exactly 300 images
+    fake_images = torch.cat(all_fake_images)
 
     logger.info(f"Generated fake images shape: {fake_images.shape}")
     return fake_images
