@@ -1,4 +1,5 @@
 python main.py \
+    --dataset face \
     --scheduler ddpm \
     --image_size 128 \
     --num_epochs 10 \
