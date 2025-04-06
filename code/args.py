@@ -84,7 +84,6 @@ def parse_args():
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
-    model_group.add_argument("--scheduler", help="Noise scheduler")
     model_group.add_argument("--pipeline", help="Training pipeline")
 
     logging_group.add_argument(
