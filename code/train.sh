@@ -2,8 +2,8 @@ python main.py \
     --dataset face \
     --scheduler ddpm \
     --image_size 128 \
-    --num_epochs 10 \
-    --train_batch_size 64 \
+    --num_epochs 1 \
+    --train_batch_size 32 \
     --gblur \
     #--beta_schedule linear \
 
