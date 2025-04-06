@@ -9,10 +9,7 @@ def build_transforms(config):
     ]
 
     if config.RHFlip:
-        transform_train += [
-            T.RandomHorizontalFlip()
-        ]
-    transform_train += [T.ToTensor()]
+        transform_train += [T.RandomHorizontalFlip()]
     if config.gblur:
         transform_train += [T.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0))]
 
