@@ -8,7 +8,7 @@ from PIL import Image
 from args import get_config_and_components
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
-from transforms import build_transforms
+from utils.transforms import build_transforms
 
 def setup_dataset(config):
     # preprocess = transforms.Compose(
