@@ -122,11 +122,11 @@ def test_calculate_fid(dataset_path, model_ckpt, scheduler_path, fake_image_dir=
 
 if __name__ == '__main__':
     dataset_dir = BASE_DIR + '/data/celeba_hq_256'
-    model_ckpt_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/'
-    scheduler_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/scheduler/'
+    # model_ckpt_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/'
+    # scheduler_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/scheduler/'
 
-    # model_ckpt_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/'
-    # scheduler_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/scheduler/'
+    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/'
+    scheduler_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/scheduler/'
 
     test_data = model_config.test_dir
     # fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
