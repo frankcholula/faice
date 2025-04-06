@@ -53,7 +53,7 @@ def preprocess_image(image, img_src, device, img_size):
     elif img_src == "generated":
         image = torch.tensor(image, device=device)
         image = image.permute(0, 3, 1, 2)
-    image = F.center_crop(image, (img_size, img_size))
+    image = F.resize(image, (img_size, img_size))
     return image
 
 
