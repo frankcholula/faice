@@ -44,7 +44,7 @@ sentry_sdk.init(SETTINGS.SENTRY_URL)
 
 pipeline_selector = {
     "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
-    "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
+    # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
     # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": DDPMScheduler},
 
