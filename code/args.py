@@ -122,7 +122,7 @@ def get_config_and_components():
     print(f"Selected pipeline: {config.pipeline}")
     print(f"W&B run name: {config.wandb_run_name}")
     print(f"Local output directory: {config.output_dir}")
-    print(f"Gaussion Blur? : {config.gblur}")
+    print(f"Gaussian Blur? : {config.gblur}")
     print(f"Random Horizontal Flip? : {config.RHFlip}")
 
     verbose = hasattr(config, "verbose") and config.verbose
