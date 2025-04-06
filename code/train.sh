@@ -1,4 +1,5 @@
 python main.py \
+    --dataset face \
     --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
