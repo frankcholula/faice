@@ -135,7 +135,7 @@ def get_config_and_components():
         print("Training aborted by user.")
         sys.exit(0)
     model = create_model(config.model, config)
-    scheduler = create_scheduler(config.scheduler)
+    scheduler = create_scheduler(config.scheduler, config.beta_schedule)
     pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline

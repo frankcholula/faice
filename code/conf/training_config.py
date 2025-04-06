@@ -15,6 +15,7 @@ class BaseConfig:
     # model params
     model: str = "unet2d"
     scheduler: str = "ddpm"
+    beta_schedule: str = "linear"
     pipeline: str = "ddpm"
 
     # dataset params need to be set by subclass
