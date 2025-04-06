@@ -53,7 +53,7 @@ def parse_args():
         "--test_dir", help="Directory with test images (for face dataset)"
     )
     dataset_group.add_argument(
-        "--glur", help="Gaussian blurring augmentation", action="store_true"
+        "--gblur", help="Gaussian blurring augmentation", action="store_true"
     )
     dataset_group.add_argument(
         "--RHFlip", help="Random horizontal flip augmentation", action="store_true"
