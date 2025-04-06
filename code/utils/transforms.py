@@ -8,7 +8,7 @@ def build_transforms(config):
             T.Normalize([0.5], [0.5]),
     ]
 
-    if RHFlipg:
+    if RHFlip:
         transform_train += [
             T.RandomHorizontalFlip()
         ]
