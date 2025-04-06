@@ -53,7 +53,10 @@ def parse_args():
         "--test_dir", help="Directory with test images (for face dataset)"
     )
     dataset_group.add_argument(
-        "--augmentation", choices=get_all_datasets(), help="Dataset name"
+        "--glur", help="Gaussian blurring augmentation", action="store_true"
+    )
+    dataset_group.add_argument(
+        "--RHFlip", help="Random horizontal flip augmentation", action="store_true"
     )
 
     training_group.add_argument(
@@ -119,6 +122,8 @@ def get_config_and_components():
     print(f"Selected pipeline: {config.pipeline}")
     print(f"W&B run name: {config.wandb_run_name}")
     print(f"Local output directory: {config.output_dir}")
+    print(f"Gaussion Blur? : {config.gblur}")
+    print(f"Random Horizontal Flip? : {config.RHFlip}")
 
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:

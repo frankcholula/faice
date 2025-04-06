@@ -11,14 +11,16 @@ from conf.training_config import FaceConfig, ButterflyConfig
 
 
 def setup_dataset(config):
-    preprocess = transforms.Compose(
-        [
-            transforms.Resize((config.image_size, config.image_size)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5], [0.5]),
-        ]
-    )
+    # preprocess = transforms.Compose(
+    #     [
+    #         transforms.Resize((config.image_size, config.image_size)),
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.ToTensor(),
+    #         transforms.Normalize([0.5], [0.5]),
+    #     ]
+    # )
+    preprocess = transforms.Compose(config.transform_train)
+    
     if isinstance(config, FaceConfig):
         from torch.utils.data import Dataset, DataLoader
 

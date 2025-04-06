@@ -4,6 +4,7 @@ python main.py \
     --image_size 128 \
     --num_epochs 50 \
     --batch_size 64 \
+    --gblur \
 
 
 # for gblur in "" "--gblur"; do
