@@ -3,9 +3,9 @@ def build_transforms(config):
 
  # build train transformations
     transform_train = [
-            transforms.Resize((config.image_size, config.image_size)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5], [0.5]),
+            T.Resize((config.image_size, config.image_size)),
+            T.ToTensor(),
+            T.Normalize([0.5], [0.5]),
     ]
 
     if RHFlipg:
@@ -15,5 +15,6 @@ def build_transforms(config):
     transform_train += [T.ToTensor()]
     if blur:
         transform_train += [T.GaussianBlur()]
+
 
     return transform_train
