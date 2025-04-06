@@ -52,6 +52,12 @@ def parse_args():
     dataset_group.add_argument(
         "--test_dir", help="Directory with test images (for face dataset)"
     )
+    dataset_group.add_argument(
+        "--gblur", help="Gaussian blurring augmentation", action="store_true"
+    )
+    dataset_group.add_argument(
+        "--RHFlip", help="Random horizontal flip augmentation", action="store_true"
+    )
 
     training_group.add_argument(
         "--train_batch_size", type=int, help="Batch size for training"
@@ -72,6 +78,7 @@ def parse_args():
     training_group.add_argument(
         "--calculate_is", action="store_true", help="Calculate Inception score"
     )
+
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument("--scheduler", help="Noise scheduler")
     model_group.add_argument("--pipeline", help="Training pipeline")
@@ -115,6 +122,8 @@ def get_config_and_components():
     print(f"Selected pipeline: {config.pipeline}")
     print(f"W&B run name: {config.wandb_run_name}")
     print(f"Local output directory: {config.output_dir}")
+    print(f"Gaussian Blur? : {config.gblur}")
+    print(f"Random Horizontal Flip? : {config.RHFlip}")
 
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:
