@@ -5,6 +5,7 @@ python main.py \
     --num_epochs 1 \
     --train_batch_size 32 \
     --gblur \
+    --wandb_run_name Ziyu-test-sh-augmentation
     #--beta_schedule linear \
 
 
