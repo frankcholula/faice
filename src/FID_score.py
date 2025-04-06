@@ -43,10 +43,11 @@ def make_fid_input_images(images_path):
     logger.info(f"Loading real images from {images_path}")
     image_paths = sorted([os.path.join(images_path, x) for x in os.listdir(images_path)])
 
-    # real_images = [np.array(Image.open(path).convert("RGB")) for path in image_paths]
-    # real_images = torch.cat([preprocess_image(image) for image in real_images])
+    real_images = [np.array(Image.open(path).convert("RGB")) for path in image_paths]
+    real_images = torch.cat([preprocess_image(image) for image in real_images])
 
-    real_images = torch.cat([preprocess_image(image) for image in image_paths])
+    # real_images = torch.cat([preprocess_image(image) for image in image_paths])
+
     logger.info(f"real images shape: {real_images.shape}")
     return real_images
 
