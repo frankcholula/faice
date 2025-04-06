@@ -19,7 +19,7 @@ def setup_dataset(config):
             transforms.Normalize([0.5], [0.5]),
         ]
     )
-    if isinstance(config, FaceConfig):
+    if isinstance(config,  FaceConfig):
         from torch.utils.data import Dataset, DataLoader
 
         class CelebaAHQDataset(Dataset):
@@ -82,19 +82,19 @@ def main():
         try:
             # Determine device
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            
+
             # Move model to the device first
             model.to(device)
-            
+
             sample_batch = next(iter(train_dataloader))
             sample_image = sample_batch["images"].to(device)
-            
+
             if len(sample_image.shape) == 3:  # Add batch dimension if missing
                 sample_image = sample_image.unsqueeze(0)
-            
+
             # Create timestep tensor on the same device
             timestep = torch.tensor([0], device=device)
-            
+
             # Just check if the model runs
             _ = model(sample_image, timestep=timestep)
             print(f"Model sanity check passed on {device}!")
@@ -119,6 +119,7 @@ def main():
         print(f"Generated {len(sample_images)} sample images")
     except Exception as e:
         print(f"Error retrieving sample images: {e}")
+
 
 if __name__ == "__main__":
     main()
