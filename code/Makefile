@@ -6,6 +6,11 @@ trainb:
 trainf:
 	python main.py --dataset face --num_epochs 1 --calculate_fid --calculate_is --verbose
 
+
+.PHONY: augmentation
+augmentation:
+	./experiments/augmentation.sh
+
 .PHONY: tensorboardb
 tensorboardb:
 	tensorboard --logdir=ddpm-butterflies-128/logs
