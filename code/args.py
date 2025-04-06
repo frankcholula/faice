@@ -1,7 +1,7 @@
 import argparse
 import inspect
 import sys
-from pipelines import ddpm, ddim, pndm
+from pipelines import ddpm
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from models.unet import create_unet2d
 from conf.training_config import get_config, get_all_datasets
