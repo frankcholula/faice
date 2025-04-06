@@ -2,7 +2,7 @@ python main.py \
     --scheduler ddpm \
     --image_size 128 \
     --num_epochs 10 \
-    --batch_size 64 \
+    --train_batch_size 64 \
     --gblur \
     #--beta_schedule linear \
 
