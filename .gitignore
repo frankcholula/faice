@@ -309,3 +309,4 @@ TSWLatexianTemp*
 # envvars and .venv files
 .venv
 .env
+datasets/
