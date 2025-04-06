@@ -17,7 +17,7 @@ def create_scheduler(scheduler: str, beta_schedule: str, num_train_timesteps: in
     elif (scheduler.lower() != "ddpm") and (scheduler.lower() != "ddim") and (scheduler.lower() != "pndm"):
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
     elif (beta_schedule.lower() != "linear") and (beta_schedule.lower() != "squaredcos_cap_v2"):
-        raise ValueError(f"Noise scheduler type '{beta_schedule}' is not supported.")
+        raise ValueError(f"Noise schedule type '{beta_schedule}' is not supported.")
     else:
         raise ValueError(f"Scheduler type '{scheduler}' or noise scheduler type '{beta_schedule}' is not supported.")
 
