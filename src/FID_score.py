@@ -129,6 +129,6 @@ if __name__ == '__main__':
     # scheduler_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/scheduler/'
 
     test_data = model_config.test_dir
-    fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
-    # fake_image_data = ''
+    # fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
+    fake_image_data = ''
     test_calculate_fid(test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data)
