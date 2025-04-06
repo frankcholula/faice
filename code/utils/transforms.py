@@ -8,12 +8,12 @@ def build_transforms(config):
             T.Normalize([0.5], [0.5]),
     ]
 
-    if RHFlip:
+    if config.RHFlip:
         transform_train += [
             T.RandomHorizontalFlip()
         ]
     transform_train += [T.ToTensor()]
-    if blur:
+    if config.gblur:
         transform_train += [T.GaussianBlur()]
 
 
