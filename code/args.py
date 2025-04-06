@@ -1,21 +1,26 @@
 import argparse
 import inspect
 import sys
-from pipelines import ddpm
+from pipelines import ddpm, ddim, pndm
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from models.unet import create_unet2d
 from conf.training_config import get_config, get_all_datasets
 
 
-def create_scheduler(scheduler: str, num_train_timesteps: int = 1000):
+def create_scheduler(scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000):
     if scheduler.lower() == "ddpm":
-        return DDPMScheduler(num_train_timesteps=num_train_timesteps)
+        return DDPMScheduler(num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule)
     elif scheduler.lower() == "ddim":
-        return DDIMScheduler(num_train_timesteps=num_train_timesteps)
+        return DDIMScheduler(num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule)
     elif scheduler.lower() == "pndm":
-        return PNDMScheduler(num_train_timesteps=num_train_timesteps)
-    else:
+        return PNDMScheduler(num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule)
+    elif (scheduler.lower() != "ddpm") and (scheduler.lower() != "ddim") and (scheduler.lower() != "pndm"):
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
+    elif (beta_schedule.lower() != "linear") and (beta_schedule.lower() != "squaredcos_cap_v2"):
+        raise ValueError(f"Noise scheduler type '{beta_schedule}' is not supported.")
+    else:
+        raise ValueError(
+            f"Scheduler type '{scheduler}' or noise scheduler type '{beta_schedule}' is not supported.")
 
 
 def create_model(model: str, config):
@@ -28,6 +33,10 @@ def create_model(model: str, config):
 def create_pipeline(pipeline: str):
     if pipeline.lower() == "ddpm":
         return ddpm.train_loop
+    elif pipeline.lower() == "ddim":
+        return ddim.train_loop
+    elif pipeline.lower() == "pndm":
+        return pndm.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 
@@ -73,6 +82,8 @@ def parse_args():
         "--calculate_is", action="store_true", help="Calculate Inception score"
     )
     model_group.add_argument("--model", help="Model architecture")
+    model_group.add_argument("--scheduler", help="Sampling scheduler")
+    model_group.add_argument("--beta_schedule", help="Beta schedule")
     model_group.add_argument("--scheduler", help="Noise scheduler")
     model_group.add_argument("--pipeline", help="Training pipeline")
 
@@ -128,7 +139,7 @@ def get_config_and_components():
         print("Training aborted by user.")
         sys.exit(0)
     model = create_model(config.model, config)
-    scheduler = create_scheduler(config.scheduler)
+    scheduler = create_scheduler(config.scheduler, config.beta_schedule)
     pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline
