@@ -14,7 +14,7 @@ def build_transforms(config):
         ]
     transform_train += [T.ToTensor()]
     if config.gblur:
-        transform_train += [T.GaussianBlur()]
+        transform_train += [T.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0))]
 
 
     return transform_train
