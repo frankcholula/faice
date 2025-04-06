@@ -1,10 +1,10 @@
 python main.py \
     --scheduler ddpm \
-    //--beta_schedule linear \
     --image_size 128 \
-    --num_epochs 50 \
+    --num_epochs 10 \
     --batch_size 64 \
     --gblur \
+    #--beta_schedule linear \
 
 
 # for gblur in "" "--gblur"; do
