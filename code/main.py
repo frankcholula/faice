@@ -8,7 +8,7 @@ from PIL import Image
 from args import get_config_and_components
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
-
+from transforms import build_transforms
 
 def setup_dataset(config):
     # preprocess = transforms.Compose(
@@ -19,8 +19,8 @@ def setup_dataset(config):
     #         transforms.Normalize([0.5], [0.5]),
     #     ]
     # )
-    preprocess = transforms.Compose(config.transform_train)
-    
+    preprocess = transforms.Compose(build_transforms(config))
+
     if isinstance(config, FaceConfig):
         from torch.utils.data import Dataset, DataLoader
 
