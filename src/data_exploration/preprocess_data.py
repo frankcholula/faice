@@ -5,6 +5,9 @@
 @File : preprocess_data.py
 @Project : faice
 """
+import cv2
+import os
+
 import torch
 import numpy as np
 from torchvision import transforms
@@ -62,7 +65,6 @@ def change_image_size(img_path, save_path):
         image = image["image"]
         transform = transforms.ToTensor()
         image = transform(image)
-        image = torch.tensor(image)
         transform = transforms.Resize((config.image_size, config.image_size))
         resized_image = transform(image)
         resized_image = resized_image.permute(1, 2, 0)
@@ -70,6 +72,32 @@ def change_image_size(img_path, save_path):
         images_uint8 = (resized_image * 255).astype(np.uint8)
         images_uint8 = Image.fromarray(images_uint8)
         images_uint8.save(save_path + "/" + str(i) + ".jpg")
+
+
+def resize_image_with_opencv(image_path, new_size=(128, 128)):
+    # Read the image using OpenCV
+    image = cv2.imread(image_path)
+    if image is None:
+        raise ValueError(f"Image not found or unable to read: {image_path}")
+
+    # Resize the image
+    resized_image = cv2.resize(image, new_size, interpolation=cv2.INTER_AREA)
+
+    return resized_image
+
+
+def change_image_size_opencv(img_path, save_path, new_size=(128, 128)):
+    dataset = load_dataset("imagefolder", data_dir=img_path, split="train")
+    # Ensure the save directory exists
+    os.makedirs(save_path, exist_ok=True)
+
+    # Convert all the image size into new_size*new_size
+    for i, image_dict in enumerate(dataset):
+        image_path = image_dict["image"].filename
+        save_image_path = os.path.join(save_path, f"{i}.jpg")
+        resized_image = resize_image_with_opencv(image_path, new_size)
+        # Save the resized image
+        cv2.imwrite(save_image_path, resized_image)
 
 
 if __name__ == '__main__':
@@ -80,4 +108,4 @@ if __name__ == '__main__':
     test_dir = BASE_DIR + "/data/celeba_hq_split/test30"
     save_dir = BASE_DIR + "/data/celeba_hq_split/test30_128"
     change_image_size(test_dir, save_dir)
-
+    # change_image_size_opencv(test_dir, save_dir)

@@ -19,6 +19,7 @@ from torchmetrics.image.fid import FrechetInceptionDistance
 from conf.log_conf import logger
 from conf.global_setting import BASE_DIR
 from conf.model_config import model_config
+from src.data_exploration.preprocess_data import resize_image_with_opencv
 
 
 def resize_image(image, size=(128, 128)):
@@ -28,11 +29,12 @@ def resize_image(image, size=(128, 128)):
 
 
 def preprocess_image(image):
+    image = resize_image_with_opencv(image, new_size=(model_config.image_size, model_config.image_size))
     image = torch.tensor(image).unsqueeze(0)
     image = image.permute(0, 3, 1, 2) / 255.0
 
     # Resize the image to (model_config.image_size, model_config.image_size)
-    image = resize_image(image, (model_config.image_size, model_config.image_size))
+    # image = resize_image(image, (model_config.image_size, model_config.image_size))
     # return F.center_crop(image, (model_config.image_size, model_config.image_size))
     return image
 
@@ -41,9 +43,10 @@ def make_fid_input_images(images_path):
     logger.info(f"Loading real images from {images_path}")
     image_paths = sorted([os.path.join(images_path, x) for x in os.listdir(images_path)])
 
-    real_images = [np.array(Image.open(path).convert("RGB")) for path in image_paths]
+    # real_images = [np.array(Image.open(path).convert("RGB")) for path in image_paths]
+    # real_images = torch.cat([preprocess_image(image) for image in real_images])
 
-    real_images = torch.cat([preprocess_image(image) for image in real_images])
+    real_images = torch.cat([preprocess_image(image) for image in image_paths])
     logger.info(f"real images shape: {real_images.shape}")
     return real_images
 
@@ -115,9 +118,13 @@ def test_calculate_fid(dataset_path, model_ckpt, scheduler_path, fake_image_dir=
 
 if __name__ == '__main__':
     dataset_dir = BASE_DIR + '/data/celeba_hq_256'
-    model_ckpt_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/'
-    scheduler_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/scheduler/'
+    # model_ckpt_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/'
+    # scheduler_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/scheduler/'
+
+    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/'
+    scheduler_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/scheduler/'
 
     test_data = model_config.test_dir
-    fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
+    # fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
+    fake_image_data = ''
     test_calculate_fid(test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data)
