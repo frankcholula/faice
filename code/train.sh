@@ -4,7 +4,8 @@ python main.py \
     --beta_schedule linear \
     --image_size 128 \
     --num_epochs 50 \
-    --batch_size 64
+    --batch_size 64 \
+    --wandb_run_name liang_ddpm_linear \
 
 
 # for gblur in "" "--gblur"; do
