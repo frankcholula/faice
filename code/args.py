@@ -52,6 +52,9 @@ def parse_args():
     dataset_group.add_argument(
         "--test_dir", help="Directory with test images (for face dataset)"
     )
+    dataset_group.add_argument(
+        "--augmentation", choices=get_all_datasets(), help="Dataset name"
+    )
 
     training_group.add_argument(
         "--train_batch_size", type=int, help="Batch size for training"
@@ -72,6 +75,7 @@ def parse_args():
     training_group.add_argument(
         "--calculate_is", action="store_true", help="Calculate Inception score"
     )
+
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument("--scheduler", help="Noise scheduler")
     model_group.add_argument("--pipeline", help="Training pipeline")
