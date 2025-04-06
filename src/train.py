@@ -91,13 +91,13 @@ def evaluate(config, epoch, pipeline):
     if "DDIM" in pipeline_name:
         images = pipeline(
             eta=0.5,
-            batch_size=config.eval_batch_size,
+            batch_size=16,
             generator=torch.manual_seed(config.seed),
             num_inference_steps=1000,
         ).images
     else:
         images = pipeline(
-            batch_size=config.eval_batch_size,
+            batch_size=16,
             generator=torch.manual_seed(config.seed),
             num_inference_steps=1000,
         ).images
@@ -121,6 +121,8 @@ def generate_images_for_test(config, pipeline, num_images=model_config.num_image
     logger.info(f"Generating fake images with {pipeline_name}")
 
     for i in trange(num_batches):
+        if i == num_batches - 1:
+            batch_size = num_images - i * batch_size
         batch_seed = (
                 config.seed + i
         )  # Use a different seed for each batch to ensure diversity
@@ -159,7 +161,8 @@ def generate_images_for_test(config, pipeline, num_images=model_config.num_image
         all_fake_images.append(fake_images)
 
     # Concatenate all batches into a single tensor
-    fake_images = torch.cat(all_fake_images)[:num_images]  # Ensure exactly 300 images
+    # fake_images = torch.cat(all_fake_images)[:num_images]  # Ensure exactly 300 images
+    fake_images = torch.cat(all_fake_images)
     return fake_images
 
 
@@ -338,7 +341,8 @@ def main(data_dir):
     model.to(device)
 
     # 3. Set up the optimizer, the learning rate scheduler and the loss scaling for AMP
-    optimizer = torch.optim.AdamW(model.parameters(), lr=model_config.learning_rate)
+    # optimizer = torch.optim.AdamW(model.parameters(), lr=model_config.learning_rate)
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=model_config.learning_rate)
     lr_scheduler = get_cosine_schedule_with_warmup(
         optimizer=optimizer,
         num_warmup_steps=model_config.lr_warmup_steps,
@@ -375,8 +379,8 @@ def main(data_dir):
         if "DDPM" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
-                beta_start=0.0001,
-                beta_end=0.02,
+                # beta_start=0.0001,
+                # beta_end=0.02,
                 beta_schedule="linear",
             )
         elif "DDIM" in scheduler_name:
