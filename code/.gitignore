@@ -185,3 +185,4 @@ wandb/
 # Notebook
 .ipynb_checkpoints
 output
+logs

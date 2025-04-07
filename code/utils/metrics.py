@@ -109,8 +109,10 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 )
                 inception_score.update(processed_fake)
     inception_mean, inception_std = inception_score.compute()
+    inception_mean = round(float(inception_mean), 5)
+    inception_std = round(float(inception_std), 5)
     print(f"Inception Score: {inception_mean:.2f} ± {inception_std:.2f}")
-    return round(inception_mean, 5), round(inception_std, 5)
+    return inception_mean, inception_std
 
 
 def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=True):
@@ -177,6 +179,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
 
     # Compute final FID score
     fid_score = fid.compute().item()
+    fid_score = round(float(fid_score), 5)
     print(f"FID Score: {fid_score}")
     return fid_score
 
