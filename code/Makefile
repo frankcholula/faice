@@ -4,8 +4,7 @@ trainb:
 
 .PHONY: trainf
 trainf:
-	python main.py --dataset face --num_epochs 1 --calculate_fid --calculate_is --verbose
-
+	python main.py --dataset face --num_epochs 1 --verbose --wandb_run_name frank-test-run
 
 .PHONY: augmentation
 augmentation:
