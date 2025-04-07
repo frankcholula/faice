@@ -3,7 +3,7 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 10 \
+    --num_epochs 2 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --wandb_run_name liang_ddpm_linear \
