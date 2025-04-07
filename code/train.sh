@@ -7,6 +7,8 @@ python main.py \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --wandb_run_name liang_ddpm_linear \
+    --calculate_fid \
+    --calculate_is
 
 
 # for gblur in "" "--gblur"; do
