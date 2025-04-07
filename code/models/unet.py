@@ -1,7 +1,7 @@
 from diffusers import UNet2DModel
 
 
-def create_unet2d(config):
+def create_unet(config):
     model = UNet2DModel(
         sample_size=config.image_size,  # the target image resolution
         in_channels=3,  # the number of input channels, 3 for RGB images

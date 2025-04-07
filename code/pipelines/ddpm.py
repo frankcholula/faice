@@ -113,6 +113,9 @@ def train_loop(
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
                     pipeline.save_pretrained(config.output_dir)
+                    wandb_logger.save_model(
+                        artifact_name=f"{config.wandb_run_name}", model=model
+                    )
 
             progress_bar.close()
 

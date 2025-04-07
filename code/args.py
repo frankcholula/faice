@@ -3,7 +3,7 @@ import inspect
 import sys
 from pipelines import ddpm
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
-from models.unet import create_unet2d
+from models.unet import create_unet
 from conf.training_config import get_config, get_all_datasets
 
 
@@ -23,8 +23,8 @@ def create_scheduler(scheduler: str, beta_schedule: str, num_train_timesteps: in
 
 
 def create_model(model: str, config):
-    if model.lower() == "unet2d":
-        return create_unet2d(config)
+    if model.lower() == "unet":
+        return create_unet(config)
     else:
         raise ValueError(f"Model type '{model}' is not supported.")
 
