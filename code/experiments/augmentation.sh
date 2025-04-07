@@ -6,4 +6,4 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 64 \
     --wandb_run_name ddpm-linear-face-129-gblur \
-    --gblur --verbose
+    --gblur --calculate_fid --calculate_is --verbose
