@@ -118,6 +118,9 @@ def parse_args():
     logging_group.add_argument("--wandb_run_name", type=str, help="W&B run name")
 
     parser.add_argument("--verbose", action="store_true", help="Print detailed config")
+    parser.add_argument(
+        "--no_confirm", action="store_true", help="Skip confirmation prompt"
+    )
     args = parser.parse_args()
     dataset = args.dataset
     config = get_config(dataset)
