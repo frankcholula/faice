@@ -12,11 +12,28 @@ from dataclasses import asdict
 import numpy as np
 import torch
 from PIL import Image
-from diffusers import DDPMPipeline, PNDMPipeline, DDIMPipeline, ScoreSdeVePipeline, LDMPipeline, \
-    ConsistencyModelPipeline, KarrasVePipeline, UniDiffuserPipeline
-from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler, ScoreSdeVeScheduler, KarrasVeScheduler, \
-    UniPCMultistepScheduler
-from diffusers.schedulers import ConsistencyDecoderScheduler, CMStochasticIterativeScheduler
+from diffusers import (
+    DDPMPipeline,
+    PNDMPipeline,
+    DDIMPipeline,
+    ScoreSdeVePipeline,
+    LDMPipeline,
+    ConsistencyModelPipeline,
+    KarrasVePipeline,
+    UniDiffuserPipeline,
+)
+from diffusers import (
+    DDPMScheduler,
+    DDIMScheduler,
+    PNDMScheduler,
+    ScoreSdeVeScheduler,
+    KarrasVeScheduler,
+    UniPCMultistepScheduler,
+)
+from diffusers.schedulers import (
+    ConsistencyDecoderScheduler,
+    CMStochasticIterativeScheduler,
+)
 import torch.nn.functional as F
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from accelerate import Accelerator
@@ -34,6 +51,7 @@ from conf.model_config import model_config
 from conf.log_conf import logger
 from conf.model_config import wandb_config
 from src.FID_score import calculate_fid, make_fid_input_images
+
 # from src.models.U_Net2D_with_pretrain import unet2d_model
 from src.models.U_Net2D import unet2d_model
 from src.models.VQModels import vqvae
@@ -43,31 +61,28 @@ from src.utils.tools import timer
 sentry_sdk.init(SETTINGS.SENTRY_URL)
 
 pipeline_selector = {
-    "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
+    # "DDPM": {"pipeline": DDPMPipeline, "scheduler": DDPMScheduler},
     # "PNDM": {"pipeline": PNDMPipeline, "scheduler": PNDMScheduler},
-    # "Consistency_DDPM": {"pipeline": ConsistencyModelPipeline,
-    #                      "scheduler": DDPMScheduler},
-
+    "Consistency_DDPM": {
+        "pipeline": ConsistencyModelPipeline,
+        "scheduler": DDPMScheduler,
+    },
     # "DDIM": {"pipeline": DDIMPipeline, "scheduler": DDIMScheduler},
     # "DDIM_DDPM": {"pipeline": DDIMPipeline, "scheduler": DDPMScheduler},
     # "ScoreSdeVe": {"pipeline": ScoreSdeVePipeline, "scheduler": ScoreSdeVeScheduler},
-
     # unexpected keyword argument num_train_timesteps
     # "Karras": {"pipeline": KarrasVePipeline, "scheduler": KarrasVeScheduler},
-
     # "LDMP_DDIM": {
     #     "pipeline": LDMPipeline,
     #     "scheduler": DDIMScheduler,
     # },  # TypeError: LDMPipeline.__init__() missing 1 required positional argument: 'vqvae'
     # "LDMP_PNDM": {"pipeline": LDMPipeline, "scheduler": PNDMScheduler},
-
     # "Consistency_PNDM": {"pipeline": ConsistencyModelPipeline,
     #                      "scheduler": PNDMScheduler}, # TypeError: PNDMScheduler.step() got an unexpected keyword argument 'generator'
     # "Consistency_CMS": {"pipeline": ConsistencyModelPipeline,
     #                     "scheduler": CMStochasticIterativeScheduler}, # IndexError: index 0 is out of bounds for dimension 0 with size 0
     # "Consistency_Karras": {"pipeline": ConsistencyModelPipeline,
     #                        "scheduler": KarrasVeScheduler}, # AttributeError: 'tuple' object has no attribute 'shape'
-
 }
 
 
@@ -124,7 +139,7 @@ def generate_images_for_test(config, pipeline, num_images=model_config.num_image
         if i == num_batches - 1:
             batch_size = num_images - i * batch_size
         batch_seed = (
-                config.seed + i
+            config.seed + i
         )  # Use a different seed for each batch to ensure diversity
         if "DDIM" in pipeline_name:
             images = pipeline(
@@ -177,16 +192,16 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
 
 
 def train_loop(
-        config,
-        model,
-        noise_scheduler,
-        optimizer,
-        train_dataloader,
-        lr_scheduler,
-        device,
-        selected_pipeline,
-        wandb_run,
-        vqvae_model=None
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    device,
+    selected_pipeline,
+    wandb_run,
+    vqvae_model=None,
 ):
     # Initialize accelerator and tensorboard logging
     accelerator = Accelerator(
@@ -293,15 +308,18 @@ def train_loop(
         if accelerator.is_main_process:
             if "LDMP" in pipeline_name:
                 # pass
-                pipeline = selected_pipeline(vqvae=accelerator.unwrap_model(vqvae),
-                                             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler)
+                pipeline = selected_pipeline(
+                    vqvae=accelerator.unwrap_model(vqvae),
+                    unet=accelerator.unwrap_model(model),
+                    scheduler=noise_scheduler,
+                )
             else:
                 pipeline = selected_pipeline(
                     unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
                 )
 
             if (
-                    epoch + 1
+                epoch + 1
             ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1:
                 evaluate(config, epoch, pipeline)
 
@@ -313,7 +331,7 @@ def train_loop(
                     calculate_fid(real_images, fake_images)
 
             if (
-                    epoch + 1
+                epoch + 1
             ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -341,8 +359,8 @@ def main(data_dir):
     model.to(device)
 
     # 3. Set up the optimizer, the learning rate scheduler and the loss scaling for AMP
-    # optimizer = torch.optim.AdamW(model.parameters(), lr=model_config.learning_rate)
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=model_config.learning_rate)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=model_config.learning_rate)
+    # optimizer = torch.optim.RMSprop(model.parameters(), lr=model_config.learning_rate)
     lr_scheduler = get_cosine_schedule_with_warmup(
         optimizer=optimizer,
         num_warmup_steps=model_config.lr_warmup_steps,
@@ -437,7 +455,7 @@ def main(data_dir):
             device,
             selected_pipeline,
             wandb_run,
-            vqvae_model
+            vqvae_model,
         )
 
         notebook_launcher(train_loop, args, num_processes=1)
