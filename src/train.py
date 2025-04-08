@@ -394,6 +394,7 @@ def main(data_dir):
             vqvae_model.to(device)
 
         scheduler_name = selected_scheduler.__name__
+        logger.info(f"Pipeline: {pipeline_name}, Scheduler: {scheduler_name}")
         if "DDPM" in scheduler_name:
             noise_scheduler = selected_scheduler(
                 num_train_timesteps=1000,
