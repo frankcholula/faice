@@ -136,9 +136,9 @@ def parse_args():
             elif key != "dataset":
                 setattr(config, key, value)
     if config.wandb_run_name is None:
-        config.wandb_run_name = f"{config.scheduler}-{dataset}-{config.num_epochs}"
+        config.wandb_run_name = f"{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
     if config.output_dir is None:
-        config.output_dir = f"runs/{config.scheduler}-{dataset}-{config.num_epochs}"
+        config.output_dir = f"runs/{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
     return config
 
 
