@@ -17,5 +17,5 @@ for BETA in "${BETA_SETTING[@]}"; do
     --calculate_fid \
     --calculate_is \
     --verbose \
-    --no_confrim
+    --no_confirm
 done
