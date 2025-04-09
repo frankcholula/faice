@@ -1,7 +1,7 @@
 import argparse
 import inspect
 import sys
-from pipelines import ddpm
+from pipelines import ddpm, consistency
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from models.unet import create_unet
 from conf.training_config import get_config, get_all_datasets
@@ -48,10 +48,12 @@ def create_model(model: str, config):
 def create_pipeline(pipeline: str):
     if pipeline.lower() == "ddpm":
         return ddpm.train_loop
-    elif pipeline.lower() == "ddim":
-        return ddim.train_loop
-    elif pipeline.lower() == "pndm":
-        return pndm.train_loop
+    # elif pipeline.lower() == "ddim":
+    #     return ddim.train_loop
+    # elif pipeline.lower() == "pndm":
+    #     return pndm.train_loop
+    elif pipeline.lower() == 'consistency':
+        return consistency.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 
@@ -134,9 +136,9 @@ def parse_args():
             elif key != "dataset":
                 setattr(config, key, value)
     if config.wandb_run_name is None:
-        config.wandb_run_name = f"{config.scheduler}-{dataset}-{config.num_epochs}"
+        config.wandb_run_name = f"{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
     if config.output_dir is None:
-        config.output_dir = f"runs/{config.scheduler}-{dataset}-{config.num_epochs}"
+        config.output_dir = f"runs/{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
     return config
 
 
