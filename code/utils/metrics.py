@@ -22,9 +22,12 @@ def make_grid(images, rows, cols):
 def evaluate(config, epoch, pipeline):
     # Sample some images from random noise (this is the backward diffusion process).
     # The default pipeline output type is `List[PIL.Image]`
+    batch_size = 16
+    # batch_size = config.eval_batch_size
     images = pipeline(
-        batch_size=config.eval_batch_size,
+        batch_size=batch_size,
         generator=torch.manual_seed(config.seed),
+        num_inference_steps=1000,
     ).images
 
     # Make a grid out of the images
@@ -97,7 +100,8 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                         config.eval_batch_size, len(test_dataloader.dataset) - batch
                     ),
                     generator=torch.manual_seed(config.seed),
-                    output_type="np.array",
+                    output_type="np",
+                    num_inference_steps=1000,
                 ).images
                 processed_fake = preprocess_image(
                     output,
@@ -156,7 +160,8 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                     config.eval_batch_size, len(test_dataloader.dataset) - batch
                 ),
                 generator=torch.manual_seed(config.seed + batch),
-                output_type="np.array",
+                output_type="np",
+                num_inference_steps=1000,
             ).images
             processed_fake = preprocess_image(
                 output,
