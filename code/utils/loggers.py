@@ -74,6 +74,41 @@ class WandBLogger:
 
         wandb.run.summary["inception_score"] = inception_score
 
+    def save_model(self):
+        if not self.config.use_wandb or not self.accelerator.is_main_process:
+            return
+        artifact = wandb.Artifact(
+            name=f"{self.config.wandb_run_name}",
+            type="model",
+            metadata={
+                "model": self.config.model,
+                "num_epochs": self.config.num_epochs,
+                "scheduler": self.config.scheduler,
+                "dataset": self.config.dataset_name,
+                "image_size": self.config.image_size,
+                "beta_schedule": self.config.beta_schedule,
+            },
+        )
+        try: 
+            artifact.add_file(
+                os.path.join(
+                    self.config.output_dir,
+                    self.config.model,
+                    "diffusion_pytorch_model.safetensors",
+                )
+            )
+            artifact.add_file(
+                os.path.join(self.config.output_dir, self.config.model, "config.json")
+            )
+            artifact.add_file(os.path.join(self.config.output_dir, "model_index.json"))
+            artifact.add_file(
+                os.path.join(self.config.output_dir, "scheduler/scheduler_config.json")
+            )
+
+            wandb.log_artifact(artifact)
+        except Exception as e:
+            print(f"Error saving model artifact to W&B: {e}")
+
     def finish(self):
         """Clean up and finish the wandb run."""
         if (

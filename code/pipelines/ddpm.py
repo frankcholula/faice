@@ -105,6 +105,7 @@ def train_loop(
             save_model = (
                 epoch + 1
             ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+            save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
                 evaluate(config, epoch, pipeline)
@@ -113,6 +114,8 @@ def train_loop(
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
                     pipeline.save_pretrained(config.output_dir)
+                    if save_to_wandb:
+                        wandb_logger.save_model()
 
             progress_bar.close()
 

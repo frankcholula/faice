@@ -3,28 +3,44 @@ import inspect
 import sys
 from pipelines import ddpm
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
-from models.unet import create_unet2d
+from models.unet import create_unet
 from conf.training_config import get_config, get_all_datasets
 
 
-def create_scheduler(scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000):
+def create_scheduler(
+    scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000
+):
     if scheduler.lower() == "ddpm":
-        return DDPMScheduler(num_train_timesteps=num_train_timesteps, beta_schedule= beta_schedule)
+        return DDPMScheduler(
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
+        )
     elif scheduler.lower() == "ddim":
-        return DDIMScheduler(num_train_timesteps=num_train_timesteps, beta_schedule= beta_schedule)
+        return DDIMScheduler(
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
+        )
     elif scheduler.lower() == "pndm":
-        return PNDMScheduler(num_train_timesteps=num_train_timesteps, beta_schedule= beta_schedule)
-    elif (scheduler.lower() != "ddpm") and (scheduler.lower() != "ddim") and (scheduler.lower() != "pndm"):
+        return PNDMScheduler(
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
+        )
+    elif (
+        (scheduler.lower() != "ddpm")
+        and (scheduler.lower() != "ddim")
+        and (scheduler.lower() != "pndm")
+    ):
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
-    elif (beta_schedule.lower() != "linear") and (beta_schedule.lower() != "squaredcos_cap_v2"):
+    elif (beta_schedule.lower() != "linear") and (
+        beta_schedule.lower() != "squaredcos_cap_v2"
+    ):
         raise ValueError(f"Noise schedule type '{beta_schedule}' is not supported.")
     else:
-        raise ValueError(f"Scheduler type '{scheduler}' or noise scheduler type '{beta_schedule}' is not supported.")
+        raise ValueError(
+            f"Scheduler type '{scheduler}' or noise scheduler type '{beta_schedule}' is not supported."
+        )
 
 
 def create_model(model: str, config):
-    if model.lower() == "unet2d":
-        return create_unet2d(config)
+    if model.lower() == "unet":
+        return create_unet(config)
     else:
         raise ValueError(f"Model type '{model}' is not supported.")
 
@@ -102,6 +118,9 @@ def parse_args():
     logging_group.add_argument("--wandb_run_name", type=str, help="W&B run name")
 
     parser.add_argument("--verbose", action="store_true", help="Print detailed config")
+    parser.add_argument(
+        "--no_confirm", action="store_true", help="Skip confirmation prompt"
+    )
     args = parser.parse_args()
     dataset = args.dataset
     config = get_config(dataset)
@@ -137,14 +156,18 @@ def get_config_and_components():
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:
         print_config(config)
-    confirmation = (
-        input("\nDo you want to proceed with this configuration? (y/n): ")
-        .strip()
-        .lower()
-    )
-    if confirmation != "y" and confirmation != "yes":
-        print("Training aborted by user.")
-        sys.exit(0)
+
+    if not hasattr(config, "no_confirm") or not config.no_confirm:
+        confirmation = (
+            input("\nDo you want to proceed with this configuration? (y/n): ")
+            .strip()
+            .lower()
+        )
+        if confirmation != "y" and confirmation != "yes":
+            print("Training aborted by user.")
+            sys.exit(0)
+    else:
+        print("\nSkipping confirmation as --no_confirm flag is set.")
     model = create_model(config.model, config)
     scheduler = create_scheduler(config.scheduler, config.beta_schedule)
     pipeline = create_pipeline(config.pipeline)
