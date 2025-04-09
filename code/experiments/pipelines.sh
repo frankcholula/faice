@@ -23,6 +23,7 @@ python main.py \
     --eval_batch_size 64 \
     --wandb_run_name liang_consistency_ddpm_linear \
     --calculate_fid \
-    --calculate_is
+    --calculate_is \
+    --RHFlip
 
 
