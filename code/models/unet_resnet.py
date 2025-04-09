@@ -1,0 +1,48 @@
+# -*- coding: UTF-8 -*-
+"""
+@Time : 09/04/2025 19:26
+@Author : xiaoguangliang
+@File : unet_resnet.py
+@Project : code
+"""
+from diffusers import UNet2DModel
+
+
+def create_unet_resnet(config):
+    model = UNet2DModel(
+        sample_size=config.image_size,  # the target image resolution
+        in_channels=3,  # the number of input channels, 3 for RGB images
+        out_channels=3,  # the number of output channels
+        layers_per_block=2,  # how many ResNet layers to use per UNet block
+        attention_head_dim=64,
+        time_embedding_type="positional",
+        upsample_type="resnet",
+        downsample_type="resnet",
+        block_out_channels=(
+            256,
+            256,
+            512,
+            512,
+            1024,
+            1024
+        ),
+
+        down_block_types=(
+            "ResnetDownsampleBlock2D",
+            "ResnetDownsampleBlock2D",
+            "ResnetDownsampleBlock2D",
+            "AttnDownBlock2D",
+            "AttnDownBlock2D",
+            "AttnDownBlock2D"
+        ),
+        up_block_types=(
+            "AttnUpBlock2D",
+            "AttnUpBlock2D",
+            "AttnUpBlock2D",
+            "ResnetUpsampleBlock2D",
+            "ResnetUpsampleBlock2D",
+            "ResnetUpsampleBlock2D"
+        ),
+
+    )
+    return model

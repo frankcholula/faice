@@ -3,12 +3,14 @@ import inspect
 import sys
 from pipelines import ddpm, consistency
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
+from diffusers.schedulers import CMStochasticIterativeScheduler
 from models.unet import create_unet
+from models.unet_resnet import create_unet_resnet
 from conf.training_config import get_config, get_all_datasets
 
 
 def create_scheduler(
-    scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000
+        scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000
 ):
     if scheduler.lower() == "ddpm":
         return DDPMScheduler(
@@ -22,14 +24,18 @@ def create_scheduler(
         return PNDMScheduler(
             num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
         )
+    elif scheduler.lower() == "CMStochastic":
+        return CMStochasticIterativeScheduler(
+            num_train_timesteps=num_train_timesteps
+        )
     elif (
-        (scheduler.lower() != "ddpm")
-        and (scheduler.lower() != "ddim")
-        and (scheduler.lower() != "pndm")
+            (scheduler.lower() != "ddpm")
+            and (scheduler.lower() != "ddim")
+            and (scheduler.lower() != "pndm")
     ):
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
     elif (beta_schedule.lower() != "linear") and (
-        beta_schedule.lower() != "squaredcos_cap_v2"
+            beta_schedule.lower() != "squaredcos_cap_v2"
     ):
         raise ValueError(f"Noise schedule type '{beta_schedule}' is not supported.")
     else:
@@ -41,6 +47,8 @@ def create_scheduler(
 def create_model(model: str, config):
     if model.lower() == "unet":
         return create_unet(config)
+    if model.lower() == "unet_resnet":
+        return create_unet_resnet(config)
     else:
         raise ValueError(f"Model type '{model}' is not supported.")
 
