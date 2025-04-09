@@ -75,7 +75,7 @@ class FaceConfig(BaseConfig):
     save_image_epochs: int = 50
     save_model_epochs: int = 50
     train_dir: str = "datasets/celeba_hq_split/train"
-    test_dir: str = "datasets/celeba_hq_split/tesst"
+    test_dir: str = "datasets/celeba_hq_split/test"
 
 
 CONFIG_REGISTRY = {
