@@ -2,28 +2,28 @@
 
 #python main.py \
 #    --dataset face \
-#    --pipeline consistency \
 #    --scheduler ddpm.sh \
 #    --beta_schedule linear \
 #    --image_size 128 \
 #    --num_epochs 500 \
 #    --train_batch_size 64 \
 #    --eval_batch_size 64 \
-#    --wandb_run_name liang_RHFlip_consistency_ddpm_linear \
+#    --wandb_run_name liang_gblur_ddpm_linear \
 #    --calculate_fid \
-#    --calculate_is
+#    --calculate_is \
+#    --gblur
+
 
 python main.py \
     --dataset face \
-    --pipeline consistency \
-    --scheduler CMStochastic \
+    --scheduler ddpm \
+    --beta_schedule linear \
     --model unet_resnet \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_unet_resnet_consistency_CMStochastic \
+    --wandb_run_name liang_unet_resnet_ddpm_linear \
     --calculate_fid \
-    --calculate_is
-
-
+    --calculate_is \
+    --no_wandb
