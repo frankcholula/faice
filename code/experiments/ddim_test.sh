@@ -4,8 +4,8 @@ python main.py \
     --beta_schedule linear \
     --image_size 128 \
     --num_epochs 1 \
-    --train_batch_size 32 \
-    --eval_batch_size 32 \
+    --train_batch_size 24 \
+    --eval_batch_size 24 \
     --no_wandb \
     --calculate_fid \
     --calculate_is
