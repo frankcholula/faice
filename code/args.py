@@ -48,8 +48,8 @@ def create_model(model: str, config):
 def create_pipeline(pipeline: str):
     if pipeline.lower() == "ddpm":
         return ddpm.train_loop
-    # elif pipeline.lower() == "ddim":
-    #     return ddim.train_loop
+    elif pipeline.lower() == "ddim":
+        return ddim.train_loop
     # elif pipeline.lower() == "pndm":
     #     return pndm.train_loop
     elif pipeline.lower() == 'consistency':

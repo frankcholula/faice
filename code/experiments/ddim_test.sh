@@ -1,5 +1,6 @@
 python main.py \
     --dataset face \
+    --pipeline ddim \
     --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
