@@ -310,3 +310,6 @@ TSWLatexianTemp*
 .venv
 .env
 datasets/
+
+# macOS Desktop Services Store
+.DS_Store
