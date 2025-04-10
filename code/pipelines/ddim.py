@@ -86,6 +86,7 @@ def train_loop(
                 # noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                 # loss = F.mse_loss(noise_pred, noise)
                 
+                timesteps = timesteps.long()
                 # v = α_t * ε + β_t * x_0, x_0 = clean_images, ε = noise, t = timesteps
                 v = train_noise_scheduler.get_velocity(clean_images, timesteps, noise)
                 # Predict velocity
