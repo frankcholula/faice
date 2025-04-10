@@ -28,8 +28,8 @@ def train_loop(
     # Use ddpm scheduler for training
     train_noise_scheduler = DDPMScheduler.from_config(noise_scheduler.config)
     # Set the prediction type to "v_prediction" for both schedulers
-    train_noise_scheduler.set_prediction_type("v_prediction")
-    noise_scheduler.set_prediction_type("v_prediction")
+    train_noise_scheduler(prediction_type="v_prediction")
+    noise_scheduler(prediction_type="v_prediction")
     
     # Set zero terminal SNR for the training scheduler
     # not sure zero_terminal_snr or rescale_betas_zero_snr
