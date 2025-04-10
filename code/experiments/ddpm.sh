@@ -20,10 +20,10 @@ python main.py \
     --beta_schedule linear \
     --model unet_resnet \
     --image_size 128 \
-    --num_epochs 10 \
+    --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --wandb_run_name liang_unet_resnet_ddpm_linear \
     --calculate_fid \
     --calculate_is \
-    --no_wandb
+#    --no_wandb
