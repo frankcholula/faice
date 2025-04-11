@@ -33,8 +33,8 @@ python main.py \
     --beta_schedule linear \
     --image_size 128 \
     --num_epochs 50 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
     --wandb_run_name liang_gblur_ddpm_linear \
     --calculate_fid \
     --calculate_is \
