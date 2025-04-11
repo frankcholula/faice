@@ -11,7 +11,7 @@ from conf.training_config import FaceConfig, ButterflyConfig
 from utils.transforms import build_transforms
 
 def setup_dataset(config):
-    preprocess = transforms.Compose(build_transforms(config))
+    transform_train, transform_test = build_transforms(config)
 
     if isinstance(config, FaceConfig):
         from torch.utils.data import Dataset, DataLoader
@@ -33,12 +33,12 @@ def setup_dataset(config):
                 return {"images": image}
 
         train_dataset = CelebaAHQDataset(
-            root_dir=config.train_dir, transform=preprocess
+            root_dir=config.train_dir, transform=transform_train
         )
         train_dataloader = DataLoader(
             train_dataset, batch_size=config.train_batch_size, shuffle=True
         )
-        test_dataset = CelebaAHQDataset(root_dir=config.test_dir, transform=preprocess)
+        test_dataset = CelebaAHQDataset(root_dir=config.test_dir, transform=transform_test)
         test_dataloader = DataLoader(
             test_dataset, batch_size=config.eval_batch_size, shuffle=False
         )
@@ -49,7 +49,7 @@ def setup_dataset(config):
         dataset = load_dataset(config.dataset_name, split="train")
 
         def transform(examples):
-            images = [preprocess(image.convert("RGB")) for image in examples["image"]]
+            images = [transform_train(image.convert("RGB")) for image in examples["image"]]
             return {"images": images}
 
         dataset.set_transform(transform)

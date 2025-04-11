@@ -52,8 +52,10 @@ def evaluate(config, epoch, pipeline):
 
 def preprocess_image(image, img_src, device, img_size):
     if img_src == "loaded":
-        image = (image + 1.0) / 2.0
-        image = F.resize(image, (img_size, img_size))
+        # image = (image + 1.0) / 2.0
+        # image = F.resize(image, (img_size, img_size))
+        image = torch.tensor(image, device=device)
+        image = image.permute(0, 3, 1, 2)
     elif img_src == "generated":
         image = torch.tensor(image, device=device)
         image = image.permute(0, 3, 1, 2)

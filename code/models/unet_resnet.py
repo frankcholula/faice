@@ -19,12 +19,18 @@ def create_unet_resnet(config):
         upsample_type="resnet",
         downsample_type="resnet",
         block_out_channels=(
+            # 256,
+            # 256,
+            # 512,
+            # 512,
+            # 1024,
+            # 1024
+            128,
+            128,
             256,
             256,
             512,
             512,
-            1024,
-            1024
         ),
 
         down_block_types=(
