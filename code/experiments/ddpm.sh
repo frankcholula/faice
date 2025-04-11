@@ -2,7 +2,7 @@
 
 #python main.py \
 #    --dataset face \
-#    --scheduler ddpm.sh \
+#    --scheduler ddpm \
 #    --beta_schedule linear \
 #    --image_size 128 \
 #    --num_epochs 500 \
@@ -29,7 +29,7 @@
 
 python main.py \
     --dataset face \
-    --scheduler ddpm.sh \
+    --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
     --num_epochs 50 \
