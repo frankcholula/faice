@@ -1,6 +1,7 @@
 import os
 import wandb
 import torch
+import numpy as np
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
 from torchvision.transforms import functional as F
@@ -52,10 +53,11 @@ def evaluate(config, epoch, pipeline):
 
 def preprocess_image(image, img_src, device, img_size):
     if img_src == "loaded":
-        image = (image + 1.0) / 2.0
+        # image = (image + 1.0) / 2.0
         # image = F.resize(image, (img_size, img_size))
-        # image = torch.tensor(image, device=device)
-        # image = image.permute(0, 3, 1, 2)
+        image = torch.tensor(image, device=device)
+        image = image.permute(0, 3, 1, 2)
+        image = image.astype(np.uint8)
     elif img_src == "generated":
         image = torch.tensor(image, device=device)
         image = image.permute(0, 3, 1, 2)

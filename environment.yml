@@ -3,6 +3,8 @@ channels:
   - pytorch
   - nvidia
   - defaults
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
 dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=5.1=1_gnu
@@ -205,6 +207,7 @@ dependencies:
       - diffusers==0.32.2
       - dill==0.3.8
       - docker-pycreds==0.4.0
+      - dotenv==0.9.9
       - fastapi==0.115.11
       - fonttools==4.56.0
       - frozenlist==1.5.0
@@ -221,6 +224,7 @@ dependencies:
       - multiprocess==0.70.16
       - nvidia-ml-py==12.570.86
       - nvitop==1.4.2
+      - opencv-python==4.11.0.86
       - pandas==2.2.3
       - peft==0.14.0
       - propcache==0.3.0
@@ -229,6 +233,7 @@ dependencies:
       - pydantic==2.10.6
       - pydantic-core==2.27.2
       - pyparsing==3.2.1
+      - python-dotenv==1.1.0
       - pytz==2025.1
       - regex==2024.11.6
       - safetensors==0.5.3
@@ -248,3 +253,4 @@ dependencies:
       - xxhash==3.5.0
       - yarl==1.18.3
       - zipp==3.21.0
+prefix: /parallel_scratch/xl01339/miniconda3/envs/faice
