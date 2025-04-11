@@ -88,10 +88,12 @@ def train_loop(
                 
                 # v = α_t * ε + β_t * x_0, x_0 = clean_images, ε = noise, t = timesteps
                 # v = train_noise_scheduler.get_velocity(clean_images, timesteps, noise)
-                # 手动计算 velocity
+                # manually calculate velocity
                 alphas_cumprod = train_noise_scheduler.alphas_cumprod.to(clean_images.device)
                 sqrt_alpha_prod = alphas_cumprod[timesteps] ** 0.5
                 sqrt_one_minus_alpha_prod = (1 - alphas_cumprod[timesteps]) ** 0.5
+                sqrt_alpha_prod = sqrt_alpha_prod.view(-1, 1, 1, 1)
+                sqrt_one_minus_alpha_prod = sqrt_one_minus_alpha_prod.view(-1, 1, 1, 1)
                 v = sqrt_alpha_prod * noise - sqrt_one_minus_alpha_prod * clean_images
 
                 # Predict velocity
