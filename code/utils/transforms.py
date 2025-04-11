@@ -13,7 +13,7 @@ def build_transforms(config):
     transform_test = [
         T.Resize((config.image_size, config.image_size)),
         T.ToTensor(),
-        T.Normalize([0.5], [0.5]),
+        # T.Normalize([0.5], [0.5]),
     ]
 
     if config.RHFlip:
