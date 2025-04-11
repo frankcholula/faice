@@ -76,8 +76,7 @@ def train_loop(
                 (bs,),
                 device=clean_images.device,
             ).long()
-            timesteps = timesteps.flatten()
-            
+
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
             noisy_images = train_noise_scheduler.add_noise(clean_images, noise, timesteps)
@@ -88,7 +87,13 @@ def train_loop(
                 # loss = F.mse_loss(noise_pred, noise)
                 
                 # v = α_t * ε + β_t * x_0, x_0 = clean_images, ε = noise, t = timesteps
-                v = train_noise_scheduler.get_velocity(clean_images, timesteps, noise)
+                # v = train_noise_scheduler.get_velocity(clean_images, timesteps, noise)
+                # 手动计算 velocity
+                alphas_cumprod = train_noise_scheduler.alphas_cumprod.to(clean_images.device)
+                sqrt_alpha_prod = alphas_cumprod[timesteps] ** 0.5
+                sqrt_one_minus_alpha_prod = (1 - alphas_cumprod[timesteps]) ** 0.5
+                v = sqrt_alpha_prod * noise - sqrt_one_minus_alpha_prod * clean_images
+
                 # Predict velocity
                 v_pred = model(noisy_images, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(v_pred, v)
