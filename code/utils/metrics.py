@@ -51,17 +51,12 @@ def evaluate(config, epoch, pipeline):
         )
 
 
-def preprocess_image(image, img_src, device, img_size):
+def preprocess_image(image, img_src, device):
     if img_src == "loaded":
         # image = (image + 1.0) / 2.0
-        # print("Image Shape:", image.shape)
-        # print('loaded Image', image)
-        # image = F.resize(image, (img_size, img_size))
         return image
     elif img_src == "generated":
         image = torch.tensor(image, device=device)
-        # print("generated Image Shape:", image.shape)
-        # print("generated Image", image)
         image = image.permute(0, 3, 1, 2)
         return image
 
@@ -87,7 +82,6 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                         torch.cat(fake_images, dim=0),
                         img_src="loaded",
                         device=device,
-                        img_size=config.image_size,
                     )
                     inception_score.update(processed_fake)
                     fake_images = []
@@ -96,7 +90,6 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                     torch.cat(fake_images, dim=0),
                     img_src="loaded",
                     device=device,
-                    img_size=config.image_size,
                 )
                 inception_score.update(processed_fake)
         else:
@@ -113,7 +106,6 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                     output,
                     img_src="generated",
                     device=device,
-                    img_size=config.image_size,
                 )
                 inception_score.update(processed_fake)
     inception_mean, inception_std = inception_score.compute()
@@ -127,9 +119,10 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Create FID instance with normalize=True since we'll provide images in [0,1] range
-    fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
+    fid = FrechetInceptionDistance(feature=2048, normalize=True,
+                                   input_img_size=(3, config.image_size, config.image_size)).to(device)
 
-    real_count = 0
+    # real_count = 0
     fake_count = 0
 
     if save:
@@ -140,25 +133,27 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
 
     with torch.no_grad():
         for batch in tqdm(
-            test_dataloader, desc="Loading Real Images for FID Calculation..."
+                test_dataloader, desc="Loading Real Images for FID Calculation..."
         ):
             real_images = batch["images"].to(device)
+            real_image_names = batch["image_names"]
             processed_real = preprocess_image(
                 real_images,
                 img_src="loaded",
                 device=device,
-                img_size=config.image_size,
             )
             if save:
-                for image in processed_real:
-                    save_image(image, os.path.join(real_dir, f"{real_count:03d}.jpg"))
-                    real_count += 1
+                for i, image in enumerate(processed_real):
+                    img_name = real_image_names[i]
+                    # save_image(image, os.path.join(real_dir, f"{real_count:03d}.jpg"))
+                    save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
+                    # real_count += 1
             fid.update(processed_real, real=True)
 
     with torch.no_grad():
         for batch in tqdm(
-            range(0, len(test_dataloader.dataset), config.eval_batch_size),
-            desc="Loading Fake Images for FID Calculation..",
+                range(0, len(test_dataloader.dataset), config.eval_batch_size),
+                desc="Loading Fake Images for FID Calculation..",
         ):
             # Generate images as numpy arrays
             output = pipeline(
@@ -173,7 +168,6 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                 output,
                 img_src="generated",
                 device=device,
-                img_size=config.image_size,
             )
             if save:
                 for image in processed_fake:

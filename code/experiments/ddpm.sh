@@ -32,9 +32,9 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 5 \
-    --train_batch_size 32 \
-    --eval_batch_size 32 \
+    --num_epochs 100 \
+    --train_batch_size 128 \
+    --eval_batch_size 128 \
     --wandb_run_name liang_gblur_ddpm_linear \
     --calculate_fid \
     --calculate_is \

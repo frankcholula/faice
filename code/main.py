@@ -28,9 +28,10 @@ def setup_dataset(config):
             def __getitem__(self, idx):
                 img_path = self.image_paths[idx]
                 image = Image.open(img_path).convert("RGB")
+                image_name = os.path.splitext(os.path.basename(img_path))[0]
                 if self.transform:
                     image = self.transform(image)
-                return {"images": image}
+                return {"images": image, "image_names": image_name}
 
         train_dataset = CelebaAHQDataset(
             root_dir=config.train_dir, transform=transform_train
