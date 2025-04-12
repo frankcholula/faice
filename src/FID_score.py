@@ -5,6 +5,7 @@
 @File : FID_score.py
 @Project : faice
 """
+
 import os
 
 import torch
@@ -41,7 +42,9 @@ def preprocess_image(image):
 
 def make_fid_input_images(images_path):
     logger.info(f"Loading real images from {images_path}")
-    image_paths = sorted([os.path.join(images_path, x) for x in os.listdir(images_path)])
+    image_paths = sorted(
+        [os.path.join(images_path, x) for x in os.listdir(images_path)]
+    )
 
     real_images = [np.array(Image.open(path).convert("RGB")) for path in image_paths]
     real_images = torch.cat([preprocess_image(image) for image in real_images])
@@ -52,7 +55,9 @@ def make_fid_input_images(images_path):
     return real_images
 
 
-def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=model_config.num_images):
+def generate_images_from_model(
+    model_ckpt, scheduler_path, device, num_images=model_config.num_images
+):
     # Load model
     logger.info(f"Loading model from {model_ckpt}")
 
@@ -63,7 +68,7 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=mo
         scheduler=scheduler,
         torch_dtype=torch.float16,
         # variant="fp16",
-        use_safetensors=True
+        use_safetensors=True,
     ).to(device)
 
     logger.info("Generate fake images")
@@ -76,12 +81,14 @@ def generate_images_from_model(model_ckpt, scheduler_path, device, num_images=mo
     for i in range(num_batches):
         if i == num_batches - 1:
             batch_size = num_images - i * batch_size
-        batch_seed = model_config.seed + i  # Use a different seed for each batch to ensure diversity
+        batch_seed = (
+            model_config.seed + i
+        )  # Use a different seed for each batch to ensure diversity
         images = pipeline(
             batch_size=batch_size,
             generator=torch.manual_seed(batch_seed),
             output_type="np",
-            num_inference_steps=1000
+            num_inference_steps=1000,
         ).images
 
         fake_images = torch.tensor(images)
@@ -120,15 +127,24 @@ def test_calculate_fid(dataset_path, model_ckpt, scheduler_path, fake_image_dir=
     calculate_fid(real_images, fake_images)
 
 
-if __name__ == '__main__':
-    dataset_dir = BASE_DIR + '/data/celeba_hq_256'
+if __name__ == "__main__":
+    dataset_dir = BASE_DIR + "/data/celeba_hq_256"
     # model_ckpt_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/'
     # scheduler_dir = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/scheduler/'
 
-    model_ckpt_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/'
-    scheduler_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/scheduler/'
+    # model_ckpt_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/'
+    # scheduler_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/scheduler/'
+
+    model_ckpt_dir = (
+        BASE_DIR + "/users/xl01339/aml/faice/output/ddpm-ddpm-face-500-test/"
+    )
+    scheduler_dir = (
+        BASE_DIR + "/users/xl01339/aml/faice/output/ddpm-ddpm-face-500-test/scheduler/"
+    )
 
     test_data = model_config.test_dir
     # fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
-    fake_image_data = ''
-    test_calculate_fid(test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data)
+    fake_image_data = ""
+    test_calculate_fid(
+        test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data
+    )
