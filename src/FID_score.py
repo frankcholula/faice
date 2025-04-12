@@ -13,6 +13,7 @@ from diffusers import DDPMPipeline
 from diffusers import DDPMScheduler
 from PIL import Image
 import numpy as np
+from tqdm import tqdm, trange
 from torchvision.transforms import functional as F
 from torchvision import transforms
 from torchmetrics.image.fid import FrechetInceptionDistance
@@ -78,7 +79,7 @@ def generate_images_from_model(
 
     all_fake_images = []
 
-    for i in range(num_batches):
+    for i in trange(num_batches):
         if i == num_batches - 1:
             batch_size = num_images - i * batch_size
         batch_seed = (
@@ -104,7 +105,10 @@ def generate_images_from_model(
 
 
 def calculate_fid(real_images, fake_images):
-    fid = FrechetInceptionDistance(normalize=True)
+    fid = FrechetInceptionDistance(
+        normalize=True,
+        input_img_size=(3, model_config.image_size, model_config.image_size),
+    )
     fid.update(real_images, real=True)
     fid.update(fake_images, real=False)
 
