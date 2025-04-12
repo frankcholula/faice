@@ -12,7 +12,7 @@ python main.py \
     --calculate_fid \
     --calculate_is \
     --RHFlip
-    --gblur
+#    --gblur
 
 
 #python main.py \
