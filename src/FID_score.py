@@ -135,12 +135,8 @@ if __name__ == "__main__":
     # model_ckpt_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/'
     # scheduler_dir = BASE_DIR + '/output/celeba_hq_split_training/Consistency_DDPM/scheduler/'
 
-    model_ckpt_dir = (
-        BASE_DIR + "/users/xl01339/aml/faice/output/ddpm-ddpm-face-500-test/"
-    )
-    scheduler_dir = (
-        BASE_DIR + "/users/xl01339/aml/faice/output/ddpm-ddpm-face-500-test/scheduler/"
-    )
+    model_ckpt_dir = BASE_DIR + "/output/ddpm-ddpm-face-500-test/"
+    scheduler_dir = BASE_DIR + "/faice/output/ddpm-ddpm-face-500-test/scheduler/"
 
     test_data = model_config.test_dir
     # fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
