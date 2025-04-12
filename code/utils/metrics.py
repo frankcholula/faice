@@ -61,6 +61,7 @@ def preprocess_image(image, img_src, device, img_size):
         image = torch.tensor(image, device=device)
         image = image.permute(0, 3, 1, 2)
         image = F.normalize(image, [0.5], [0.5])
+        image = (image + 1.0) / 2.0
     return image
 
 
