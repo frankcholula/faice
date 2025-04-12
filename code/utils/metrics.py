@@ -54,17 +54,16 @@ def evaluate(config, epoch, pipeline):
 def preprocess_image(image, img_src, device, img_size):
     if img_src == "loaded":
         # image = (image + 1.0) / 2.0
-        print("Image Shape:", image.shape)
-        print('loaded Image', image)
+        # print("Image Shape:", image.shape)
+        # print('loaded Image', image)
         # image = F.resize(image, (img_size, img_size))
-        # image = torch.tensor(image).unsqueeze(0)
-        image = image / 255.0
+        return image
     elif img_src == "generated":
         image = torch.tensor(image, device=device)
-        print("generated Image Shape:", image.shape)
-        print("generated Image", image)
+        # print("generated Image Shape:", image.shape)
+        # print("generated Image", image)
         image = image.permute(0, 3, 1, 2)
-    return image
+        return image
 
 
 def calculate_inception_score(config, pipeline, test_dataloader, device=None):
