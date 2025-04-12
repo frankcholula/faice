@@ -4,7 +4,6 @@ import torch
 import numpy as np
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
-from torchvision.transforms import functional as F
 from torchvision.utils import save_image
 from torchvision import transforms
 from PIL import Image
