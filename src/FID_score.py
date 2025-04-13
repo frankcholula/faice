@@ -80,7 +80,6 @@ def generate_images_from_model(
     num_batches = (num_images + batch_size - 1) // batch_size  # Ceiling division
 
     all_fake_images = []
-    test_dir = os.path.join(model_config.output_dir, "test_samples")
     for i in trange(num_batches):
         if i == num_batches - 1:
             batch_size = num_images - i * batch_size
@@ -133,7 +132,7 @@ def test_calculate_fid(dataset_path, model_ckpt, scheduler_path, fake_image_dir=
         device = torch.device("mps")
     logger.info("Calculate FID score")
     real_images = make_fid_input_images(dataset_path)
-    real_images = real_images.to(device)
+    # real_images = real_images.to(device)
     if fake_image_dir:
         fake_images = make_fid_input_images(fake_image_dir)
     else:
