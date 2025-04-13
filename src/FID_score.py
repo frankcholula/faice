@@ -16,7 +16,9 @@ import numpy as np
 from tqdm import tqdm, trange
 from torchvision.transforms import functional as F
 from torchvision import transforms
+from torchvision.utils import save_image
 from torchmetrics.image.fid import FrechetInceptionDistance
+from cleanfid import fid
 
 from conf.log_conf import logger
 from conf.global_setting import BASE_DIR
@@ -78,7 +80,7 @@ def generate_images_from_model(
     num_batches = (num_images + batch_size - 1) // batch_size  # Ceiling division
 
     all_fake_images = []
-
+    test_dir = os.path.join(model_config.output_dir, "test_samples")
     for i in trange(num_batches):
         if i == num_batches - 1:
             batch_size = num_images - i * batch_size
@@ -96,17 +98,25 @@ def generate_images_from_model(
         fake_images = fake_images.permute(0, 3, 1, 2)
         all_fake_images.append(fake_images)
 
+        # Save images
+        for j, image in enumerate(fake_images):
+            k = i * batch_size + j
+            if k >= num_images:
+                break
+            os.makedirs(test_dir, exist_ok=True)
+            save_image(image, f"{test_dir}/{k:04d}.png")
+
     # Concatenate all batches into a single tensor
     # fake_images = torch.cat(all_fake_images)[:num_images]  # Ensure exactly 300 images
     fake_images = torch.cat(all_fake_images)
 
     logger.info(f"Generated fake images shape: {fake_images.shape}")
-    return fake_images
+    return fake_images, test_dir
 
 
 def calculate_fid(real_images, fake_images):
     fid = FrechetInceptionDistance(
-        # normalize=True,
+        normalize=True,
         input_img_size=(3, model_config.image_size, model_config.image_size),
     )
     fid.update(real_images, real=True)
@@ -117,17 +127,26 @@ def calculate_fid(real_images, fake_images):
     logger.info(f"FID score: {fid_score}")
 
 
+def calculate_clean_fid(real_images_dir, fake_images_dir):
+    score = fid.compute_fid(real_images_dir, fake_images_dir)
+    fid_score = round(score, 3)
+
+    logger.info(f"FID score: {fid_score}")
+
+
 def test_calculate_fid(dataset_path, model_ckpt, scheduler_path, fake_image_dir=None):
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     logger.info("Calculate FID score")
     real_images = make_fid_input_images(dataset_path)
-    # real_images = real_images.to(device)
+    real_images = real_images.to(device)
     if fake_image_dir:
         fake_images = make_fid_input_images(fake_image_dir)
     else:
-        fake_images = generate_images_from_model(model_ckpt, scheduler_path, device)
+        fake_images, fake_images_dir = generate_images_from_model(
+            model_ckpt, scheduler_path, device
+        )
     calculate_fid(real_images, fake_images)
 
 
@@ -145,6 +164,10 @@ if __name__ == "__main__":
     test_data = model_config.test_dir
     # fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
     fake_image_data = ""
-    test_calculate_fid(
-        test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data
-    )
+    # test_calculate_fid(
+    #     test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data
+    # )
+
+    fake_path = BASE_DIR + "/output/ddpm-ddpm-face-500-test/fid/fake"
+    real_path = BASE_DIR + "/output/ddpm-ddpm-face-500-test/fid/real"
+    calculate_clean_fid(fake_path, real_path)
