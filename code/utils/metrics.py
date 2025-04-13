@@ -181,7 +181,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     fid_score = fid.compute().item()
     print(f"FID Score: {fid_score}")
     clean_fid_score = calculate_clean_fid(real_dir, fake_dir)
-    min_fid_score = min(clean_fid_score, fid_score)
+    min_fid_score = min(float(clean_fid_score), float(fid_score))
     print(f"Minimum FID Score: {min_fid_score}")
     return min_fid_score
 
