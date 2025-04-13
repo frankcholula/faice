@@ -98,24 +98,17 @@ def generate_images_from_model(
         fake_images = fake_images.permute(0, 3, 1, 2)
         all_fake_images.append(fake_images)
 
-        # Save images
-        for j, image in enumerate(fake_images):
-            k = i * batch_size + j
-            if k >= num_images:
-                break
-            os.makedirs(test_dir, exist_ok=True)
-            save_image(image, f"{test_dir}/{k:04d}.png")
-
     # Concatenate all batches into a single tensor
     # fake_images = torch.cat(all_fake_images)[:num_images]  # Ensure exactly 300 images
     fake_images = torch.cat(all_fake_images)
 
     logger.info(f"Generated fake images shape: {fake_images.shape}")
-    return fake_images, test_dir
+    return fake_images
 
 
 def calculate_fid(real_images, fake_images):
     fid = FrechetInceptionDistance(
+        feature=768,
         normalize=True,
         input_img_size=(3, model_config.image_size, model_config.image_size),
     )
@@ -164,10 +157,10 @@ if __name__ == "__main__":
     test_data = model_config.test_dir
     # fake_image_data = BASE_DIR + '/output/Training_log_splited_dataset/Consistency_DDPM/test_samples'
     fake_image_data = ""
-    # test_calculate_fid(
-    #     test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data
-    # )
+    test_calculate_fid(
+        test_data, model_ckpt_dir, scheduler_dir, fake_image_dir=fake_image_data
+    )
 
-    fake_path = BASE_DIR + "/output/ddpm-ddpm-face-500-test/fid/fake"
-    real_path = BASE_DIR + "/output/ddpm-ddpm-face-500-test/fid/real"
-    calculate_clean_fid(fake_path, real_path)
+    # fake_path = BASE_DIR + "/output/ddpm-ddpm-face-500-test/fid/fake"
+    # real_path = BASE_DIR + "/output/ddpm-ddpm-face-500-test/fid/real"
+    # calculate_clean_fid(fake_path, real_path)
