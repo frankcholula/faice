@@ -9,6 +9,7 @@ from torchvision import transforms
 from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
+from cleanfid import fid
 
 
 def make_grid(images, rows, cols):
@@ -118,8 +119,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Create FID instance with normalize=True since we'll provide images in [0,1] range
-    fid = FrechetInceptionDistance(feature=2048, normalize=True,
-                                   input_img_size=(3, config.image_size, config.image_size)).to(device)
+    fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
 
     # real_count = 0
     fake_count = 0
@@ -180,7 +180,10 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     # Compute final FID score
     fid_score = fid.compute().item()
     print(f"FID Score: {fid_score}")
-    return fid_score
+    clean_fid_score = calculate_clean_fid(real_dir, fake_dir)
+    min_fid_score = min(clean_fid_score, fid_score)
+    print(f"Minimum FID Score: {min_fid_score}")
+    return min_fid_score
 
 
 def get_full_repo_name(model_id: str, organization: str = None, token: str = None):
@@ -191,3 +194,11 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
         return f"{username}/{model_id}"
     else:
         return f"{organization}/{model_id}"
+
+
+def calculate_clean_fid(real_images_dir, fake_images_dir):
+    score = fid.compute_fid(real_images_dir, fake_images_dir)
+    fid_score = round(score, 5)
+
+    print(f"Clean FID score: {fid_score}")
+    return fid_score
