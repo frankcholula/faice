@@ -8,7 +8,7 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_base_ddpm_linear \
+    --wandb_run_name liang_ddpm_linear_with_RHFlip \
     --calculate_fid \
     --calculate_is \
     --RHFlip
