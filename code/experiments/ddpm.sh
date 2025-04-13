@@ -8,10 +8,10 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_ddpm_linear_with_RHFlip \
+    --wandb_run_name liang_ddpm_linear_NoAug \
     --calculate_fid \
-    --calculate_is \
-    --RHFlip
+    --calculate_is
+#    --RHFlip
 #    --gblur
 
 
