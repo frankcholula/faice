@@ -137,9 +137,7 @@ def test_calculate_fid(dataset_path, model_ckpt, scheduler_path, fake_image_dir=
     if fake_image_dir:
         fake_images = make_fid_input_images(fake_image_dir)
     else:
-        fake_images, fake_images_dir = generate_images_from_model(
-            model_ckpt, scheduler_path, device
-        )
+        fake_images = generate_images_from_model(model_ckpt, scheduler_path, device)
     calculate_fid(real_images, fake_images)
 
 
