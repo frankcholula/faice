@@ -107,7 +107,7 @@ def generate_images_from_model(
 
 def calculate_fid(real_images, fake_images):
     fid = FrechetInceptionDistance(
-        feature=768,
+        feature=2048,
         normalize=True,
         input_img_size=(3, model_config.image_size, model_config.image_size),
     )
