@@ -11,7 +11,7 @@ python main.py \
     --wandb_run_name liang_base_ddpm_linear \
     --calculate_fid \
     --calculate_is \
-#    --RHFlip
+    --RHFlip
 #    --gblur
 
 
