@@ -10,9 +10,9 @@ python main.py \
     --eval_batch_size 64 \
     --wandb_run_name liang_ddpm_linear_NoAug \
     --calculate_fid \
-    --calculate_is
+    --calculate_is \
+    --gblur
 #    --RHFlip
-#    --gblur
 
 
 #python main.py \
