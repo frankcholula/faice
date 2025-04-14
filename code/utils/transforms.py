@@ -1,17 +1,20 @@
+from typing import Tuple
+
 import torchvision.transforms as T
 from torchvision import transforms
+from PIL import Image
 
 
 def build_transforms(config):
     # build train transformations
     transform_train = [
-        T.Resize((config.image_size, config.image_size)),
+        # T.Resize((config.image_size, config.image_size)),
         T.ToTensor(),
         T.Normalize([0.5], [0.5]),
     ]
 
     transform_test = [
-        T.Resize((config.image_size, config.image_size)),
+        # T.Resize((config.image_size, config.image_size)),
         T.ToTensor(),
     ]
 
@@ -24,3 +27,35 @@ def build_transforms(config):
     transform_test = transforms.Compose(transform_test)
 
     return transform_train, transform_test
+
+
+def resize_image(image_data, size: Tuple = (128, 128)):
+    """
+    Resize an image to a specific size.
+
+    Args:
+        image_data:
+        output_path (str): Path to save the resized image.
+        size (tuple): Desired size of the image (width, height).
+
+    Returns:
+        None
+    """
+
+    # Resize to size with high-quality interpolation
+    resized_img = image_data.resize(size, resample=Image.Resampling.LANCZOS)
+
+    # Adjust DPI to preserve physical size (e.g., original DPI was 300)
+    # Get the original DPI and calculate the new DPI
+    original_dpi = image_data.info.get("dpi", (300, 300))
+    resized_img.info["dpi"] = (original_dpi[0] * image_data.size[0] / size[0],
+                               original_dpi[1] * image_data.size[1] / size[1])
+    return resized_img
+
+
+if __name__ == "__main__":
+    image_file = "../datasets/test/1.jpg"
+    # Open the image using Pillow
+    img = Image.open(image_file).convert("RGB")
+    new_img = resize_image(img)
+    new_img.save("resized_image.jpg")

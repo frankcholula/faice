@@ -2,13 +2,13 @@ import os
 import glob
 
 import torch
-from torchvision import transforms
 
 from PIL import Image
 from args import get_config_and_components
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
-from utils.transforms import build_transforms
+from utils.transforms import build_transforms, resize_image
+
 
 def setup_dataset(config):
     transform_train, transform_test = build_transforms(config)
@@ -28,6 +28,7 @@ def setup_dataset(config):
             def __getitem__(self, idx):
                 img_path = self.image_paths[idx]
                 image = Image.open(img_path).convert("RGB")
+                image = resize_image(image, (config.img_size, config.img_size))
                 image_name = os.path.splitext(os.path.basename(img_path))[0]
                 if self.transform:
                     image = self.transform(image)
@@ -77,19 +78,19 @@ def main():
         try:
             # Determine device
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            
+
             # Move model to the device first
             model.to(device)
-            
+
             sample_batch = next(iter(train_dataloader))
             sample_image = sample_batch["images"].to(device)
-            
+
             if len(sample_image.shape) == 3:  # Add batch dimension if missing
                 sample_image = sample_image.unsqueeze(0)
-            
+
             # Create timestep tensor on the same device
             timestep = torch.tensor([0], device=device)
-            
+
             # Just check if the model runs
             _ = model(sample_image, timestep=timestep)
             print(f"Model sanity check passed on {device}!")
@@ -114,6 +115,7 @@ def main():
         print(f"Generated {len(sample_images)} sample images")
     except Exception as e:
         print(f"Error retrieving sample images: {e}")
+
 
 if __name__ == "__main__":
     main()
