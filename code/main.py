@@ -28,7 +28,7 @@ def setup_dataset(config):
             def __getitem__(self, idx):
                 img_path = self.image_paths[idx]
                 image = Image.open(img_path).convert("RGB")
-                image = resize_image(image, (config.img_size, config.img_size))
+                image = resize_image(image, (config.image_size, config.image_size))
                 image_name = os.path.splitext(os.path.basename(img_path))[0]
                 if self.transform:
                     image = self.transform(image)
