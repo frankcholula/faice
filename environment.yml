@@ -253,4 +253,3 @@ dependencies:
       - xxhash==3.5.0
       - yarl==1.18.3
       - zipp==3.21.0
-prefix: /parallel_scratch/xl01339/miniconda3/envs/faice

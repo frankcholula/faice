@@ -1,7 +1,6 @@
 from typing import Tuple
 
 import torchvision.transforms as T
-from torchvision import transforms
 from PIL import Image
 
 
@@ -23,8 +22,8 @@ def build_transforms(config):
     if config.gblur:
         transform_train += [T.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0))]
 
-    transform_train = transforms.Compose(transform_train)
-    transform_test = transforms.Compose(transform_test)
+    transform_train = T.Compose(transform_train)
+    transform_test = T.Compose(transform_test)
 
     return transform_train, transform_test
 
@@ -34,8 +33,7 @@ def resize_image(image_data, size: Tuple = (128, 128)):
     Resize an image to a specific size.
 
     Args:
-        image_data:
-        output_path (str): Path to save the resized image.
+        image_data: The image data to be resized.
         size (tuple): Desired size of the image (width, height).
 
     Returns:

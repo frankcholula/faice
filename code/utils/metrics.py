@@ -1,7 +1,6 @@
 import os
 import wandb
 import torch
-import numpy as np
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
 from torchvision.utils import save_image
@@ -53,7 +52,6 @@ def evaluate(config, epoch, pipeline):
 
 def preprocess_image(image, img_src, device):
     if img_src == "loaded":
-        # image = (image + 1.0) / 2.0
         return image
     elif img_src == "generated":
         image = torch.tensor(image, device=device)
@@ -121,7 +119,6 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     # Create FID instance with normalize=True since we'll provide images in [0,1] range
     fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
 
-    # real_count = 0
     fake_count = 0
 
     if save:
@@ -144,9 +141,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
             if save:
                 for i, image in enumerate(processed_real):
                     img_name = real_image_names[i]
-                    # save_image(image, os.path.join(real_dir, f"{real_count:03d}.jpg"))
                     save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
-                    # real_count += 1
             fid.update(processed_real, real=True)
 
     with torch.no_grad():

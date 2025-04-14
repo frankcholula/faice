@@ -24,7 +24,7 @@ def create_scheduler(
         return PNDMScheduler(
             num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
         )
-    elif scheduler.lower() == "CMStochastic":
+    elif scheduler.lower() == "cmstochastic":
         return CMStochasticIterativeScheduler(
             num_train_timesteps=num_train_timesteps
         )
