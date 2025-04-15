@@ -26,7 +26,7 @@ def create_scheduler(
         )
     elif scheduler.lower() == "cmstochastic":
         return CMStochasticIterativeScheduler(
-            # num_train_timesteps=num_train_timesteps
+            num_train_timesteps=40
         )
     elif (
             (scheduler.lower() != "ddpm")
