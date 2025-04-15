@@ -74,6 +74,7 @@ def train_loop(
                 dtype=torch.int64,
             )
             timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
+            timesteps = timesteps.to(clean_images.device)
 
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
