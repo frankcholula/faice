@@ -24,7 +24,5 @@ python main.py \
     --eval_batch_size 32 \
     --wandb_run_name liang_unet_resnet_consistency_CMStochastic \
     --calculate_fid \
-    --calculate_is \
-    --no_wandb
-
+    --calculate_is
 
