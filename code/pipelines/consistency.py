@@ -67,14 +67,11 @@ def train_loop(
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
-
             timesteps_idx = torch.randint(
                 0,
                 noise_scheduler.config.num_train_timesteps,
                 (bs,),
-                # device=x0.device,
                 dtype=torch.int64,
-                device=clean_images.device,
             )
             timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
 
