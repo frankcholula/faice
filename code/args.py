@@ -26,7 +26,7 @@ def create_scheduler(
         )
     elif scheduler.lower() == "cmstochastic":
         return CMStochasticIterativeScheduler(
-            num_train_timesteps=200
+            num_train_timesteps=num_train_timesteps
         )
     elif (
             (scheduler.lower() != "ddpm")
@@ -101,6 +101,9 @@ def parse_args():
     )
     training_group.add_argument(
         "--num_epochs", type=int, help="Number of training epochs"
+    )
+    training_group.add_argument(
+        "--num_train_timesteps", type=int, help="Number of training steps"
     )
     training_group.add_argument("--learning_rate", type=float, help="Learning rate")
     training_group.add_argument(
@@ -179,7 +182,7 @@ def get_config_and_components():
     else:
         print("\nSkipping confirmation as --no_confirm flag is set.")
     model = create_model(config.model, config)
-    scheduler = create_scheduler(config.scheduler, config.beta_schedule)
+    scheduler = create_scheduler(config.scheduler, config.beta_schedule, config.num_train_timesteps)
     pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline

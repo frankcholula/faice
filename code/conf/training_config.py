@@ -32,6 +32,7 @@ class BaseConfig:
     lr_warmup_steps: int = 500
     mixed_precision: str = "fp16"
     seed: int = 0
+    num_train_timesteps: int = 1000
 
     # saving params
     save_image_epochs: int = 5
