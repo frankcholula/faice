@@ -4,10 +4,10 @@ python main.py \
     --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 1 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
+    --num_epochs 200 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
     --calculate_fid \
     --calculate_is \
-    --no_wandb
-    # --wandb_run_name Ziyu_ddim_cos \
+    --wandb_run_name Ziyu_ddim_test_200 \
+    # --no_wandb
