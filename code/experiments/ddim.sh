@@ -9,7 +9,7 @@ python main.py \
     --eval_batch_size 64 \
     --calculate_fid \
     --calculate_is \
-    --wandb_run_name Ziyu_ddim_linear \
+    --wandb_run_name Ziyu_ddim_linear_v2 \
 
 python main.py \
     --dataset face \
@@ -22,5 +22,5 @@ python main.py \
     --eval_batch_size 64 \
     --calculate_fid \
     --calculate_is \
-    --wandb_run_name Ziyu_ddim_cos \
+    --wandb_run_name Ziyu_ddim_cos_v2 \
     # --no_wandb
