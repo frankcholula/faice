@@ -7,7 +7,7 @@ from PIL import Image
 from args import get_config_and_components
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
-from utils.transforms import build_transforms, resize_image
+from utils.transforms import build_transforms
 
 
 def setup_dataset(config):
@@ -28,7 +28,6 @@ def setup_dataset(config):
             def __getitem__(self, idx):
                 img_path = self.image_paths[idx]
                 image = Image.open(img_path).convert("RGB")
-                image = resize_image(image, (config.image_size, config.image_size))
                 image_name = os.path.splitext(os.path.basename(img_path))[0]
                 if self.transform:
                     image = self.transform(image)
