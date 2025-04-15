@@ -53,6 +53,8 @@ def train_loop(
 
     global_step = 0
 
+    scheduler_name = noise_scheduler.__class__.__name__
+
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
@@ -67,14 +69,22 @@ def train_loop(
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
-            timesteps_idx = torch.randint(
-                0,
-                noise_scheduler.config.num_train_timesteps,
-                (bs,),
-                dtype=torch.int64,
-            )
-            timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
-            timesteps = timesteps.to(clean_images.device)
+            if scheduler_name == "CMStochasticIterativeScheduler":
+                timesteps_idx = torch.randint(
+                    0,
+                    noise_scheduler.config.num_train_timesteps,
+                    (bs,),
+                    dtype=torch.int64,
+                )
+                timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
+                timesteps = timesteps.to(clean_images.device)
+            else:
+                timesteps = torch.randint(
+                    0,
+                    noise_scheduler.config.num_train_timesteps,
+                    (bs,),
+                    device=clean_images.device,
+                ).long()
 
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)

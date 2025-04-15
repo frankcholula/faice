@@ -19,7 +19,7 @@ python main.py \
     --scheduler CMStochastic \
     --model unet_resnet \
     --image_size 128 \
-    --num_epochs 5 \
+    --num_epochs 100 \
     --train_batch_size 32 \
     --eval_batch_size 32 \
     --num_train_timesteps 200 \

@@ -28,15 +28,9 @@ def create_scheduler(
         return CMStochasticIterativeScheduler(
             num_train_timesteps=num_train_timesteps
         )
-    elif (
-            (scheduler.lower() != "ddpm")
-            and (scheduler.lower() != "ddim")
-            and (scheduler.lower() != "pndm")
-    ):
+    elif scheduler.lower() not in ["ddpm", "ddim", "pndm", "cmstochastic"]:
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
-    elif (beta_schedule.lower() != "linear") and (
-            beta_schedule.lower() != "squaredcos_cap_v2"
-    ):
+    elif beta_schedule.lower() not in ["linear", "squaredcos_cap_v2"]:
         raise ValueError(f"Noise schedule type '{beta_schedule}' is not supported.")
     else:
         raise ValueError(
