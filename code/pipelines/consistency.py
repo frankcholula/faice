@@ -250,5 +250,6 @@ def convert_sigma(noise_scheduler, original_samples, timesteps):
     sigma = sigmas[step_indices].flatten()
     while len(sigma.shape) < len(original_samples.shape):
         sigma = sigma.unsqueeze(-1)
+    sigma = sigma.to(device=original_samples.device, dtype=original_samples.dtype)
 
     return sigma
