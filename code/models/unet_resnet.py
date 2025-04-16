@@ -15,9 +15,12 @@ def create_unet_resnet(config):
         out_channels=3,  # the number of output channels
         layers_per_block=2,  # how many ResNet layers to use per UNet block
         attention_head_dim=64,
+        # attn_norm_num_groups=32,
         time_embedding_type="positional",
         upsample_type="resnet",
         downsample_type="resnet",
+        # resnet_time_scale_shift="scale_shift",
+        # num_class_embeds=1000,
         block_out_channels=(
             # 256,
             # 256,
@@ -31,6 +34,10 @@ def create_unet_resnet(config):
             256,
             512,
             512,
+            # 192,
+            # 384,
+            # 576,
+            # 768
         ),
 
         down_block_types=(

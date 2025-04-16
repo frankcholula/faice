@@ -24,19 +24,13 @@ def create_scheduler(
         return PNDMScheduler(
             num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
         )
-    elif scheduler.lower() == "CMStochastic":
+    elif scheduler.lower() == "cmstochastic":
         return CMStochasticIterativeScheduler(
             num_train_timesteps=num_train_timesteps
         )
-    elif (
-            (scheduler.lower() != "ddpm")
-            and (scheduler.lower() != "ddim")
-            and (scheduler.lower() != "pndm")
-    ):
+    elif scheduler.lower() not in ["ddpm", "ddim", "pndm", "cmstochastic"]:
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
-    elif (beta_schedule.lower() != "linear") and (
-            beta_schedule.lower() != "squaredcos_cap_v2"
-    ):
+    elif beta_schedule.lower() not in ["linear", "squaredcos_cap_v2"]:
         raise ValueError(f"Noise schedule type '{beta_schedule}' is not supported.")
     else:
         raise ValueError(
@@ -101,6 +95,12 @@ def parse_args():
     )
     training_group.add_argument(
         "--num_epochs", type=int, help="Number of training epochs"
+    )
+    training_group.add_argument(
+        "--num_train_timesteps", type=int, help="Number of training steps"
+    )
+    training_group.add_argument(
+        "--num_inference_steps", type=int, help="Number of inference steps"
     )
     training_group.add_argument("--learning_rate", type=float, help="Learning rate")
     training_group.add_argument(
@@ -179,7 +179,7 @@ def get_config_and_components():
     else:
         print("\nSkipping confirmation as --no_confirm flag is set.")
     model = create_model(config.model, config)
-    scheduler = create_scheduler(config.scheduler, config.beta_schedule)
+    scheduler = create_scheduler(config.scheduler, config.beta_schedule, config.num_train_timesteps)
     pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline
