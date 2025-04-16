@@ -25,11 +25,12 @@ def train_loop(
 ):
     accelerator, repo = setup_accelerator(config)
     
-    # Use ddpm scheduler for training, set prediction type to "v_prediction", apply rescale_betas_zero_snr
-    train_noise_scheduler = DDPMScheduler.from_config(noise_scheduler.config, prediction_type="v_prediction", rescale_betas_zero_snr=True)
-    #noise_scheduler(prediction_type="v_prediction", rescale_betas_zero_snr=True)
     noise_scheduler.config.prediction_type = "v_prediction"
     noise_scheduler.config.rescale_betas_zero_snr = True
+    # Use ddpm scheduler for training, set prediction type to "v_prediction", apply rescale_betas_zero_snr
+    train_noise_scheduler = noise_scheduler
+    # train_noise_scheduler = DDPMScheduler.from_config(noise_scheduler.config, prediction_type="v_prediction", rescale_betas_zero_snr=True)
+    #noise_scheduler(prediction_type="v_prediction", rescale_betas_zero_snr=True)
 
     # Initialize wandb
     WandBLogger.login()

@@ -9,7 +9,7 @@ python main.py \
     --eval_batch_size 16 \
     --calculate_fid \
     --calculate_is \
-    --wandb_run_name Ziyu_ddim_TestOnOtter_v3 \
+    --wandb_run_name Ziyu_ddim_TestOnOtter_v4_CompleteDDIMPipeline \
 
 # python main.py \
 #     --dataset face \
