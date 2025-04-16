@@ -4,7 +4,7 @@ python main.py \
     --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 50 \
+    --num_epochs 200 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
     --calculate_fid \
