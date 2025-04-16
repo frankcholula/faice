@@ -86,6 +86,7 @@ def train_loop(
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
+                noise_scheduler.timesteps = scheduler_time_steps
                 timesteps = torch.take(scheduler_time_steps, timesteps_idx)
                 timesteps = timesteps.to(clean_images.device)
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
@@ -201,22 +202,24 @@ def append_dims(x, target_dims):
 
 
 def get_scalings(noise_scheduler, sigma):
-    c_skip = noise_scheduler.sigma_data ** 2 / (sigma ** 2 + noise_scheduler.sigma_data ** 2)
-    c_out = sigma * noise_scheduler.sigma_data / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
-    c_in = 1 / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
+    sigma_data = noise_scheduler.config.sigma_data
+    c_skip = sigma_data ** 2 / (sigma ** 2 + sigma_data ** 2)
+    c_out = sigma * sigma_data / (sigma ** 2 + sigma_data ** 2) ** 0.5
+    c_in = 1 / (sigma ** 2 + sigma_data ** 2) ** 0.5
     return c_skip, c_out, c_in
 
 
 def get_scalings_for_boundary_condition(noise_scheduler, sigma):
-    c_skip = noise_scheduler.sigma_data ** 2 / (
-            (sigma - noise_scheduler.sigma_min) ** 2 + noise_scheduler.sigma_data ** 2
+    sigma_data = noise_scheduler.config.sigma_data
+    c_skip = sigma_data ** 2 / (
+            (sigma - noise_scheduler.sigma_min) ** 2 + sigma_data ** 2
     )
     c_out = (
             (sigma - noise_scheduler.sigma_min)
-            * noise_scheduler.sigma_data
-            / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
+            * sigma_data
+            / (sigma ** 2 + sigma_data ** 2) ** 0.5
     )
-    c_in = 1 / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
+    c_in = 1 / (sigma ** 2 + sigma_data ** 2) ** 0.5
     return c_skip, c_out, c_in
 
 
