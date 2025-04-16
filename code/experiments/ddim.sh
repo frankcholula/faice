@@ -4,12 +4,13 @@ python main.py \
     --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 500 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --num_epochs 200 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
     --calculate_fid \
     --calculate_is \
-    --wandb_run_name Ziyu_ddim_linear_v4 \
+    --no_wandb \
+    # --wandb_run_name Ziyu_ddim_testPrint \
 
 # python main.py \
 #     --dataset face \
