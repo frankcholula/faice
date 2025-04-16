@@ -3,13 +3,13 @@ python main.py \
     --pipeline ddpm \
     --scheduler ddpm \
     --beta_schedule linear \
-    --image_size 128 \
-    --num_epochs 200 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
+    --image_size 256 \
+    --num_epochs 50 \
+    --train_batch_size 36 \
+    --eval_batch_size 36 \
     --calculate_fid \
     --calculate_is \
-    --wandb_run_name Ziyu_ddpm_bs16_200_vprediction_0SNR \
+    --wandb_run_name Ziyu_ddpm_bs36_50_vprediction_0SNR \
 
 # python main.py \
 #     --dataset face \
