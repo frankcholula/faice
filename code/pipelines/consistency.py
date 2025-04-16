@@ -94,18 +94,17 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    latents = noisy_images
-                    # Scale the inputs according to the scheduler
-                    for t in noise_scheduler.timesteps:
-                        # Scale the input before passing to the model
-                        scaled_latents = noise_scheduler.scale_model_input(latents, t)
+                    # Add noise at current timestep
+                    noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
-                        # Predict the noise residual
-                        noise_pred = model(scaled_latents, t).sample
+                    # Previous timestep (ensure it's >=0)
+                    prev_timesteps = torch.clamp(timesteps - 1, min=0)
+                    noisy_images_prev = noise_scheduler.add_noise(clean_images, noise, prev_timesteps)
 
-                        # Compute the previous noisy sample
-                        latents = noise_scheduler.step(noise_pred, t, latents).prev_sample
-                        loss = F.mse_loss(latents, clean_images)
+                    # Predict outputs
+                    denoised = model(noisy_images, timesteps).sample
+                    denoised_prev = model(noisy_images_prev, prev_timesteps).sample
+                    loss = F.mse_loss(denoised, denoised_prev)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, clean_images)
