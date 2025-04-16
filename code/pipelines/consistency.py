@@ -15,8 +15,7 @@ from diffusers import ConsistencyModelPipeline
 from diffusers.schedulers import CMStochasticIterativeScheduler
 
 # Configuration
-from utils.metrics import calculate_fid_score, calculate_inception_score
-from utils.metrics import evaluate
+from utils.special_metrics import evaluate, calculate_fid_score, calculate_inception_score
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
@@ -56,15 +55,11 @@ def train_loop(
 
     # Now you train the model
     scheduler_time_steps = noise_scheduler.timesteps
-    sigma = None
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
             total=len(train_dataloader), disable=not accelerator.is_local_main_process
         )
         progress_bar.set_description(f"Epoch {epoch}")
-
-        # Keep the timesteps constant throughout the training
-        noise_scheduler.timesteps = scheduler_time_steps
 
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
@@ -73,27 +68,25 @@ def train_loop(
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
-            timesteps = torch.randint(
-                0,
-                noise_scheduler.config.num_train_timesteps,
-                (bs,),
-                device=clean_images.device,
-            ).long()
-
-            timesteps_idx = torch.randint(
-                0,
-                noise_scheduler.config.num_train_timesteps,
-                (bs,),
-                dtype=torch.int64,
-            )
-
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
+                timesteps_idx = torch.randint(
+                    0,
+                    noise_scheduler.config.num_train_timesteps,
+                    (bs,),
+                    dtype=torch.int64,
+                )
                 timesteps = torch.take(scheduler_time_steps, timesteps_idx)
                 timesteps = timesteps.to(clean_images.device)
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
             else:
+                timesteps = torch.randint(
+                    0,
+                    noise_scheduler.config.num_train_timesteps,
+                    (bs,),
+                    device=clean_images.device,
+                ).long()
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
             with accelerator.accumulate(model):
@@ -141,7 +134,7 @@ def train_loop(
                          ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, pipeline)
+                evaluate(config, epoch, pipeline, scheduler_time_steps)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -159,7 +152,7 @@ def train_loop(
         pipeline = selected_pipeline(
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        fid_score = calculate_fid_score(config, pipeline, scheduler_time_steps, test_dataloader)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -169,7 +162,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device
+            config, pipeline, scheduler_time_steps, test_dataloader, device=accelerator.device
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
@@ -227,16 +220,13 @@ def get_scalings_for_boundary_condition(noise_scheduler, sigma):
 
 
 def convert_sigma(noise_scheduler, original_samples, timesteps):
-    # sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
-    sigmas = noise_scheduler.sigmas
+    sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
     if original_samples.device.type == "mps" and torch.is_floating_point(timesteps):
         # mps does not support float64
-        # schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
-        schedule_timesteps = noise_scheduler.timesteps
+        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
         timesteps = timesteps.to(original_samples.device, dtype=torch.float32)
     else:
-        # schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device)
-        schedule_timesteps = noise_scheduler.timesteps
+        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device)
         timesteps = timesteps.to(original_samples.device)
 
     # self.begin_index is None when scheduler is used for training, or pipeline does not implement set_begin_index
@@ -252,6 +242,5 @@ def convert_sigma(noise_scheduler, original_samples, timesteps):
     sigma = sigmas[step_indices].flatten()
     while len(sigma.shape) < len(original_samples.shape):
         sigma = sigma.unsqueeze(-1)
-    sigma = sigma.to(device=original_samples.device, dtype=original_samples.dtype)
 
     return sigma
