@@ -15,7 +15,7 @@ from diffusers import ConsistencyModelPipeline
 from diffusers.schedulers import CMStochasticIterativeScheduler
 
 # Configuration
-from utils.special_metrics import evaluate, calculate_fid_score, calculate_inception_score
+from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
@@ -54,7 +54,6 @@ def train_loop(
     global_step = 0
 
     # Now you train the model
-    scheduler_time_steps = noise_scheduler.timesteps
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
             total=len(train_dataloader), disable=not accelerator.is_local_main_process
@@ -77,7 +76,7 @@ def train_loop(
                     (bs,),
                     dtype=torch.int64,
                 )
-                timesteps = torch.take(scheduler_time_steps, timesteps_idx)
+                timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
                 timesteps = timesteps.to(clean_images.device)
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
             else:
@@ -134,7 +133,10 @@ def train_loop(
                          ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, pipeline, scheduler_time_steps)
+                evaluate(config, epoch, pipeline)
+                CMStochasticIterativeScheduler(
+                    num_train_timesteps=config.num_train_timesteps
+                )
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -152,7 +154,7 @@ def train_loop(
         pipeline = selected_pipeline(
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
-        fid_score = calculate_fid_score(config, pipeline, scheduler_time_steps, test_dataloader)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -162,7 +164,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, scheduler_time_steps, test_dataloader, device=accelerator.device
+            config, pipeline, test_dataloader, device=accelerator.device
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
