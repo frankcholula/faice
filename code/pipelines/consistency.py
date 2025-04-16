@@ -94,22 +94,13 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    # Add noise at current timestep
-                    noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
-
-                    # Previous timestep (ensure it's >=0)
-                    prev_timesteps_idx = torch.clamp(timesteps_idx - 1, min=0)
-                    prev_timesteps = torch.take(noise_scheduler.timesteps, prev_timesteps_idx)
-                    prev_timesteps = prev_timesteps.to(clean_images.device)
-                    noisy_images_prev = noise_scheduler.add_noise(clean_images, noise, prev_timesteps)
-
-                    # Predict outputs
-                    denoised = model(noisy_images, timesteps).sample
-                    denoised_prev = model(noisy_images_prev, prev_timesteps).sample
-                    loss = F.mse_loss(denoised, denoised_prev)
+                    sigmas = noise_scheduler.sigmas
+                    model_kwargs = {"return_dict": False}
+                    model_output, denoised = denoise(model, noisy_images, sigmas, **model_kwargs)
+                    loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
-                    loss = F.mse_loss(noise_pred, clean_images)
+                    loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
@@ -176,3 +167,31 @@ def train_loop(
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
+
+
+def denoise(self, model, x_t, sigmas, **model_kwargs):
+    import torch.distributed as dist
+
+    if not self.distillation:
+        c_skip, c_out, c_in = [
+            append_dims(x, x_t.ndim) for x in self.get_scalings(sigmas)
+        ]
+    else:
+        c_skip, c_out, c_in = [
+            append_dims(x, x_t.ndim)
+            for x in self.get_scalings_for_boundary_condition(sigmas)
+        ]
+    rescaled_t = 1000 * 0.25 * torch.log(sigmas + 1e-44)
+    model_output = model(c_in * x_t, rescaled_t, **model_kwargs)
+    denoised = c_out * model_output + c_skip * x_t
+    return model_output, denoised
+
+
+def append_dims(x, target_dims):
+    """Appends dimensions to the end of a tensor until it has target_dims dimensions."""
+    dims_to_append = target_dims - x.ndim
+    if dims_to_append < 0:
+        raise ValueError(
+            f"input has {x.ndim} dims but target_dims is {target_dims}, which is less"
+        )
+    return x[(...,) + (None,) * dims_to_append]
