@@ -99,8 +99,7 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    if epoch == 0:
-                        sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
+                    sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
                     model_kwargs = {"return_dict": False}
                     model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler, timesteps,
                                                      **model_kwargs)
@@ -229,6 +228,7 @@ def get_scalings_for_boundary_condition(noise_scheduler, sigma):
 
 def convert_sigma(noise_scheduler, original_samples, timesteps):
     sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
+    noise_scheduler.sigmas = noise_scheduler.sigmas.to("cpu")
     if original_samples.device.type == "mps" and torch.is_floating_point(timesteps):
         # mps does not support float64
         schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
