@@ -20,8 +20,8 @@ python main.py \
     --model unet_resnet \
     --image_size 128 \
     --num_epochs 100 \
-    --train_batch_size 32 \
-    --eval_batch_size 32 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
     --num_train_timesteps 1000 \
     --wandb_run_name liang_unet_resnet512_consistency_CMStochastic \
     --calculate_fid \
