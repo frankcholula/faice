@@ -4,23 +4,23 @@ python main.py \
     --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 500 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --num_epochs 50 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
     --calculate_fid \
     --calculate_is \
-    --wandb_run_name Ziyu_ddim_linear_v2 \
+    --wandb_run_name Ziyu_ddim_TestOnOtter_v3 \
 
-python main.py \
-    --dataset face \
-    --pipeline ddim \
-    --scheduler ddim \
-    --beta_schedule squaredcos_cap_v2 \
-    --image_size 128 \
-    --num_epochs 500 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
-    --calculate_fid \
-    --calculate_is \
-    --wandb_run_name Ziyu_ddim_cos_v2 \
-    # --no_wandb
+# python main.py \
+#     --dataset face \
+#     --pipeline ddim \
+#     --scheduler ddim \
+#     --beta_schedule squaredcos_cap_v2 \
+#     --image_size 128 \
+#     --num_epochs 500 \
+#     --train_batch_size 64 \
+#     --eval_batch_size 64 \
+#     --calculate_fid \
+#     --calculate_is \
+#     --wandb_run_name Ziyu_ddim_cos_v2 \
+#     # --no_wandb
