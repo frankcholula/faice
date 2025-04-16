@@ -54,8 +54,6 @@ def train_loop(
 
     global_step = 0
 
-    # scheduler_name = noise_scheduler.__class__.__name__
-
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
@@ -70,7 +68,6 @@ def train_loop(
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
-            # if scheduler_name == "CMStochasticIterativeScheduler":
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                 timesteps_idx = torch.randint(
                     0,
@@ -95,7 +92,9 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    img_pred = model(noisy_images, timesteps, return_dict=False)[0]
+                    # Scale the inputs according to the scheduler
+                    scaled_inputs = noise_scheduler.scale_model_input(noisy_images, timesteps)
+                    img_pred = model(scaled_inputs, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(img_pred, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
