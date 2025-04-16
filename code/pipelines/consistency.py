@@ -56,11 +56,15 @@ def train_loop(
 
     # Now you train the model
     scheduler_time_steps = noise_scheduler.timesteps
+    sigma = None
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
             total=len(train_dataloader), disable=not accelerator.is_local_main_process
         )
         progress_bar.set_description(f"Epoch {epoch}")
+
+        # Keep the timesteps constant throughout the training
+        noise_scheduler.timesteps = scheduler_time_steps
 
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
@@ -86,7 +90,6 @@ def train_loop(
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                noise_scheduler.timesteps = scheduler_time_steps
                 timesteps = torch.take(scheduler_time_steps, timesteps_idx)
                 timesteps = timesteps.to(clean_images.device)
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
@@ -96,7 +99,8 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
+                    if epoch == 0:
+                        sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
                     model_kwargs = {"return_dict": False}
                     model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler, timesteps,
                                                      **model_kwargs)
