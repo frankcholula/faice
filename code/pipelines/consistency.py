@@ -182,7 +182,7 @@ def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
             append_dims(x, x_t.ndim)
             for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
         ]
-    rescaled_t = 1000 * 0.25 * torch.log(sigmas + 1e-44)
+    rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
     print("c_in shape:", c_in.shape)
     print("c_out shape:", c_out.shape)
     print("c_skip shape:", c_skip.shape)
