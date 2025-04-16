@@ -99,6 +99,9 @@ def parse_args():
     training_group.add_argument(
         "--num_train_timesteps", type=int, help="Number of training steps"
     )
+    training_group.add_argument(
+        "--num_inference_steps", type=int, help="Number of inference steps"
+    )
     training_group.add_argument("--learning_rate", type=float, help="Learning rate")
     training_group.add_argument(
         "--image_size", type=int, help="Image size for training"
