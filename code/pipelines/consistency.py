@@ -94,9 +94,9 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    sigmas = noise_scheduler.sigmas
+                    sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigmas, noise_scheduler,
+                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                                                      **model_kwargs)
                     loss = F.mse_loss(denoised, clean_images)
                 else:
@@ -170,17 +170,17 @@ def train_loop(
     wandb_logger.finish()
 
 
-def denoise(model, x_t, sigmas, noise_scheduler, **model_kwargs):
+def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
     import torch.distributed as dist
     distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
-            append_dims(x, x_t.ndim) for x in get_scalings(noise_scheduler, sigmas)
+            append_dims(x, x_t.ndim) for x in get_scalings(noise_scheduler, sigma)
         ]
     else:
         c_skip, c_out, c_in = [
             append_dims(x, x_t.ndim)
-            for x in get_scalings_for_boundary_condition(noise_scheduler, sigmas)
+            for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
         ]
     rescaled_t = 1000 * 0.25 * torch.log(sigmas + 1e-44)
     print("c_in shape:", c_in.shape)
@@ -222,3 +222,30 @@ def get_scalings_for_boundary_condition(noise_scheduler, sigma):
     )
     c_in = 1 / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
     return c_skip, c_out, c_in
+
+
+def convert_sigma(noise_scheduler, original_samples, timesteps):
+    sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
+    if original_samples.device.type == "mps" and torch.is_floating_point(timesteps):
+        # mps does not support float64
+        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
+        timesteps = timesteps.to(original_samples.device, dtype=torch.float32)
+    else:
+        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device)
+        timesteps = timesteps.to(original_samples.device)
+
+    # self.begin_index is None when scheduler is used for training, or pipeline does not implement set_begin_index
+    if noise_scheduler.begin_index is None:
+        step_indices = [noise_scheduler.index_for_timestep(t, schedule_timesteps) for t in timesteps]
+    elif noise_scheduler.step_index is not None:
+        # add_noise is called after first denoising step (for inpainting)
+        step_indices = [noise_scheduler.step_index] * timesteps.shape[0]
+    else:
+        # add noise is called before first denoising step to create initial latent(img2img)
+        step_indices = [noise_scheduler.begin_index] * timesteps.shape[0]
+
+    sigma = sigmas[step_indices].flatten()
+    while len(sigma.shape) < len(original_samples.shape):
+        sigma = sigma.unsqueeze(-1)
+
+    return sigma
