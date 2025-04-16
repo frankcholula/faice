@@ -12,6 +12,7 @@ from tqdm.auto import tqdm
 
 # Hugging Face
 from diffusers import ConsistencyModelPipeline
+from diffusers.schedulers import CMStochasticIterativeScheduler
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -53,7 +54,7 @@ def train_loop(
 
     global_step = 0
 
-    scheduler_name = noise_scheduler.__class__.__name__
+    # scheduler_name = noise_scheduler.__class__.__name__
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -69,7 +70,8 @@ def train_loop(
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
-            if scheduler_name == "CMStochasticIterativeScheduler":
+            # if scheduler_name == "CMStochasticIterativeScheduler":
+            if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                 timesteps_idx = torch.randint(
                     0,
                     noise_scheduler.config.num_train_timesteps,
