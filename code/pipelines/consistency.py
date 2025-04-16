@@ -85,9 +85,9 @@ def train_loop(
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                timesteps_for_noise = torch.take(noise_scheduler.timesteps, timesteps_idx)
-                timesteps_for_noise = timesteps_for_noise.to(clean_images.device)
-                noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps_for_noise)
+                timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
+                timesteps = timesteps.to(clean_images.device)
+                noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
             else:
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
