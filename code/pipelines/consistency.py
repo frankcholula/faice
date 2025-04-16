@@ -96,7 +96,8 @@ def train_loop(
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     sigmas = noise_scheduler.sigmas
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigmas, noise_scheduler, **model_kwargs)
+                    model_output, denoised = denoise(model, noisy_images, sigmas, noise_scheduler,
+                                                     **model_kwargs)
                     loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
@@ -174,12 +175,12 @@ def denoise(model, x_t, sigmas, noise_scheduler, **model_kwargs):
     distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
-            append_dims(x, x_t.ndim) for x in noise_scheduler.get_scalings(sigmas)
+            append_dims(x, x_t.ndim) for x in get_scalings(noise_scheduler, sigmas)
         ]
     else:
         c_skip, c_out, c_in = [
             append_dims(x, x_t.ndim)
-            for x in noise_scheduler.get_scalings_for_boundary_condition(sigmas)
+            for x in get_scalings_for_boundary_condition(noise_scheduler, sigmas)
         ]
     rescaled_t = 1000 * 0.25 * torch.log(sigmas + 1e-44)
     model_output = model(c_in * x_t, rescaled_t, **model_kwargs)
@@ -195,3 +196,23 @@ def append_dims(x, target_dims):
             f"input has {x.ndim} dims but target_dims is {target_dims}, which is less"
         )
     return x[(...,) + (None,) * dims_to_append]
+
+
+def get_scalings(noise_scheduler, sigma):
+    c_skip = noise_scheduler.sigma_data ** 2 / (sigma ** 2 + noise_scheduler.sigma_data ** 2)
+    c_out = sigma * noise_scheduler.sigma_data / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
+    c_in = 1 / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
+    return c_skip, c_out, c_in
+
+
+def get_scalings_for_boundary_condition(noise_scheduler, sigma):
+    c_skip = noise_scheduler.sigma_data ** 2 / (
+            (sigma - noise_scheduler.sigma_min) ** 2 + noise_scheduler.sigma_data ** 2
+    )
+    c_out = (
+            (sigma - noise_scheduler.sigma_min)
+            * noise_scheduler.sigma_data
+            / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
+    )
+    c_in = 1 / (sigma ** 2 + noise_scheduler.sigma_data ** 2) ** 0.5
+    return c_skip, c_out, c_in
