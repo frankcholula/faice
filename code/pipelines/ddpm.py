@@ -23,6 +23,8 @@ def train_loop(
     test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
+    noise_scheduler.config.prediction_type = "v_prediction"
+    noise_scheduler.config.rescale_betas_zero_snr = True
 
     # Initialize wandb
     WandBLogger.login()

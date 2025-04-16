@@ -1,7 +1,7 @@
 python main.py \
     --dataset face \
-    --pipeline ddim \
-    --scheduler ddim \
+    --pipeline ddpm \
+    --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
     --num_epochs 200 \
@@ -9,8 +9,7 @@ python main.py \
     --eval_batch_size 16 \
     --calculate_fid \
     --calculate_is \
-    --no_wandb \
-    # --wandb_run_name Ziyu_ddim_testPrint \
+    --wandb_run_name Ziyu_ddpm_vprediction_0SNR \
 
 # python main.py \
 #     --dataset face \
