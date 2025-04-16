@@ -9,7 +9,7 @@ python main.py \
     --eval_batch_size 16 \
     --calculate_fid \
     --calculate_is \
-    --wandb_run_name Ziyu_ddpm_vprediction_0SNR \
+    --wandb_run_name Ziyu_ddpm_bs16_200_vprediction_0SNR \
 
 # python main.py \
 #     --dataset face \
