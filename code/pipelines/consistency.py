@@ -94,8 +94,8 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
-                loss = F.mse_loss(noise_pred, noise)
+                img_pred = model(noisy_images, timesteps, return_dict=False)[0]
+                loss = F.mse_loss(img_pred, clean_images)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
