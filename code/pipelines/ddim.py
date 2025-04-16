@@ -29,6 +29,7 @@ def train_loop(
     train_noise_scheduler = DDPMScheduler.from_config(noise_scheduler.config, prediction_type="v_prediction", rescale_betas_zero_snr=True)
     #noise_scheduler(prediction_type="v_prediction", rescale_betas_zero_snr=True)
     noise_scheduler.config.prediction_type = "v_prediction"
+    noise_scheduler.config.rescale_betas_zero_snr = True
 
     # Initialize wandb
     WandBLogger.login()
