@@ -96,7 +96,7 @@ def train_loop(
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
+                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler, timesteps,
                                                      **model_kwargs)
                     loss = F.mse_loss(denoised, clean_images)
                 else:
@@ -170,7 +170,7 @@ def train_loop(
     wandb_logger.finish()
 
 
-def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
+def denoise(model, x_t, sigma, noise_scheduler,  timesteps, **model_kwargs):
     import torch.distributed as dist
     distillation = False
     if not distillation:
@@ -182,14 +182,9 @@ def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
             append_dims(x, x_t.ndim)
             for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
         ]
-    rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
-    print("c_in shape:", c_in.shape)
-    print("c_out shape:", c_out.shape)
-    print("c_skip shape:", c_skip.shape)
-    print("x_t shape:", x_t.shape)
-    print("rescaled_t shape:", rescaled_t.shape)
+    # rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
     m_input = c_in * x_t
-    model_output = model(m_input, rescaled_t, **model_kwargs)
+    model_output = model(m_input, timesteps, **model_kwargs)
     denoised = c_out * model_output + c_skip * x_t
     return model_output, denoised
 
