@@ -68,13 +68,13 @@ def train_loop(
             bs = clean_images.shape[0]
 
             # Sample a random timestep for each image
+            timesteps_idx = torch.randint(
+                0,
+                noise_scheduler.config.num_train_timesteps,
+                (bs,),
+                dtype=torch.int64,
+            )
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                timesteps_idx = torch.randint(
-                    0,
-                    noise_scheduler.config.num_train_timesteps,
-                    (bs,),
-                    dtype=torch.int64,
-                )
                 timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
                 timesteps = timesteps.to(clean_images.device)
             else:
@@ -93,7 +93,7 @@ def train_loop(
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     # Scale the inputs according to the scheduler
-                    scaled_inputs = noise_scheduler.scale_model_input(noisy_images, timesteps)
+                    scaled_inputs = noise_scheduler.scale_model_input(noisy_images, timesteps_idx)
                     img_pred = model(scaled_inputs, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(img_pred, clean_images)
                 else:
