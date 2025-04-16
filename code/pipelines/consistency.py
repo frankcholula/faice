@@ -98,7 +98,9 @@ def train_loop(
                     noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
                     # Previous timestep (ensure it's >=0)
-                    prev_timesteps = torch.clamp(timesteps - 1, min=0)
+                    prev_timesteps_idx = torch.clamp(timesteps_idx - 1, min=0)
+                    prev_timesteps = torch.take(noise_scheduler.timesteps, prev_timesteps_idx)
+                    prev_timesteps = prev_timesteps.to(clean_images.device)
                     noisy_images_prev = noise_scheduler.add_noise(clean_images, noise, prev_timesteps)
 
                     # Predict outputs
