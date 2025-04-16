@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import DDIMPipeline, DDPMScheduler
+from diffusers import DDIMPipeline, DDPMScheduler, DDIMScheduler
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
