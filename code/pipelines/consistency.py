@@ -227,8 +227,8 @@ def get_scalings_for_boundary_condition(noise_scheduler, sigma):
 
 
 def convert_sigma(noise_scheduler, original_samples, timesteps):
-    sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
-    noise_scheduler.sigmas = noise_scheduler.sigmas.to("cpu")
+    # sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
+    sigmas = noise_scheduler.sigmas
     if original_samples.device.type == "mps" and torch.is_floating_point(timesteps):
         # mps does not support float64
         schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
