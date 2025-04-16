@@ -231,10 +231,12 @@ def convert_sigma(noise_scheduler, original_samples, timesteps):
     sigmas = noise_scheduler.sigmas
     if original_samples.device.type == "mps" and torch.is_floating_point(timesteps):
         # mps does not support float64
-        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
+        # schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
+        schedule_timesteps = noise_scheduler.timesteps
         timesteps = timesteps.to(original_samples.device, dtype=torch.float32)
     else:
-        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device)
+        # schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device)
+        schedule_timesteps = noise_scheduler.timesteps
         timesteps = timesteps.to(original_samples.device)
 
     # self.begin_index is None when scheduler is used for training, or pipeline does not implement set_begin_index
