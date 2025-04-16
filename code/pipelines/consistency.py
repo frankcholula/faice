@@ -85,9 +85,10 @@ def train_loop(
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
-                timesteps = timesteps.to(clean_images.device)
-                noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+                # timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
+                # timesteps = timesteps.to(clean_images.device)
+                # noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+                noisy_images = clean_images + noise * noise_scheduler.sigmas
             else:
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
@@ -183,7 +184,8 @@ def denoise(model, x_t, sigmas, noise_scheduler, **model_kwargs):
             for x in get_scalings_for_boundary_condition(noise_scheduler, sigmas)
         ]
     rescaled_t = 1000 * 0.25 * torch.log(sigmas + 1e-44)
-    model_output = model(c_in * x_t, rescaled_t, **model_kwargs)
+    m_input = c_in * x_t
+    model_output = model(m_input, rescaled_t, **model_kwargs)
     denoised = c_out * model_output + c_skip * x_t
     return model_output, denoised
 
