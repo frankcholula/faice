@@ -85,16 +85,9 @@ def train_loop(
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                # timesteps_for_noise = torch.take(noise_scheduler.timesteps, timesteps_idx)
-                # timesteps_for_noise = timesteps_for_noise.to(clean_images.device)
-                # noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps_for_noise)
-                # Compute sigma as a linear interpolation from sigma_min to sigma_max; adjust if needed.
-                sigma = noise_scheduler.config.sigma_min + (
-                            noise_scheduler.config.sigma_max - noise_scheduler.config.sigma_min) * (
-                                    timesteps / noise_scheduler.config.num_train_timesteps)
-                sigma = sigma.view(-1, 1, 1, 1)
-
-                noisy_images = batch + sigma * noise
+                timesteps_for_noise = torch.take(noise_scheduler.timesteps, timesteps_idx)
+                timesteps_for_noise = timesteps_for_noise.to(clean_images.device)
+                noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps_for_noise)
             else:
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
@@ -102,9 +95,16 @@ def train_loop(
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     # Scale the inputs according to the scheduler
-                    scaled_inputs = noise_scheduler.scale_model_input(noisy_images, timesteps)
-                    img_pred = model(scaled_inputs, timesteps, return_dict=False)[0]
-                    loss = F.mse_loss(img_pred, clean_images)
+                    for t in noise_scheduler.timesteps:
+                        # Scale the input before passing to the model
+                        scaled_latents = noise_scheduler.scale_model_input(latents, t)
+
+                        # Predict the noise residual
+                        noise_pred = model(scaled_latents, t).sample
+
+                        # Compute the previous noisy sample
+                        latents = noise_scheduler.step(noise_pred, t, latents).prev_sample
+                        loss = F.mse_loss(latents, noise)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, clean_images)

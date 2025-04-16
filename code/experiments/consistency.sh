@@ -26,5 +26,6 @@ python main.py \
     --num_inference_steps 1 \
     --wandb_run_name liang_unet_resnet512_consistency_CMStochastic \
     --calculate_fid \
-    --calculate_is
+    --calculate_is \
+    --no_wandb
 
