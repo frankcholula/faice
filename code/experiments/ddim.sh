@@ -1,3 +1,5 @@
+set +e
+
 export WANDB_ENTITY=frankcholula
 
 python main.py \
@@ -13,6 +15,9 @@ python main.py \
     --calculate_fid \
     --calculate_is \
     --wandb_run_name Ziyu_ddim_linear_newFID \
+
+echo -e "\n[INFO] Script finished. Dropping into interactive shell..."
+exec bash
 
 # python main.py \
 #     --dataset face \
