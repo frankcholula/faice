@@ -7,6 +7,7 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
+    --no_confirm \
     --calculate_fid \
     --calculate_is \
     --wandb_run_name Ziyu_ddim_linear_newFID \
