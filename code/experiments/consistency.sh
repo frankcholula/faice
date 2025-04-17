@@ -22,9 +22,9 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --num_train_timesteps 40 \
+    --num_train_timesteps 200 \
     --num_inference_steps 1 \
-    --wandb_run_name liang_unet_resnet512_consistency_CMStochastic_default \
+    --wandb_run_name liang_unet_resnet512_consistency_CMStochastic_train200 \
     --calculate_fid \
     --calculate_is
 
