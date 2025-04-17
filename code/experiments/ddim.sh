@@ -1,4 +1,5 @@
 set +e
+source $(dirname $(which conda))/../etc/profile.d/conda.sh
 conda activate faice
 export WANDB_ENTITY=frankcholula
 
