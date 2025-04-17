@@ -52,12 +52,10 @@ def evaluate(config, epoch, pipeline):
 
 def preprocess_image(image, img_src, device):
     if img_src == "loaded":
-        print("Loading images:", image)
         return image
     elif img_src == "generated":
         image = torch.tensor(image, device=device)
         image = image.permute(0, 3, 1, 2)
-        print("Generated images:", image)
         return image
 
 
