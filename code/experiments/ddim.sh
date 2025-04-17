@@ -4,13 +4,13 @@ export WANDB_ENTITY=frankcholula
 
 python main.py \
     --dataset face \
-    --pipeline ddpm \
-    --scheduler ddpm \
+    --pipeline ddim \
+    --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 500 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --num_epochs 1 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
     --no_confirm \
     --calculate_fid \
     --calculate_is \
