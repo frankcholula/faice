@@ -95,7 +95,12 @@ def train_loop(
                     model_kwargs = {"return_dict": False}
                     model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                                                      **model_kwargs)
-                    loss = F.mse_loss(denoised, clean_images)
+
+                    snrs = get_snr(sigma)
+                    weights = append_dims(
+                        get_weightings("karras", snrs, noise_scheduler.config.sigma_data), clean_images.ndim
+                    )
+                    loss = F.mse_loss(denoised, clean_images, weight=weights)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
@@ -248,3 +253,23 @@ def convert_sigma(noise_scheduler, original_samples, timesteps):
         sigma = sigma.unsqueeze(-1)
 
     return sigma
+
+
+def get_weightings(weight_schedule, snrs, sigma_data):
+    if weight_schedule == "snr":
+        weightings = snrs
+    elif weight_schedule == "snr+1":
+        weightings = snrs + 1
+    elif weight_schedule == "karras":
+        weightings = snrs + 1.0 / sigma_data ** 2
+    elif weight_schedule == "truncated-snr":
+        weightings = torch.clamp(snrs, min=1.0)
+    elif weight_schedule == "uniform":
+        weightings = torch.ones_like(snrs)
+    else:
+        raise NotImplementedError()
+    return weightings
+
+
+def get_snr(sigmas):
+    return sigmas ** -2
