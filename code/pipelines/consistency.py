@@ -101,9 +101,8 @@ def train_loop(
                     weights = append_dims(
                         get_weightings("karras", snrs, noise_scheduler.config.sigma_data), clean_images.ndim
                     )
-                    weighted_denoised = denoised * weights
-                    weighted_clean_images = clean_images * weights
-                    loss = F.mse_loss(weighted_denoised, weighted_clean_images)
+                    loss = mean_flat(weights * (denoised - clean_images) ** 2)
+                    # loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
@@ -276,3 +275,10 @@ def get_weightings(weight_schedule, snrs, sigma_data):
 
 def get_snr(sigmas):
     return sigmas ** -2
+
+
+def mean_flat(tensor):
+    """
+    Take the mean over all non-batch dimensions.
+    """
+    return tensor.mean(dim=list(range(1, len(tensor.shape))))
