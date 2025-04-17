@@ -13,7 +13,7 @@ python main.py \
     --no_confirm \
     --calculate_fid \
     --calculate_is \
-    -wandb_run_name Ziyu_ddim_linear_newFID \
+    --wandb_run_name Ziyu_ddim_linear_newFID \
 
 echo -e "\n[INFO] Script finished. Dropping into interactive shell..."
 exec bash
