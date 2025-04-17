@@ -99,14 +99,13 @@ def train_loop(
                     model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                                                      **model_kwargs)
 
-                    snrs = get_snr(sigma)
-                    weights = append_dims(
-                        get_weightings("karras", snrs, noise_scheduler.config.sigma_data), clean_images.ndim
-                    )
+                    # snrs = get_snr(sigma)
+                    # weights = append_dims(
+                    #     get_weightings("karras", snrs, noise_scheduler.config.sigma_data), clean_images.ndim
+                    # )
                     # weighted_squared_diff = weights * (model_output - clean_images) ** 2
                     # loss = weighted_squared_diff.mean()
-                    loss = mse_loss(model_output, clean_images, weight=weights)
-                    # loss = F.mse_loss(denoised, clean_images)
+                    loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
@@ -281,21 +280,4 @@ def get_snr(sigmas):
     return sigmas ** -2
 
 
-def mse_loss(a, b, reduction: str = "mean",
-             weight: Optional[Tensor] = None):
-    expanded_input, expanded_target = torch.broadcast_tensors(a, b)
-    # Perform weighted MSE loss manually
-    squared_errors = torch.pow(expanded_input - expanded_target, 2)
-    weighted_squared_errors = squared_errors * weight
-
-    if reduction == "none":
-        return weighted_squared_errors
-    elif reduction == "sum":
-        return torch.sum(weighted_squared_errors)
-    elif reduction == "mean":
-        return torch.sum(weighted_squared_errors) / torch.sum(weight)
-    else:
-        raise ValueError(
-            f"Invalid reduction mode: {reduction}. Expected one of 'none', 'mean', 'sum'."
-        )
 
