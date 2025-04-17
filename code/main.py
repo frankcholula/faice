@@ -8,6 +8,7 @@ from args import get_config_and_components
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
 from utils.transforms import build_transforms
+from utils.loggers import timer
 
 
 def setup_dataset(config):
@@ -117,4 +118,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with timer("total training time"):
+        main()

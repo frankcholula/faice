@@ -9,7 +9,6 @@
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
-import torch.nn as nn
 
 # Hugging Face
 from diffusers import ConsistencyModelPipeline
@@ -101,7 +100,8 @@ def train_loop(
                     weights = append_dims(
                         get_weightings("karras", snrs, noise_scheduler.config.sigma_data), clean_images.ndim
                     )
-                    loss = mean_flat(weights * (denoised - clean_images) ** 2)
+                    weighted_squared_diff = weights * (model_output - clean_images) ** 2
+                    loss = weighted_squared_diff.mean()
                     # loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
@@ -275,10 +275,3 @@ def get_weightings(weight_schedule, snrs, sigma_data):
 
 def get_snr(sigmas):
     return sigmas ** -2
-
-
-def mean_flat(tensor):
-    """
-    Take the mean over all non-batch dimensions.
-    """
-    return tensor.mean(dim=list(range(1, len(tensor.shape))))
