@@ -1,5 +1,4 @@
 set +e
-
 export WANDB_ENTITY=frankcholula
 
 python main.py \
@@ -8,14 +7,13 @@ python main.py \
     --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 1 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
+    --num_epochs 500 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
     --no_confirm \
     --calculate_fid \
     --calculate_is \
-    --no_wandb \
-    # --wandb_run_name Ziyu_ddim_linear_newFID \
+    -wandb_run_name Ziyu_ddim_linear_newFID \
 
 echo -e "\n[INFO] Script finished. Dropping into interactive shell..."
 exec bash

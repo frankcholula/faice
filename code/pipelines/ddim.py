@@ -45,7 +45,7 @@ def train_loop(
     # print(noise_scheduler.config)
 
     # print("🔍 train_noise_scheduler config:")
-    print(train_noise_scheduler.config)
+    # print(train_noise_scheduler.config)
 
     # Initialize wandb
     WandBLogger.login()
