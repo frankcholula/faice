@@ -11,7 +11,8 @@
 #    --eval_batch_size 64 \
 #    --wandb_run_name liang_consistency_ddpm_linear \
 #    --calculate_fid \
-#    --calculate_is
+#    --calculate_is \
+#    --no_confirm
 
 python main.py \
     --dataset face \
@@ -23,9 +24,10 @@ python main.py \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --num_train_timesteps 1000 \
-    --num_inference_steps 1000 \
+    --num_inference_steps 1 \
     --wandb_run_name liang_unet_resnet512_consistency_CMStochastic_train200 \
     --calculate_fid \
     --calculate_is \
+    --no_confirm \
     --no_wandb
 
