@@ -6,9 +6,12 @@
 @Project : code
 """
 # Deep learning framework
+from typing import Optional
+
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
+from torch import Tensor
 
 # Hugging Face
 from diffusers import ConsistencyModelPipeline
@@ -100,8 +103,9 @@ def train_loop(
                     weights = append_dims(
                         get_weightings("karras", snrs, noise_scheduler.config.sigma_data), clean_images.ndim
                     )
-                    weighted_squared_diff = weights * (model_output - clean_images) ** 2
-                    loss = weighted_squared_diff.mean()
+                    # weighted_squared_diff = weights * (model_output - clean_images) ** 2
+                    # loss = weighted_squared_diff.mean()
+                    loss = mse_loss(model_output, clean_images, weight=weights)
                     # loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
@@ -275,3 +279,23 @@ def get_weightings(weight_schedule, snrs, sigma_data):
 
 def get_snr(sigmas):
     return sigmas ** -2
+
+
+def mse_loss(a, b, reduction: str = "mean",
+             weight: Optional[Tensor] = None):
+    expanded_input, expanded_target = torch.broadcast_tensors(a, b)
+    # Perform weighted MSE loss manually
+    squared_errors = torch.pow(expanded_input - expanded_target, 2)
+    weighted_squared_errors = squared_errors * weight
+
+    if reduction == "none":
+        return weighted_squared_errors
+    elif reduction == "sum":
+        return torch.sum(weighted_squared_errors)
+    elif reduction == "mean":
+        return torch.sum(weighted_squared_errors) / torch.sum(weight)
+    else:
+        raise ValueError(
+            f"Invalid reduction mode: {reduction}. Expected one of 'none', 'mean', 'sum'."
+        )
+
