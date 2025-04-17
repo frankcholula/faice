@@ -1,3 +1,6 @@
+conda activate faice
+export WANDB_ENTITY=frankcholula
+
 python main.py \
     --dataset face \
     --pipeline ddpm \
