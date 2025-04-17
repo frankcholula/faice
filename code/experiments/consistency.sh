@@ -28,6 +28,5 @@ python main.py \
     --wandb_run_name liang_unet_resnet512_consistency_CMStochastic_train1000 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
 
