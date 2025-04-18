@@ -101,21 +101,14 @@ def train_loop(
                     #                                  **model_kwargs)
 
                     # timesteps_denoise = torch.arange(bs - 1, -1, -1)
-                    # # noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
-                    # # timesteps_denoise = noise_scheduler.timesteps
-                    #
-                    # print("timesteps_denoise: ", timesteps_denoise)
-                    # print("timesteps_denoise shape: ", timesteps_denoise.shape)
+                    noise_scheduler.set_timesteps(timesteps=init_timesteps, device=clean_images.device)
+                    timesteps_denoise = noise_scheduler.timesteps
 
-                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, init_timesteps)
-                    model_output = model(scaled_sample, init_timesteps, return_dict=False)[0]
+                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, timesteps_denoise)
+                    model_output = model(scaled_sample, timesteps_denoise, return_dict=False)[0]
 
-                    denoised = noise_scheduler.step(model_output, init_timesteps, noisy_images,
+                    denoised = noise_scheduler.step(model_output, timesteps_denoise, noisy_images,
                                                     generator=torch.manual_seed(0))[0]
-
-                    noise_scheduler = CMStochasticIterativeScheduler(
-                        num_train_timesteps=config.num_train_timesteps
-                    )
 
                     loss = F.mse_loss(denoised, clean_images)
                 else:
