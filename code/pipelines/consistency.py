@@ -96,20 +96,20 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    # sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
-                    # model_kwargs = {"return_dict": False}
-                    # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
-                    #                                  **model_kwargs)
+                    sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
+                    model_kwargs = {"return_dict": False}
+                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
+                                                     **model_kwargs)
 
-                    sample = noisy_images
-                    for i, t in enumerate(noise_scheduler.timesteps):
-                        scaled_sample = noise_scheduler.scale_model_input(sample, t)
-                        model_output = model(scaled_sample, t, return_dict=False)[0]
+                    # sample = noisy_images
+                    # for i, t in enumerate(noise_scheduler.timesteps):
+                    #     scaled_sample = noise_scheduler.scale_model_input(sample, t)
+                    #     model_output = model(scaled_sample, t, return_dict=False)[0]
+                    #
+                    #     sample = noise_scheduler.step(model_output, t, sample,
+                    #                                   generator=torch.manual_seed(0))[0]
 
-                        sample = noise_scheduler.step(model_output, t, sample,
-                                                      generator=torch.manual_seed(0))[0]
-
-                    loss = F.mse_loss(sample, clean_images)
+                    loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
