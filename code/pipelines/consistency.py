@@ -103,7 +103,7 @@ class_labels=None):
                     scaled_sample = noise_scheduler.scale_model_input(latents, timesteps)
                     model_output = model(scaled_sample, timesteps, return_dict=False)[0]
 
-                    denoised = noise_scheduler.step(model_output, noise_scheduler.timesteps, latents,
+                    denoised = noise_scheduler.step(model_output, timesteps, latents,
                                                     generator=torch.manual_seed(0))[0]
 
                     loss = F.mse_loss(denoised, clean_images)
