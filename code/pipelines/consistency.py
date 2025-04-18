@@ -82,8 +82,6 @@ def train_loop(
                 )
                 timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
                 timesteps = timesteps.to(clean_images.device)
-                print("timesteps: ", timesteps)
-                print("timesteps shape: ", timesteps.shape)
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
             else:
                 timesteps = torch.randint(
@@ -102,17 +100,21 @@ def train_loop(
                     # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                     #                                  **model_kwargs)
 
-                    timesteps_denoise = torch.arange(bs - 1, -1, -1)
-                    # noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
-                    # timesteps_denoise = noise_scheduler.timesteps
+                    # timesteps_denoise = torch.arange(bs - 1, -1, -1)
+                    # # noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
+                    # # timesteps_denoise = noise_scheduler.timesteps
+                    #
+                    # print("timesteps_denoise: ", timesteps_denoise)
+                    # print("timesteps_denoise shape: ", timesteps_denoise.shape)
 
-                    print("timesteps_denoise: ", timesteps_denoise)
-                    print("timesteps_denoise shape: ", timesteps_denoise.shape)
+                    noise_scheduler = CMStochasticIterativeScheduler(
+                        num_train_timesteps=config.num_train_timesteps
+                    )
 
-                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, timesteps_denoise)
-                    model_output = model(scaled_sample, timesteps_denoise, return_dict=False)[0]
+                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, timesteps)
+                    model_output = model(scaled_sample, timesteps, return_dict=False)[0]
 
-                    denoised = noise_scheduler.step(model_output, timesteps_denoise, noisy_images,
+                    denoised = noise_scheduler.step(model_output, timesteps, noisy_images,
                                                   generator=torch.manual_seed(0))[0]
 
                     loss = F.mse_loss(denoised, clean_images)
