@@ -34,7 +34,7 @@ def train_loop(
         train_dataloader,
         lr_scheduler,
         test_dataloader=None,
-):
+class_labels=None):
     accelerator, repo = setup_accelerator(config)
 
     # Initialize wandb
@@ -95,10 +95,16 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
-                    model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
-                                                     **model_kwargs)
+                    # sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
+                    # model_kwargs = {"return_dict": False}
+                    # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
+                    #                                  **model_kwargs)
+                    latents = noisy_images * noise_scheduler.init_noise_sigma
+                    scaled_sample = noise_scheduler.scale_model_input(latents, timesteps)
+                    model_output = model(scaled_sample, timesteps, return_dict=False)[0]
+
+                    denoised = noise_scheduler.step(model_output, noise_scheduler.timesteps, latents,
+                                                    generator=torch.manual_seed(0))[0]
 
                     loss = F.mse_loss(denoised, clean_images)
                 else:
@@ -191,9 +197,7 @@ def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
     rescaled_t = torch.flatten(rescaled_t)
     m_input = c_in * x_t
     model_output = model(m_input, rescaled_t, **model_kwargs)[0]
-    # denoised = c_out * model_output + c_skip * x_t
-
-    denoised = noise_scheduler.step(model_output, noise_scheduler.timesteps, x_t, generator=torch.manual_seed(0))[0]
+    denoised = c_out * model_output + c_skip * x_t
 
     return model_output, denoised
 
