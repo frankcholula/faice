@@ -85,10 +85,9 @@ def train_loop(
                 init_timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
                 init_timesteps = init_timesteps.to(clean_images.device)
 
-                noise_scheduler.set_timesteps(timesteps=init_timesteps, device=clean_images.device)
-                # timesteps = noise_scheduler.timesteps
-
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, init_timesteps)
+                noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
+                timesteps = noise_scheduler.timesteps
             else:
                 timesteps = torch.randint(
                     0,
@@ -109,10 +108,10 @@ def train_loop(
                     # noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                     # timesteps_denoise = noise_scheduler.timesteps
 
-                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, init_timesteps)
-                    model_output = model(scaled_sample, init_timesteps, return_dict=False)[0]
+                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, timesteps)
+                    model_output = model(scaled_sample, timesteps, return_dict=False)[0]
 
-                    denoised = noise_scheduler.step(model_output, init_timesteps, noisy_images,
+                    denoised = noise_scheduler.step(model_output, timesteps, noisy_images,
                                                     generator=torch.manual_seed(0))[0]
 
                     loss = F.mse_loss(denoised, clean_images)
