@@ -100,7 +100,7 @@ def train_loop(
                     model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler, noise,
                                                      **model_kwargs)
 
-                    loss = F.mse_loss(model_output, clean_images)
+                    loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
@@ -190,24 +190,12 @@ def denoise(model, x_t, sigma, noise_scheduler, noise, **model_kwargs):
         ]
     rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
     rescaled_t = torch.flatten(rescaled_t)
-    m_input = c_in * x_t
+    # m_input = c_in * x_t
+    m_input = x_t
     model_output = model(m_input, rescaled_t, **model_kwargs)[0]
     denoised = c_out * model_output + c_skip * x_t
 
-    clip_denoised = True
-    if clip_denoised:
-        denoised = denoised.clamp(-1, 1)
-
-    # 2. Sample z ~ N(0, s_noise^2 * I)
-    z = noise * noise_scheduler.config.s_noise
-
-    sigma_next = noise_scheduler.sigmas[-1]
-
-    sigma_hat = sigma_next.clamp(min=noise_scheduler.sigma_min, max=noise_scheduler.sigma_max)
-
-    # 3. Return noisy sample
-    # tau = sigma_hat, eps = sigma_min
-    denoised = denoised + z * (sigma_hat ** 2 - noise_scheduler.sigma_min ** 2) ** 0.5
+    # sample = noise_scheduler.step(model_output, rescaled_t, x_t, generator=torch.manual_seed(0))[0]
 
     return model_output, denoised
 
