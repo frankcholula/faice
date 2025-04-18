@@ -103,8 +103,8 @@ def train_loop(
                     #                                  **model_kwargs)
 
                     timesteps_denoise = torch.arange(bs - 1, -1, -1)
-                    noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
-                    timesteps_denoise = noise_scheduler.timesteps
+                    # noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
+                    # timesteps_denoise = noise_scheduler.timesteps
 
                     print("timesteps_denoise: ", timesteps_denoise)
                     print("timesteps_denoise shape: ", timesteps_denoise.shape)
