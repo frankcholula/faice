@@ -104,10 +104,15 @@ def train_loop(
                     # timesteps_denoise = torch.arange(bs - 1, -1, -1)
                     # noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
                     # timesteps_denoise = noise_scheduler.timesteps
-                    scaled_sample = noise_scheduler.scale_model_input(sample, timesteps_idx)
-                    model_output = model(scaled_sample, timesteps_idx, return_dict=False)[0]
+                    timesteps_denoise = torch.randint(
+                        0,
+                        bs,
+                        dtype=torch.int64,
+                    )
+                    scaled_sample = noise_scheduler.scale_model_input(sample, timesteps_denoise)
+                    model_output = model(scaled_sample, timesteps_denoise, return_dict=False)[0]
 
-                    sample = noise_scheduler.step(model_output, timesteps_idx, sample,
+                    sample = noise_scheduler.step(model_output, timesteps_denoise, sample,
                                                   generator=torch.manual_seed(0))[0]
 
                     loss = F.mse_loss(sample, clean_images)
