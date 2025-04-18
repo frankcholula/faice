@@ -100,7 +100,7 @@ def train_loop(
                     model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler, noise,
                                                      **model_kwargs)
 
-                    loss = F.mse_loss(denoised, clean_images)
+                    loss = F.mse_loss(model_output, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
