@@ -101,7 +101,7 @@ def train_loop(
                     #                                  **model_kwargs)
 
                     sample = noisy_images
-                    timesteps_denoise = torch.arange(noise_scheduler.config.num_train_timesteps - 1, -1, -1)
+                    timesteps_denoise = torch.arange(bs - 1, -1, -1)
                     noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
                     timesteps_denoise = noise_scheduler.timesteps
                     scaled_sample = noise_scheduler.scale_model_input(sample, timesteps_denoise)
