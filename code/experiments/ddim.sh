@@ -5,17 +5,30 @@ export WANDB_ENTITY=frankcholula
 
 python main.py \
     --dataset face \
-    --pipeline ddim \
-    --scheduler ddim \
+    --pipeline ddpm \
+    --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 500 \
+    --num_epochs 50 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --no_confirm \
     --calculate_fid \
     --calculate_is \
-    --wandb_run_name Ziyu_ddim_linear_newFID \
+    --wandb_run_name Ziyu_ddpm_50_vprediction_0SNR \
+
+# python main.py \
+#     --dataset face \
+#     --pipeline ddim \
+#     --scheduler ddim \
+#     --beta_schedule linear \
+#     --image_size 128 \
+#     --num_epochs 500 \
+#     --train_batch_size 64 \
+#     --eval_batch_size 64 \
+#     --no_confirm \
+#     --calculate_fid \
+#     --calculate_is \
+#     --wandb_run_name Ziyu_ddim_linear_newFID \
 
 echo -e "\n[INFO] Script finished. Dropping into interactive shell..."
 exec bash
