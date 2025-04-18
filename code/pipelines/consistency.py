@@ -150,9 +150,9 @@ def train_loop(
             if generate_samples:
                 evaluate(config, epoch, pipeline)
                 # After inference, reset the parameters of scheduler
-                # noise_scheduler = CMStochasticIterativeScheduler(
-                #     num_train_timesteps=config.num_train_timesteps
-                # )
+                noise_scheduler = CMStochasticIterativeScheduler(
+                    num_train_timesteps=config.num_train_timesteps
+                )
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
