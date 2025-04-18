@@ -88,7 +88,7 @@ def train_loop(
                 noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                 # timesteps = noise_scheduler.timesteps
 
-                noisy_images = noise_scheduler.add_noise(clean_images, noise, init_timesteps)
+                noisy_images = noise_scheduler.add_noise(clean_images, noise, noise_scheduler.timesteps)
             else:
                 timesteps = torch.randint(
                     0,
