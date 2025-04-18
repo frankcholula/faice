@@ -74,12 +74,15 @@ def train_loop(
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
             if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                timesteps_idx = torch.randint(
-                    0,
-                    noise_scheduler.config.num_train_timesteps,
-                    (bs,),
-                    dtype=torch.int64,
-                )
+                # timesteps_idx = torch.randint(
+                #     0,
+                #     noise_scheduler.config.num_train_timesteps,
+                #     (bs,),
+                #     dtype=torch.int64,
+                # )
+                timesteps_idx = torch.linspace(0, noise_scheduler.config.num_train_timesteps - 1, steps=bs,
+                                               dtype=torch.int64)
+                timesteps_idx = torch.flip(timesteps_idx, dims=[0])
                 print("timesteps_idx: ", timesteps_idx)
                 print("timesteps_idx shape: ", timesteps_idx.shape)
                 init_timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
@@ -103,9 +106,6 @@ def train_loop(
                     #                                  **model_kwargs)
 
                     # timesteps_denoise = torch.arange(bs - 1, -1, -1)
-                    timesteps_idx = torch.linspace(0, noise_scheduler.config.num_train_timesteps, steps=bs,
-                                                   dtype=torch.int64)
-                    timesteps_idx = torch.flip(timesteps_idx, dims=[0])
                     noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                     timesteps_denoise = noise_scheduler.timesteps
 
