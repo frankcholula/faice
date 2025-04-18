@@ -190,12 +190,11 @@ def denoise(model, x_t, sigma, noise_scheduler, noise, **model_kwargs):
         ]
     rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
     rescaled_t = torch.flatten(rescaled_t)
-    # m_input = c_in * x_t
-    m_input = x_t
+    m_input = c_in * x_t
     model_output = model(m_input, rescaled_t, **model_kwargs)[0]
-    denoised = c_out * model_output + c_skip * x_t
+    # denoised = c_out * model_output + c_skip * x_t
 
-    # sample = noise_scheduler.step(model_output, rescaled_t, x_t, generator=torch.manual_seed(0))[0]
+    denoised = noise_scheduler.step(model_output, rescaled_t, x_t, generator=torch.manual_seed(0))[0]
 
     return model_output, denoised
 
