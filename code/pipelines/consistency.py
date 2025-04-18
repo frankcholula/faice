@@ -100,8 +100,8 @@ def train_loop(
                     #                                  **model_kwargs)
                     sample = noisy_images
                     for i, t in enumerate(noise_scheduler.timesteps):
-                        # scaled_sample = noise_scheduler.scale_model_input(sample, t)
-                        model_output = model(sample, t, return_dict=False)[0]
+                        scaled_sample = noise_scheduler.scale_model_input(sample, t)
+                        model_output = model(scaled_sample, t, return_dict=False)[0]
 
                         sample = noise_scheduler.step(model_output, t, sample,
                                                       generator=torch.manual_seed(config.seed))[0]
