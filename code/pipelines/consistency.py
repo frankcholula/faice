@@ -80,12 +80,12 @@ def train_loop(
                     (bs,),
                     dtype=torch.int64,
                 )
-                # timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
-                # timesteps = timesteps.to(clean_images.device)
-                timesteps_idx, indices = torch.sort(timesteps_idx, descending=False)
-                print("timesteps_idx: ", timesteps_idx)
+                timesteps_idx = torch.arange(noise_scheduler.config.num_train_timesteps, 0, -1)
                 noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                 timesteps = noise_scheduler.timesteps
+
+                # timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
+                timesteps = timesteps.to(clean_images.device)
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
             else:
                 timesteps = torch.randint(
