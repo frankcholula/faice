@@ -34,7 +34,7 @@ def train_loop(
         train_dataloader,
         lr_scheduler,
         test_dataloader=None,
-class_labels=None):
+        class_labels=None):
     accelerator, repo = setup_accelerator(config)
 
     # Initialize wandb
@@ -99,14 +99,16 @@ class_labels=None):
                     # model_kwargs = {"return_dict": False}
                     # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                     #                                  **model_kwargs)
-                    latents = noisy_images * noise_scheduler.init_noise_sigma
-                    scaled_sample = noise_scheduler.scale_model_input(latents, timesteps)
-                    model_output = model(scaled_sample, timesteps, return_dict=False)[0]
 
-                    denoised = noise_scheduler.step(model_output, timesteps, latents,
-                                                    generator=torch.manual_seed(0))[0]
+                    sample = noisy_images * noise_scheduler.init_noise_sigma
+                    for i, t in enumerate(noise_scheduler.timesteps):
+                        scaled_sample = noise_scheduler.scale_model_input(sample, timesteps)
+                        model_output = model(scaled_sample, timesteps, return_dict=False)[0]
 
-                    loss = F.mse_loss(denoised, clean_images)
+                        sample = noise_scheduler.step(model_output, timesteps, sample,
+                                                      generator=torch.manual_seed(0))[0]
+
+                    loss = F.mse_loss(sample, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
