@@ -82,7 +82,7 @@ def train_loop(
                 )
                 # timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
                 # timesteps = timesteps.to(clean_images.device)
-                timesteps_idx, indices = torch.sort(timesteps_idx, descending=True)
+                timesteps_idx, indices = torch.sort(timesteps_idx, descending=False)
                 noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                 timesteps = noise_scheduler.timesteps
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
@@ -104,7 +104,6 @@ def train_loop(
                     #                                  **model_kwargs)
 
                     sample = noisy_images
-
                     for i, t in enumerate(timesteps):
                         scaled_sample = noise_scheduler.scale_model_input(sample, t)
                         model_output = model(scaled_sample, t, return_dict=False)[0]
