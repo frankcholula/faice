@@ -85,7 +85,7 @@ def train_loop(
                 timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
                 timesteps = timesteps.to(clean_images.device)
 
-                noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
+                # noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                 # timesteps = noise_scheduler.timesteps
 
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
@@ -101,24 +101,21 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    # sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
-                    # model_kwargs = {"return_dict": False}
-                    # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
-                    #                                  **model_kwargs)
+                    sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
+                    model_kwargs = {"return_dict": False}
+                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
+                                                     **model_kwargs)
 
                     # noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                     # timesteps_denoise = noise_scheduler.timesteps
 
-                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, timesteps)
-                    model_output = model(scaled_sample, timesteps, return_dict=False)[0]
-
-                    denoised = noise_scheduler.step(model_output, timesteps, noisy_images,
-                                                    generator=torch.manual_seed(0))[0]
+                    # scaled_sample = noise_scheduler.scale_model_input(noisy_images, timesteps)
+                    # model_output = model(scaled_sample, timesteps, return_dict=False)[0]
+                    #
+                    # denoised = noise_scheduler.step(model_output, timesteps, noisy_images,
+                    #                                 generator=torch.manual_seed(0))[0]
 
                     loss = F.mse_loss(denoised, clean_images)
-                    # noise_scheduler = CMStochasticIterativeScheduler(
-                    #     num_train_timesteps=config.num_train_timesteps
-                    # )
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
@@ -158,9 +155,9 @@ def train_loop(
             if generate_samples:
                 evaluate(config, epoch, pipeline)
                 # After inference, reset the parameters of scheduler
-                # noise_scheduler = CMStochasticIterativeScheduler(
-                #     num_train_timesteps=config.num_train_timesteps
-                # )
+                noise_scheduler = CMStochasticIterativeScheduler(
+                    num_train_timesteps=config.num_train_timesteps
+                )
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
