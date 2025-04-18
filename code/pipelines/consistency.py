@@ -101,13 +101,13 @@ def train_loop(
                     #                                  **model_kwargs)
 
                     sample = noisy_images
-                    # timesteps_denoise = torch.arange(noise_scheduler.config.num_train_timesteps - 1, -1, -1)
-                    print('>'*9, "noise_scheduler.timesteps", noise_scheduler.timesteps)
-                    print('>' * 9, "timesteps", timesteps)
-                    scaled_sample = noise_scheduler.scale_model_input(sample, timesteps)
-                    model_output = model(scaled_sample, timesteps, return_dict=False)[0]
+                    timesteps_denoise = torch.arange(noise_scheduler.config.num_train_timesteps - 1, -1, -1)
+                    noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
+                    timesteps_denoise = noise_scheduler.timesteps
+                    scaled_sample = noise_scheduler.scale_model_input(sample, timesteps_denoise)
+                    model_output = model(scaled_sample, timesteps_denoise, return_dict=False)[0]
 
-                    sample = noise_scheduler.step(model_output, timesteps, sample,
+                    sample = noise_scheduler.step(model_output, timesteps_denoise, sample,
                                                   generator=torch.manual_seed(0))[0]
 
                     loss = F.mse_loss(sample, clean_images)
