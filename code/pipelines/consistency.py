@@ -105,6 +105,7 @@ def train_loop(
                     noise_scheduler.set_timesteps(timesteps=timesteps_denoise, device=clean_images.device)
                     timesteps_denoise = noise_scheduler.timesteps
                     for i, t in enumerate(timesteps_denoise):
+                        print('>'*9, "timesteps_denoise", i)
                         scaled_sample = noise_scheduler.scale_model_input(sample, t)
                         model_output = model(scaled_sample, t, return_dict=False)[0]
 
