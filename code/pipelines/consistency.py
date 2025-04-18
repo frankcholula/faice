@@ -201,11 +201,7 @@ def denoise(model, x_t, sigma, noise_scheduler, noise, **model_kwargs):
     # 2. Sample z ~ N(0, s_noise^2 * I)
     z = noise * noise_scheduler.config.s_noise
 
-    if noise_scheduler.step_index + 1 < noise_scheduler.config.num_train_timesteps:
-        sigma_next = noise_scheduler.sigmas[noise_scheduler.step_index + 1]
-    else:
-        # Set sigma_next to sigma_min
-        sigma_next = noise_scheduler.sigmas[-1]
+    sigma_next = noise_scheduler.sigmas[-1]
 
     sigma_hat = sigma_next.clamp(min=noise_scheduler.sigma_min, max=noise_scheduler.sigma_max)
 
