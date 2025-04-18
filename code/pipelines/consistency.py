@@ -16,6 +16,7 @@ from torch import Tensor
 # Hugging Face
 from diffusers import ConsistencyModelPipeline
 from diffusers.schedulers import CMStochasticIterativeScheduler
+from diffusers.utils.torch_utils import randn_tensor
 
 # Configuration
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
@@ -94,19 +95,12 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    # sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
-                    # model_kwargs = {"return_dict": False}
-                    # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
-                    #                                  **model_kwargs)
-                    sample = noisy_images
-                    for i, t in enumerate(noise_scheduler.timesteps):
-                        scaled_sample = noise_scheduler.scale_model_input(sample, t)
-                        model_output = model(scaled_sample, t, return_dict=False)[0]
+                    sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
+                    model_kwargs = {"return_dict": False}
+                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler, noise,
+                                                     **model_kwargs)
 
-                        sample = noise_scheduler.step(model_output, t, sample,
-                                                      generator=torch.manual_seed(config.seed))[0]
-
-                    loss = F.mse_loss(sample, clean_images)
+                    loss = F.mse_loss(denoised, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
@@ -182,7 +176,7 @@ def train_loop(
     wandb_logger.finish()
 
 
-def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
+def denoise(model, x_t, sigma, noise_scheduler, noise, **model_kwargs):
     import torch.distributed as dist
     distillation = False
     if not distillation:
@@ -199,6 +193,26 @@ def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
     m_input = c_in * x_t
     model_output = model(m_input, rescaled_t, **model_kwargs)[0]
     denoised = c_out * model_output + c_skip * x_t
+
+    clip_denoised = True
+    if clip_denoised:
+        denoised = denoised.clamp(-1, 1)
+
+    # 2. Sample z ~ N(0, s_noise^2 * I)
+    z = noise * noise_scheduler.config.s_noise
+
+    if noise_scheduler.step_index + 1 < noise_scheduler.config.num_train_timesteps:
+        sigma_next = noise_scheduler.sigmas[noise_scheduler.step_index + 1]
+    else:
+        # Set sigma_next to sigma_min
+        sigma_next = noise_scheduler.sigmas[-1]
+
+    sigma_hat = sigma_next.clamp(min=noise_scheduler.sigma_min, max=noise_scheduler.sigma_max)
+
+    # 3. Return noisy sample
+    # tau = sigma_hat, eps = sigma_min
+    denoised = denoised + z * (sigma_hat ** 2 - noise_scheduler.sigma_min ** 2) ** 0.5
+
     return model_output, denoised
 
 
