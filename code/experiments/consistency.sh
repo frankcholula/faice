@@ -20,7 +20,7 @@ python main.py \
     --scheduler CMStochastic \
     --model unet_resnet \
     --image_size 128 \
-    --num_epochs 500 \
+    --num_epochs 50 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --num_train_timesteps 1000 \
@@ -28,5 +28,6 @@ python main.py \
     --wandb_run_name liang_unet_resnet512_consistency_CMStochastic_train1000 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm
+    --no_confirm \
+    --no_wandb
 

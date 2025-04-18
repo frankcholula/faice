@@ -94,18 +94,19 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
-                    model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
-                                                     **model_kwargs)
+                    # sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
+                    # model_kwargs = {"return_dict": False}
+                    # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
+                    #                                  **model_kwargs)
 
-                    # snrs = get_snr(sigma)
-                    # weights = append_dims(
-                    #     get_weightings("karras", snrs, noise_scheduler.config.sigma_data), clean_images.ndim
-                    # )
-                    # weighted_squared_diff = weights * (model_output - clean_images) ** 2
-                    # loss = weighted_squared_diff.mean()
-                    loss = F.mse_loss(denoised, clean_images)
+                    for i, t in enumerate(noise_scheduler.timesteps):
+                        scaled_sample = noise_scheduler.scale_model_input(sample, t)
+                        model_output = model(scaled_sample, t, return_dict=False)[0]
+
+                        sample = noise_scheduler.step(model_output, t, sample,
+                                                      generator=torch.manual_seed(config.seed))[0]
+
+                    loss = F.mse_loss(sample, clean_images)
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
@@ -278,6 +279,3 @@ def get_weightings(weight_schedule, snrs, sigma_data):
 
 def get_snr(sigmas):
     return sigmas ** -2
-
-
-
