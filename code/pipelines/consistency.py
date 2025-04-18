@@ -82,7 +82,7 @@ def train_loop(
                 # )
                 # timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
 
-                timesteps_idx = torch.arange(noise_scheduler.config.num_train_timesteps - 1, 0, -1)
+                timesteps_idx = torch.arange(noise_scheduler.config.num_train_timesteps - 1, -1, -1)
                 noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                 timesteps = noise_scheduler.timesteps
                 timesteps = timesteps.to(clean_images.device)
