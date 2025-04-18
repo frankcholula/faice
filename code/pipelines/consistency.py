@@ -97,7 +97,7 @@ def train_loop(
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     sigma = convert_sigma(noise_scheduler, clean_images, timesteps)
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler, noise,
+                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                                                      **model_kwargs)
 
                     loss = F.mse_loss(denoised, clean_images)
@@ -176,8 +176,7 @@ def train_loop(
     wandb_logger.finish()
 
 
-def denoise(model, x_t, sigma, noise_scheduler, noise, **model_kwargs):
-    import torch.distributed as dist
+def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
     distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
@@ -194,7 +193,7 @@ def denoise(model, x_t, sigma, noise_scheduler, noise, **model_kwargs):
     model_output = model(m_input, rescaled_t, **model_kwargs)[0]
     # denoised = c_out * model_output + c_skip * x_t
 
-    denoised = noise_scheduler.step(model_output, rescaled_t, x_t, generator=torch.manual_seed(0))[0]
+    denoised = noise_scheduler.step(model_output, noise_scheduler.timestep, x_t, generator=torch.manual_seed(0))[0]
 
     return model_output, denoised
 
