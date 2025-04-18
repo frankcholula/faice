@@ -80,9 +80,9 @@ def train_loop(
                     (bs,),
                     dtype=torch.int64,
                 )
-                timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
-                timesteps = timesteps.to(clean_images.device)
-                noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+                init_timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
+                init_timesteps = init_timesteps.to(clean_images.device)
+                noisy_images = noise_scheduler.add_noise(clean_images, noise, init_timesteps)
             else:
                 timesteps = torch.randint(
                     0,
@@ -107,15 +107,15 @@ def train_loop(
                     # print("timesteps_denoise: ", timesteps_denoise)
                     # print("timesteps_denoise shape: ", timesteps_denoise.shape)
 
+                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, init_timesteps)
+                    model_output = model(scaled_sample, init_timesteps, return_dict=False)[0]
+
+                    denoised = noise_scheduler.step(model_output, init_timesteps, noisy_images,
+                                                    generator=torch.manual_seed(0))[0]
+
                     noise_scheduler = CMStochasticIterativeScheduler(
                         num_train_timesteps=config.num_train_timesteps
                     )
-
-                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, timesteps)
-                    model_output = model(scaled_sample, timesteps, return_dict=False)[0]
-
-                    denoised = noise_scheduler.step(model_output, timesteps, noisy_images,
-                                                  generator=torch.manual_seed(0))[0]
 
                     loss = F.mse_loss(denoised, clean_images)
                 else:
