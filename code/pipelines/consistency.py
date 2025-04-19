@@ -110,11 +110,12 @@ def train_loop(
                     noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                     timesteps = noise_scheduler.timesteps
                     noise_scheduler.set_begin_index()
+                    sample = noisy_images
                     for i, t in enumerate(timesteps):
-                            scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
+                            scaled_sample = noise_scheduler.scale_model_input(sample, t)
                             model_output = model(scaled_sample, t, return_dict=False)[0]
 
-                            sample = noise_scheduler.step(model_output, t, noisy_images,
+                            sample = noise_scheduler.step(model_output, t, sample,
                                                           generator=torch.manual_seed(0))[0]
 
                             loss = F.mse_loss(sample, clean_images)
