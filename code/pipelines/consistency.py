@@ -107,9 +107,11 @@ def train_loop(
                     #                                  **model_kwargs)
                     timestops_len = len(init_timesteps)
                     sigmas_len = len(noise_scheduler.sigmas)
+                    noise_scheduler.set_begin_index()
                     for i, t in enumerate(init_timesteps):
                         if step % timestops_len == i:
-                            noise_scheduler.set_begin_index()
+                            if noise_scheduler.step_index and noise_scheduler.step_index >= sigmas_len:
+                                noise_scheduler._begin_index = noise_scheduler._begin_index
                             scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
                             model_output = model(scaled_sample, t, return_dict=False)[0]
 
