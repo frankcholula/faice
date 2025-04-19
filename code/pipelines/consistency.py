@@ -105,8 +105,9 @@ def train_loop(
                     # model_kwargs = {"return_dict": False}
                     # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                     #                                  **model_kwargs)
+
                     # noise_scheduler.set_begin_index()
-                    noise_scheduler.set_timesteps(noise_scheduler.config.num_train_timesteps)
+                    noise_scheduler.set_timesteps(1)
                     timesteps = noise_scheduler.timesteps
                     sample = noisy_images
                     for i, t in enumerate(timesteps):
@@ -118,22 +119,16 @@ def train_loop(
 
                         loss = F.mse_loss(sample, clean_images)
 
-                        accelerator.backward(loss)
-
-                        accelerator.clip_grad_norm_(model.parameters(), 1.0)
-                        optimizer.step()
-                        lr_scheduler.step()
-                        optimizer.zero_grad()
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
 
-                    accelerator.backward(loss)
+                accelerator.backward(loss)
 
-                    accelerator.clip_grad_norm_(model.parameters(), 1.0)
-                    optimizer.step()
-                    lr_scheduler.step()
-                    optimizer.zero_grad()
+                accelerator.clip_grad_norm_(model.parameters(), 1.0)
+                optimizer.step()
+                lr_scheduler.step()
+                optimizer.zero_grad()
 
             progress_bar.update(1)
             logs = {
