@@ -3,8 +3,8 @@ source $(dirname $(which conda))/../etc/profile.d/conda.sh
 conda activate faice
 export WANDB_ENTITY=frankcholula
 
-    for prediction_type in v_prediction epsilon; do
-        for rescale_betas_zero_snr in True False; do 
+for prediction_type in v_prediction epsilon; do
+    for rescale_betas_zero_snr in True False; do 
             python main.py \
                 --dataset face \
                 --pipeline ddim \
@@ -19,7 +19,7 @@ export WANDB_ENTITY=frankcholula
                 --calculate_fid \
                 --calculate_is \
                 --no_confirm \
-                --wandb_run_name Ziyu_ddim_50_${prediction_type}_0SNR${rescale_betas_zero_snr} \
+                --wandb_run_name Ziyu_ddim_50_${prediction_type}_0SNR${rescale_betas_zero_snr}
         done
     done
 
