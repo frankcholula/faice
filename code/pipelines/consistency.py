@@ -205,7 +205,8 @@ def train_loop(
 
 
 def denoise(model, x_t, noise_scheduler, **model_kwargs):
-    sigma = noise_scheduler.sigmas[noise_scheduler.step_index]
+    sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
+    sigma = sigmas[noise_scheduler.step_index]
     distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
