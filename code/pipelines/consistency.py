@@ -102,7 +102,7 @@ def train_loop(
                     if noise_scheduler.step_index is None:
                         noise_scheduler._init_step_index(init_timesteps[0])
                     elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
-                        noise_scheduler._step_index = None
+                        noise_scheduler._step_index = 0
 
                     model_kwargs = {"return_dict": False}
                     model_output, denoised = denoise(model, noisy_images, noise_scheduler, init_timesteps,
