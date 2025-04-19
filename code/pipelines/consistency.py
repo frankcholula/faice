@@ -106,8 +106,7 @@ def train_loop(
                     # model_kwargs = {"return_dict": False}
                     # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                     #                                  **model_kwargs)
-                    # noise_scheduler.set_timesteps(1)
-                    noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
+                    noise_scheduler.set_timesteps(2)
                     timesteps = noise_scheduler.timesteps
                     noise_scheduler.set_begin_index()
                     sample = noisy_images
