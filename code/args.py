@@ -10,15 +10,18 @@ from conf.training_config import get_config, get_all_datasets
 
 
 def create_scheduler(
-        scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000
+        scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000, 
+        prediction_type: str = "epsilon", rescale_betas_zero_snr: bool = False
 ):
     if scheduler.lower() == "ddpm":
         return DDPMScheduler(
-            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule,
+            prediction_type=prediction_type, rescale_betas_zero_snr=rescale_betas_zero_snr
         )
     elif scheduler.lower() == "ddim":
         return DDIMScheduler(
-            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule,
+            prediction_type=prediction_type, rescale_betas_zero_snr=rescale_betas_zero_snr
         )
     elif scheduler.lower() == "pndm":
         return PNDMScheduler(
@@ -117,6 +120,14 @@ def parse_args():
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
     model_group.add_argument("--pipeline", help="Training pipeline")
+    model_group.add_argument(
+        "--rescale_betas_zero_snr",
+        help="Rescale betas to zero at the end of the training",
+    )
+    model_group.add_argument(
+        "--prediction_type",
+        help="Prediction type for sampling (epsilon or v)",
+    )
 
     logging_group.add_argument(
         "--output_dir", help="Directory to save models and results"
@@ -162,6 +173,8 @@ def get_config_and_components():
     print(f"Local output directory: {config.output_dir}")
     print(f"Gaussian Blur? : {config.gblur}")
     print(f"Random Horizontal Flip? : {config.RHFlip}")
+    print(f"Prediction_type: {config.prediction_type}")
+    print(f"Rescale_betas_zero_snr?: {config.rescale_betas_zero_snr}")
 
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:
