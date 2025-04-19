@@ -79,6 +79,9 @@ def train_loop(
                 #     (bs,),
                 #     dtype=torch.int64,
                 # )
+                noise_scheduler = CMStochasticIterativeScheduler(
+                    num_train_timesteps=config.num_train_timesteps
+                )
                 timesteps_idx = torch.linspace(0, noise_scheduler.config.num_train_timesteps - 1, steps=bs,
                                                dtype=torch.int64)
                 timesteps_idx = torch.flip(timesteps_idx, dims=[0])
