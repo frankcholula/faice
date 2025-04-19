@@ -99,10 +99,10 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    if noise_scheduler.step_index is None:
-                        noise_scheduler._init_step_index(init_timesteps[0])
-                    elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
-                        noise_scheduler._step_index = 0
+                    # if noise_scheduler.step_index is None:
+                    #     noise_scheduler._init_step_index(init_timesteps[0])
+                    # elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
+                    #     noise_scheduler._step_index = 0
                     sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
                     model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
@@ -225,34 +225,8 @@ def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
     denoised = c_out * model_output + c_skip * x_t
 
     denoised = denoised.clamp(-1, 1)
-    # 2. Sample z ~ N(0, s_noise^2 * I)
-    # Noise is not used for onestep sampling.
-    if len(noise_scheduler.timesteps) > 1:
-        noise = randn_tensor(
-            model_output.shape, dtype=model_output.dtype, device=model_output.device,
-            generator=torch.manual_seed(0)
-        )
-    else:
-        noise = torch.zeros_like(model_output)
-    z = noise * noise_scheduler.config.s_noise
 
-    sigma_min = noise_scheduler.config.sigma_min
-    sigma_max = noise_scheduler.config.sigma_max
-
-    # sigma_next corresponds to next_t in original implementation
-    if noise_scheduler.step_index + 1 < noise_scheduler.config.num_train_timesteps:
-        sigma_next = noise_scheduler.sigmas[noise_scheduler.step_index + 1]
-    else:
-        # Set sigma_next to sigma_min
-        sigma_next = noise_scheduler.sigmas[-1]
-
-    sigma_hat = sigma_next.clamp(min=sigma_min, max=sigma_max)
-
-    # 3. Return noisy sample
-    # tau = sigma_hat, eps = sigma_min
-    prev_sample = denoised + z * (sigma_hat ** 2 - sigma_min ** 2) ** 0.5
-
-    return model_output, prev_sample[0]
+    return model_output, denoised
 
 
 def convert_sigma(noise_scheduler, original_samples, timesteps):
