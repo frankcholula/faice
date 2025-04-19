@@ -123,9 +123,9 @@ def train_loop(
                             loss = F.mse_loss(sample, clean_images)
 
                     # After inference, reset the parameters of scheduler
-                    noise_scheduler = CMStochasticIterativeScheduler(
-                        num_train_timesteps=config.num_train_timesteps
-                    )
+                    # noise_scheduler = CMStochasticIterativeScheduler(
+                    #     num_train_timesteps=config.num_train_timesteps
+                    # )
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
