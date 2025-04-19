@@ -255,7 +255,7 @@ def denoise(model, x_t, noise_scheduler, **model_kwargs):
     # tau = sigma_hat, eps = sigma_min
     prev_sample = denoised + z * (sigma_hat ** 2 - sigma_min ** 2) ** 0.5
 
-    return model_output, prev_sample[0]
+    return model_output, prev_sample
 
 
 def convert_sigma(noise_scheduler, original_samples, timesteps):
