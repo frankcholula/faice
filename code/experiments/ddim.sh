@@ -3,53 +3,7 @@ source $(dirname $(which conda))/../etc/profile.d/conda.sh
 conda activate faice
 export WANDB_ENTITY=frankcholula
 
-python main.py \
-    --dataset face \
-    --pipeline ddpm \
-    --scheduler ddpm \
-    --beta_schedule linear \
-    --prediction_type vprediction \
-    --image_size 128 \
-    --num_epochs 50 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
-    --calculate_fid \
-    --calculate_is \
-    --no_confirm \
-    --wandb_run_name Ziyu_ddpm_50_vprediction \
-
-    python main.py \
-    --dataset face \
-    --pipeline ddpm \
-    --scheduler ddpm \
-    --beta_schedule linear \
-    --rescale_betas_zero_snr True \
-    --image_size 128 \
-    --num_epochs 50 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
-    --calculate_fid \
-    --calculate_is \
-    --no_confirm \
-    --wandb_run_name Ziyu_ddpm_50_0SNR \
-
-    python main.py \
-    --dataset face \
-    --pipeline ddpm \
-    --scheduler ddpm \
-    --beta_schedule linear \
-    --prediction_type vprediction \
-    --rescale_betas_zero_snr True \
-    --image_size 128 \
-    --num_epochs 50 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
-    --calculate_fid \
-    --calculate_is \
-    --no_confirm \
-    --wandb_run_name Ziyu_ddpm_50_vprediction_0SNR \
-
-    for prediction_type in vprediction eps; do
+    for prediction_type in v_prediction epsilon; do
         for rescale_betas_zero_snr in True False; do 
             python main.py \
                 --dataset face \
