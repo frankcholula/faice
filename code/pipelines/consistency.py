@@ -104,7 +104,7 @@ def train_loop(
                         noise_scheduler._step_index = None
 
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, noise_scheduler,
+                    model_output, denoised = denoise(model, noisy_images, noise_scheduler, init_timesteps,
                                                      **model_kwargs)
 
                     # upon completion increase step index by one
@@ -204,7 +204,7 @@ def train_loop(
     wandb_logger.finish()
 
 
-def denoise(model, x_t, noise_scheduler, **model_kwargs):
+def denoise(model, x_t, noise_scheduler, init_timesteps, **model_kwargs):
     sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
     sigma = sigmas[noise_scheduler.step_index]
     distillation = False
@@ -218,7 +218,7 @@ def denoise(model, x_t, noise_scheduler, **model_kwargs):
             for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
         ]
     m_input = c_in * x_t
-    model_output = model(m_input, noise_scheduler.timesteps, **model_kwargs)[0]
+    model_output = model(m_input, init_timesteps, **model_kwargs)[0]
     denoised = c_out * model_output + c_skip * x_t
 
     return model_output, denoised
