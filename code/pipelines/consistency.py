@@ -16,7 +16,6 @@ from torch import Tensor
 # Hugging Face
 from diffusers import ConsistencyModelPipeline
 from diffusers.schedulers import CMStochasticIterativeScheduler
-from diffusers.utils.torch_utils import randn_tensor
 
 # Configuration
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
@@ -80,25 +79,12 @@ def train_loop(
                 #     dtype=torch.int64,
                 # )
 
-                # timesteps_idx = torch.linspace(0, noise_scheduler.config.num_train_timesteps - 1, steps=bs,
-                #                                dtype=torch.int64)
-                # timesteps_idx = torch.flip(timesteps_idx, dims=[0])
-                # init_timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
-                # init_timesteps = init_timesteps.to(clean_images.device)
-                # noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
-                # timesteps = noise_scheduler.timesteps
+                timesteps_idx = torch.linspace(0, noise_scheduler.config.num_train_timesteps - 1, steps=bs,
+                                               dtype=torch.int64)
+                timesteps_idx = torch.flip(timesteps_idx, dims=[0])
+                init_timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
 
-                timesteps = torch.randint(
-                    0,
-                    noise_scheduler.config.num_train_timesteps,
-                    (bs,),
-                    device=clean_images.device,
-                ).long()
-
-                noise_scheduler.set_begin_index()
-
-                noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
-                # print("step_index", noise_scheduler.step_index)
+                noisy_images = noise_scheduler.add_noise(clean_images, noise, init_timesteps)
             else:
                 timesteps = torch.randint(
                     0,
@@ -111,27 +97,35 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    # sigma = convert_sigma(noise_scheduler, clean_images, init_timesteps)
-                    # model_kwargs = {"return_dict": False}
-                    # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
-                    #                                  **model_kwargs)
-                    noise_scheduler.set_timesteps(1)
-                    timesteps = noise_scheduler.timesteps
-                    print("timesteps: ", timesteps)
-                    print("sigmas: ", noise_scheduler.sigmas)
-                    print("step_index: ", noise_scheduler.step_index)
-                    noise_scheduler.set_begin_index()
-                    sample = noisy_images
-                    for i, t in enumerate(timesteps):
-                            scaled_sample = noise_scheduler.scale_model_input(sample, t)
-                            model_output = model(scaled_sample, t, return_dict=False)[0]
 
-                            sample = noise_scheduler.step(model_output, t, sample,
-                                                          generator=torch.manual_seed(0))[0]
+                    if noise_scheduler.step_index is None:
+                        noise_scheduler._init_step_index(init_timesteps)
+                    elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
+                        noise_scheduler._step_index = None
 
-                            loss = F.mse_loss(sample, clean_images)
+                    model_kwargs = {"return_dict": False}
+                    model_output, denoised = denoise(model, noisy_images, noise_scheduler,
+                                                     **model_kwargs)
 
-                    # After inference, reset the parameters of scheduler
+                    # upon completion increase step index by one
+                    noise_scheduler._step_index += 1
+
+                    loss = F.mse_loss(denoised, clean_images)
+
+                    # noise_scheduler.set_timesteps(1)
+                    # timesteps = noise_scheduler.timesteps
+                    # noise_scheduler.set_begin_index()
+                    # sample = noisy_images
+                    # for i, t in enumerate(timesteps):
+                    #         scaled_sample = noise_scheduler.scale_model_input(sample, t)
+                    #         model_output = model(scaled_sample, t, return_dict=False)[0]
+                    #
+                    #         sample = noise_scheduler.step(model_output, t, sample,
+                    #                                       generator=torch.manual_seed(0))[0]
+                    #
+                    #         loss = F.mse_loss(sample, clean_images)
+                    #
+                    # # After inference, reset the parameters of scheduler
                     # noise_scheduler = CMStochasticIterativeScheduler(
                     #     num_train_timesteps=config.num_train_timesteps
                     # )
@@ -210,7 +204,8 @@ def train_loop(
     wandb_logger.finish()
 
 
-def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
+def denoise(model, x_t, noise_scheduler, **model_kwargs):
+    sigma = noise_scheduler.sigmas[noise_scheduler.step_index]
     distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
@@ -221,10 +216,8 @@ def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
             append_dims(x, x_t.ndim)
             for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
         ]
-    rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
-    rescaled_t = torch.flatten(rescaled_t)
     m_input = c_in * x_t
-    model_output = model(m_input, rescaled_t, **model_kwargs)[0]
+    model_output = model(m_input, noise_scheduler.timesteps, **model_kwargs)[0]
     denoised = c_out * model_output + c_skip * x_t
 
     return model_output, denoised
@@ -260,33 +253,6 @@ def get_scalings_for_boundary_condition(noise_scheduler, sigma):
     )
     c_in = 1 / (sigma ** 2 + sigma_data ** 2) ** 0.5
     return c_skip, c_out, c_in
-
-
-def convert_sigma(noise_scheduler, original_samples, timesteps):
-    sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
-    if original_samples.device.type == "mps" and torch.is_floating_point(timesteps):
-        # mps does not support float64
-        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
-        timesteps = timesteps.to(original_samples.device, dtype=torch.float32)
-    else:
-        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device)
-        timesteps = timesteps.to(original_samples.device)
-
-    # self.begin_index is None when scheduler is used for training, or pipeline does not implement set_begin_index
-    if noise_scheduler.begin_index is None:
-        step_indices = [noise_scheduler.index_for_timestep(t, schedule_timesteps) for t in timesteps]
-    elif noise_scheduler.step_index is not None:
-        # add_noise is called after first denoising step (for inpainting)
-        step_indices = [noise_scheduler.step_index] * timesteps.shape[0]
-    else:
-        # add noise is called before first denoising step to create initial latent(img2img)
-        step_indices = [noise_scheduler.begin_index] * timesteps.shape[0]
-
-    sigma = sigmas[step_indices].flatten()
-    while len(sigma.shape) < len(original_samples.shape):
-        sigma = sigma.unsqueeze(-1)
-
-    return sigma
 
 
 def get_weightings(weight_schedule, snrs, sigma_data):
