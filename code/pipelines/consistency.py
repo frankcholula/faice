@@ -106,18 +106,18 @@ def train_loop(
                     # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                     #                                  **model_kwargs)
 
-                    # for i, t in enumerate(noise_scheduler.timesteps):
-                    noise_scheduler.set_begin_index()
-                    scaled_sample = noise_scheduler.scale_model_input(noisy_images, init_timesteps)
-                    model_output = model(scaled_sample, init_timesteps, return_dict=False)[0]
+                    for i, t in enumerate(noise_scheduler.timesteps):
+                        noise_scheduler.set_begin_index(i)
+                        scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
+                        model_output = model(scaled_sample, t, return_dict=False)[0]
 
-                    sample = noise_scheduler.step(model_output, init_timesteps, noisy_images,
-                                                    generator=torch.manual_seed(0))[0]
+                        sample = noise_scheduler.step(model_output, t, noisy_images,
+                                                        generator=torch.manual_seed(0))[0]
 
-                    loss = F.mse_loss(sample, clean_images)
-                    # noise_scheduler = CMStochasticIterativeScheduler(
-                    #     num_train_timesteps=config.num_train_timesteps
-                    # )
+                        loss = F.mse_loss(sample, clean_images)
+                        noise_scheduler = CMStochasticIterativeScheduler(
+                            num_train_timesteps=config.num_train_timesteps
+                        )
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
