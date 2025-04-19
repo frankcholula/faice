@@ -15,6 +15,7 @@ python main.py \
     --eval_batch_size 64 \
     --calculate_fid \
     --calculate_is \
+    --no_confirm \
     --wandb_run_name Ziyu_ddpm_50_vprediction \
 
     python main.py \
@@ -29,6 +30,7 @@ python main.py \
     --eval_batch_size 64 \
     --calculate_fid \
     --calculate_is \
+    --no_confirm \
     --wandb_run_name Ziyu_ddpm_50_0SNR \
 
     python main.py \
@@ -44,6 +46,7 @@ python main.py \
     --eval_batch_size 64 \
     --calculate_fid \
     --calculate_is \
+    --no_confirm \
     --wandb_run_name Ziyu_ddpm_50_vprediction_0SNR \
 
     for prediction_type in vprediction eps; do
@@ -61,6 +64,7 @@ python main.py \
                 --eval_batch_size 64 \
                 --calculate_fid \
                 --calculate_is \
+                --no_confirm \
                 --wandb_run_name Ziyu_ddim_50_${prediction_type}_0SNR${rescale_betas_zero_snr} \
         done
     done
