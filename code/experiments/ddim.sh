@@ -37,7 +37,7 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --prediction_type vprediction \
-    ---rescale_betas_zero_snr True \
+    --rescale_betas_zero_snr True \
     --image_size 128 \
     --num_epochs 50 \
     --train_batch_size 64 \
@@ -65,19 +65,6 @@ python main.py \
         done
     done
 
-# python main.py \
-#     --dataset face \
-#     --pipeline ddim \
-#     --scheduler ddim \
-#     --beta_schedule linear \
-#     --image_size 128 \
-#     --num_epochs 500 \
-#     --train_batch_size 64 \
-#     --eval_batch_size 64 \
-#     --no_confirm \
-#     --calculate_fid \
-#     --calculate_is \
-#     --wandb_run_name Ziyu_ddim_linear_newFID \
 
 echo -e "\n[INFO] Script finished. Dropping into interactive shell..."
 exec bash
