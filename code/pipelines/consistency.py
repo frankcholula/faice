@@ -109,9 +109,7 @@ def train_loop(
                     sigmas_len = len(noise_scheduler.sigmas)
                     for i, t in enumerate(init_timesteps):
                         if step % timestops_len == i:
-                            if noise_scheduler.step_index and noise_scheduler.step_index >= sigmas_len:
-                                noise_scheduler._step_index = 0
-                            noise_scheduler.set_begin_index(i)
+                            noise_scheduler.set_begin_index()
                             scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
                             model_output = model(scaled_sample, t, return_dict=False)[0]
 
