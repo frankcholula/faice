@@ -206,7 +206,6 @@ def train_loop(
 
 
 def denoise(model, x_t, noise_scheduler, init_timesteps, **model_kwargs):
-    print('>'*9, noise_scheduler.step_index)
     sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
     sigma = sigmas[noise_scheduler.step_index]
     distillation = False
@@ -219,12 +218,6 @@ def denoise(model, x_t, noise_scheduler, init_timesteps, **model_kwargs):
             append_dims(x, x_t.ndim)
             for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
         ]
-    print("c_in", c_in)
-    print("c_in shape", c_in.shape)
-    print("c_out", c_out)
-    print("c_out shape", c_out.shape)
-    print("x_t", x_t)
-    print("x_t shape", x_t.shape)
     m_input = c_in * x_t
     model_output = model(m_input, init_timesteps, **model_kwargs)[0]
     denoised = c_out * model_output + c_skip * x_t
