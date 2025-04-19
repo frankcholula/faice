@@ -103,9 +103,9 @@ def train_loop(
                         noise_scheduler._init_step_index(init_timesteps[0])
                     elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
                         noise_scheduler._step_index = 0
-                    # sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
+                    sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, noise_scheduler,
+                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                                                      **model_kwargs)
 
                     # upon completion increase step index by one
@@ -205,9 +205,9 @@ def train_loop(
     wandb_logger.finish()
 
 
-def denoise(model, x_t, noise_scheduler, **model_kwargs):
-    sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
-    sigma = sigmas[noise_scheduler.step_index]
+def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
+    # sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
+    # sigma = sigmas[noise_scheduler.step_index]
     distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
@@ -252,7 +252,7 @@ def denoise(model, x_t, noise_scheduler, **model_kwargs):
     # tau = sigma_hat, eps = sigma_min
     prev_sample = denoised + z * (sigma_hat ** 2 - sigma_min ** 2) ** 0.5
 
-    return model_output, prev_sample
+    return model_output, prev_sample[0]
 
 
 def convert_sigma(noise_scheduler, original_samples, timesteps):
