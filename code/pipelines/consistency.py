@@ -88,6 +88,8 @@ def train_loop(
                 # noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                 # timesteps = noise_scheduler.timesteps
 
+                noise_scheduler.set_begin_index()
+
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, init_timesteps)
                 # print("step_index", noise_scheduler.step_index)
             else:
