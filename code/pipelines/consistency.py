@@ -99,7 +99,7 @@ def train_loop(
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
 
                     if noise_scheduler.step_index is None:
-                        noise_scheduler._init_step_index(init_timesteps)
+                        noise_scheduler._init_step_index(init_timesteps[0])
                     elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
                         noise_scheduler._step_index = None
 
