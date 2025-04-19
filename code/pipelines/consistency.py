@@ -79,6 +79,10 @@ def train_loop(
                 #     (bs,),
                 #     dtype=torch.int64,
                 # )
+                noise_scheduler = CMStochasticIterativeScheduler(
+                    num_train_timesteps=config.num_train_timesteps
+                )
+
                 timesteps_idx = torch.linspace(0, noise_scheduler.config.num_train_timesteps - 1, steps=bs,
                                                dtype=torch.int64)
                 timesteps_idx = torch.flip(timesteps_idx, dims=[0])
@@ -105,13 +109,10 @@ def train_loop(
                     # model_kwargs = {"return_dict": False}
                     # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                     #                                  **model_kwargs)
-                    timestops_len = len(init_timesteps)
-                    sigmas_len = len(noise_scheduler.sigmas)
+                    noise_scheduler.set_timesteps(1)
+                    timesteps = noise_scheduler.timesteps
                     noise_scheduler.set_begin_index()
-                    for i, t in enumerate(init_timesteps):
-                        if step % timestops_len == i:
-                            if noise_scheduler.step_index and noise_scheduler.step_index >= sigmas_len:
-                                noise_scheduler._step_index = 0
+                    for i, t in enumerate(timesteps):
                             scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
                             model_output = model(scaled_sample, t, return_dict=False)[0]
 
