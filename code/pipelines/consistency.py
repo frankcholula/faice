@@ -116,16 +116,24 @@ def train_loop(
                         sample = noise_scheduler.step(model_output, t, noisy_images,
                                                       generator=torch.manual_seed(0))[0]
 
-                    loss = F.mse_loss(sample, clean_images)
+                        loss = F.mse_loss(sample, clean_images)
+
+                        accelerator.backward(loss)
+
+                        accelerator.clip_grad_norm_(model.parameters(), 1.0)
+                        optimizer.step()
+                        lr_scheduler.step()
+                        optimizer.zero_grad()
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
-                accelerator.backward(loss)
 
-                accelerator.clip_grad_norm_(model.parameters(), 1.0)
-                optimizer.step()
-                lr_scheduler.step()
-                optimizer.zero_grad()
+                    accelerator.backward(loss)
+
+                    accelerator.clip_grad_norm_(model.parameters(), 1.0)
+                    optimizer.step()
+                    lr_scheduler.step()
+                    optimizer.zero_grad()
 
             progress_bar.update(1)
             logs = {
