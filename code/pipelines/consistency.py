@@ -12,6 +12,7 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 from torch import Tensor
+from diffusers.utils.torch_utils import randn_tensor
 
 # Hugging Face
 from diffusers import ConsistencyModelPipeline
@@ -98,14 +99,13 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-
                     if noise_scheduler.step_index is None:
                         noise_scheduler._init_step_index(init_timesteps[0])
                     elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
                         noise_scheduler._step_index = 0
-
+                    sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, noise_scheduler, init_timesteps,
+                    model_output, denoised = denoise(model, noisy_images, noise_scheduler, sigma,
                                                      **model_kwargs)
 
                     # upon completion increase step index by one
@@ -205,9 +205,9 @@ def train_loop(
     wandb_logger.finish()
 
 
-def denoise(model, x_t, noise_scheduler, init_timesteps, **model_kwargs):
-    sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
-    sigma = sigmas[noise_scheduler.step_index]
+def denoise(model, x_t, noise_scheduler, sigma, **model_kwargs):
+    # sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
+    # sigma = sigmas[noise_scheduler.step_index]
     distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
@@ -218,11 +218,68 @@ def denoise(model, x_t, noise_scheduler, init_timesteps, **model_kwargs):
             append_dims(x, x_t.ndim)
             for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
         ]
+    rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
+    rescaled_t = torch.flatten(rescaled_t)
     m_input = c_in * x_t
-    model_output = model(m_input, init_timesteps, **model_kwargs)[0]
+    model_output = model(m_input, rescaled_t, **model_kwargs)[0]
     denoised = c_out * model_output + c_skip * x_t
 
-    return model_output, denoised
+    denoised = denoised.clamp(-1, 1)
+    # 2. Sample z ~ N(0, s_noise^2 * I)
+    # Noise is not used for onestep sampling.
+    if len(noise_scheduler.timesteps) > 1:
+        noise = randn_tensor(
+            model_output.shape, dtype=model_output.dtype, device=model_output.device,
+            generator=torch.manual_seed(0)
+        )
+    else:
+        noise = torch.zeros_like(model_output)
+    z = noise * noise_scheduler.config.s_noise
+
+    sigma_min = noise_scheduler.config.sigma_min
+    sigma_max = noise_scheduler.config.sigma_max
+
+    # sigma_next corresponds to next_t in original implementation
+    if noise_scheduler.step_index + 1 < noise_scheduler.config.num_train_timesteps:
+        sigma_next = noise_scheduler.sigmas[noise_scheduler.step_index + 1]
+    else:
+        # Set sigma_next to sigma_min
+        sigma_next = noise_scheduler.sigmas[-1]
+
+    sigma_hat = sigma_next.clamp(min=sigma_min, max=sigma_max)
+
+    # 3. Return noisy sample
+    # tau = sigma_hat, eps = sigma_min
+    prev_sample = denoised + z * (sigma_hat ** 2 - sigma_min ** 2) ** 0.5
+
+    return model_output, prev_sample
+
+
+def convert_sigma(noise_scheduler, original_samples, timesteps):
+    sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
+    if original_samples.device.type == "mps" and torch.is_floating_point(timesteps):
+        # mps does not support float64
+        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
+        timesteps = timesteps.to(original_samples.device, dtype=torch.float32)
+    else:
+        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device)
+        timesteps = timesteps.to(original_samples.device)
+
+    # self.begin_index is None when scheduler is used for training, or pipeline does not implement set_begin_index
+    if noise_scheduler.begin_index is None:
+        step_indices = [noise_scheduler.index_for_timestep(t, schedule_timesteps) for t in timesteps]
+    elif noise_scheduler.step_index is not None:
+        # add_noise is called after first denoising step (for inpainting)
+        step_indices = [noise_scheduler.step_index] * timesteps.shape[0]
+    else:
+        # add noise is called before first denoising step to create initial latent(img2img)
+        step_indices = [noise_scheduler.begin_index] * timesteps.shape[0]
+
+    sigma = sigmas[step_indices].flatten()
+    while len(sigma.shape) < len(original_samples.shape):
+        sigma = sigma.unsqueeze(-1)
+
+    return sigma
 
 
 def append_dims(x, target_dims):
