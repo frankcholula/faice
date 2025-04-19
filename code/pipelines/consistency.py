@@ -79,9 +79,6 @@ def train_loop(
                 #     (bs,),
                 #     dtype=torch.int64,
                 # )
-                noise_scheduler = CMStochasticIterativeScheduler(
-                    num_train_timesteps=config.num_train_timesteps
-                )
 
                 timesteps_idx = torch.linspace(0, noise_scheduler.config.num_train_timesteps - 1, steps=bs,
                                                dtype=torch.int64)
@@ -109,7 +106,8 @@ def train_loop(
                     # model_kwargs = {"return_dict": False}
                     # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                     #                                  **model_kwargs)
-                    noise_scheduler.set_timesteps(1)
+                    # noise_scheduler.set_timesteps(1)
+                    noise_scheduler.set_timesteps(timesteps=timesteps_idx, device=clean_images.device)
                     timesteps = noise_scheduler.timesteps
                     noise_scheduler.set_begin_index()
                     for i, t in enumerate(timesteps):
@@ -120,6 +118,11 @@ def train_loop(
                                                           generator=torch.manual_seed(0))[0]
 
                             loss = F.mse_loss(sample, clean_images)
+
+                    # After inference, reset the parameters of scheduler
+                    noise_scheduler = CMStochasticIterativeScheduler(
+                        num_train_timesteps=config.num_train_timesteps
+                    )
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
