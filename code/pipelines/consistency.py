@@ -85,7 +85,7 @@ def train_loop(
                                                dtype=torch.int64)
                 timesteps_idx = torch.flip(timesteps_idx, dims=[0])
                 init_timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
-                # init_timesteps = init_timesteps.to(clean_images.device)
+                init_timesteps = init_timesteps.to(clean_images.device)
 
                 noisy_images = noise_scheduler.add_noise(clean_images, noise, init_timesteps)
             else:
@@ -117,7 +117,7 @@ def train_loop(
                     noise_scheduler.set_begin_index()
                     sample = noisy_images
                     # # for i, t in enumerate(init_timesteps):
-                    t = init_timesteps[0]
+                    t = random.choice(init_timesteps)
                     if noise_scheduler.step_index and noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps:
                         noise_scheduler._step_index = 0
                     scaled_sample = noise_scheduler.scale_model_input(sample, t)
