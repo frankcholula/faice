@@ -112,6 +112,7 @@ def train_loop(
                     # noise_scheduler.set_timesteps(1)
                     # timesteps = noise_scheduler.timesteps
                     # noise_scheduler.set_begin_index()
+                    noise_scheduler._step_index = 0
                     sample = noisy_images
                     # # for i, t in enumerate(init_timesteps):
                     # t = random.choice(init_timesteps)
