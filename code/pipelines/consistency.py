@@ -103,33 +103,33 @@ def train_loop(
                     #     noise_scheduler._init_step_index(init_timesteps[0])
                     # elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
                     #     noise_scheduler._step_index = 0
-                    sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
-                    model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigma, init_timesteps, noise_scheduler,
-                                                     **model_kwargs)
+                    # sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
+                    # model_kwargs = {"return_dict": False}
+                    # model_output, denoised = denoise(model, noisy_images, sigma, init_timesteps, noise_scheduler,
+                    #                                  **model_kwargs)
 
                     # upon completion increase step index by one
                     # noise_scheduler._step_index += 1
 
-                    loss = F.mse_loss(denoised, clean_images)
+                    # loss = F.mse_loss(denoised, clean_images)
 
                     # noise_scheduler.set_timesteps(1)
                     # timesteps = noise_scheduler.timesteps
                     # noise_scheduler.set_begin_index()
                     # sample = noisy_images
-                    # for i, t in enumerate(timesteps):
-                    #         scaled_sample = noise_scheduler.scale_model_input(sample, t)
-                    #         model_output = model(scaled_sample, t, return_dict=False)[0]
-                    #
-                    #         sample = noise_scheduler.step(model_output, t, sample,
-                    #                                       generator=torch.manual_seed(step))[0]
-                    #
-                    #         loss = F.mse_loss(sample, clean_images)
-                    #
-                    # # After inference, reset the parameters of scheduler
-                    # noise_scheduler = CMStochasticIterativeScheduler(
-                    #     num_train_timesteps=config.num_train_timesteps
-                    # )
+                    for i, t in enumerate(init_timesteps):
+                            scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
+                            model_output = model(scaled_sample, t, return_dict=False)[0]
+
+                            sample = noise_scheduler.step(model_output, t, noisy_images,
+                                                          generator=torch.manual_seed(step))[0]
+
+                    loss = F.mse_loss(sample, clean_images)
+
+                    # After inference, reset the parameters of scheduler
+                    noise_scheduler = CMStochasticIterativeScheduler(
+                        num_train_timesteps=config.num_train_timesteps
+                    )
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
@@ -207,7 +207,7 @@ def train_loop(
 
 # def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
 def denoise(model, x_t, sigma, init_timesteps, noise_scheduler, **model_kwargs):
-    distillation = True
+    distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
             append_dims(x, x_t.ndim) for x in get_scalings(noise_scheduler, sigma)
@@ -276,10 +276,10 @@ def get_scalings(noise_scheduler, sigma):
 def get_scalings_for_boundary_condition(noise_scheduler, sigma):
     sigma_data = noise_scheduler.config.sigma_data
     c_skip = sigma_data ** 2 / (
-            (sigma - noise_scheduler.sigma_min) ** 2 + sigma_data ** 2
+            (sigma - noise_scheduler.config.sigma_min) ** 2 + sigma_data ** 2
     )
     c_out = (
-            (sigma - noise_scheduler.sigma_min)
+            (sigma - noise_scheduler.config.sigma_min)
             * sigma_data
             / (sigma ** 2 + sigma_data ** 2) ** 0.5
     )
