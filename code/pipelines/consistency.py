@@ -105,7 +105,7 @@ def train_loop(
                     #     noise_scheduler._step_index = 0
                     sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
+                    model_output, denoised = denoise(model, noisy_images, sigma, init_timesteps, noise_scheduler,
                                                      **model_kwargs)
 
                     # upon completion increase step index by one
@@ -206,7 +206,7 @@ def train_loop(
 
 
 # def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
-def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
+def denoise(model, x_t, sigma, init_timesteps, noise_scheduler, **model_kwargs):
     distillation = True
     if not distillation:
         c_skip, c_out, c_in = [
@@ -217,10 +217,10 @@ def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
             append_dims(x, x_t.ndim)
             for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
         ]
-    rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
-    rescaled_t = torch.flatten(rescaled_t)
+    # rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
+    # rescaled_t = torch.flatten(rescaled_t)
     m_input = c_in * x_t
-    model_output = model(m_input, rescaled_t, **model_kwargs)[0]
+    model_output = model(m_input, init_timesteps, **model_kwargs)[0]
     denoised = c_out * model_output + c_skip * x_t
 
     denoised = denoised.clamp(-1, 1)
