@@ -21,8 +21,8 @@ python main.py \
     --model unet_resnet \
     --image_size 128 \
     --num_epochs 100 \
-    --train_batch_size 28 \
-    --eval_batch_size 28 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
     --num_train_timesteps 200 \
     --num_inference_steps 1 \
     --wandb_run_name liang_unet_resnet512_consistency_CMStochastic_train200 \

@@ -99,21 +99,22 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    if noise_scheduler.step_index is None:
-                        noise_scheduler._init_step_index(init_timesteps[0])
-                    elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
-                        noise_scheduler._step_index = 0
-                    # sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
+                    # if noise_scheduler.step_index is None:
+                    #     noise_scheduler._init_step_index(init_timesteps[0])
+                    # elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
+                    #     noise_scheduler._step_index = 0
+                    sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
-                    # model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
-                    #                                  **model_kwargs)
-                    model_output, denoised = denoise(model, noisy_images, noise_scheduler,
+                    model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
                                                      **model_kwargs)
+                    # model_output, denoised = denoise(model, noisy_images, noise_scheduler,
+                    #                                  **model_kwargs)
 
                     # upon completion increase step index by one
                     noise_scheduler._step_index += 1
 
-                    loss = F.mse_loss(denoised, clean_images)
+                    # loss = F.mse_loss(denoised, clean_images)
+                    loss = F.mse_loss(denoised, noisy_images)
 
                     # noise_scheduler.set_timesteps(1)
                     # timesteps = noise_scheduler.timesteps
@@ -208,9 +209,9 @@ def train_loop(
 
 
 # def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
-def denoise(model, x_t, noise_scheduler, **model_kwargs):
-    sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
-    sigma = sigmas[noise_scheduler.step_index]
+def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
+    # sigmas = noise_scheduler.sigmas.to(device=x_t.device, dtype=x_t.dtype)
+    # sigma = sigmas[noise_scheduler.step_index]
     distillation = False
     if not distillation:
         c_skip, c_out, c_in = [
