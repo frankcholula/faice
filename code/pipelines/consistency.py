@@ -120,7 +120,7 @@ def train_loop(
                     for i, t in enumerate(noise_scheduler.timesteps):
                         if i in timesteps_idx:
                             scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
-                            model_output = model(scaled_sample, t, return_dict=False)[0]
+                            model_output = model(scaled_sample, init_timesteps, return_dict=False)[0]
 
                             sample = noise_scheduler.step(model_output, t, noisy_images,
                                                           generator=torch.manual_seed(step))[0]
