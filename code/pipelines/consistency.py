@@ -109,7 +109,7 @@ def train_loop(
                                                      **model_kwargs)
 
                     # upon completion increase step index by one
-                    noise_scheduler._step_index += 1
+                    # noise_scheduler._step_index += 1
 
                     loss = F.mse_loss(denoised, clean_images)
 
