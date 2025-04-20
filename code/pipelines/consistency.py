@@ -115,7 +115,7 @@ def train_loop(
                     # noise_scheduler.set_timesteps(1)
                     # timesteps = noise_scheduler.timesteps
                     noise_scheduler.set_begin_index()
-                    # sample = noisy_images
+                    sample = noisy_images
                     # # for i, t in enumerate(init_timesteps):
                     t = random.choice(init_timesteps)
                     if noise_scheduler.step_index and noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps:
