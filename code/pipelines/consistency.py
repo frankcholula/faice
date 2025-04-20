@@ -83,12 +83,10 @@ def train_loop(
                 timesteps_idx = torch.linspace(0, noise_scheduler.config.num_train_timesteps - 1, steps=bs,
                                                dtype=torch.int64)
                 timesteps_idx = torch.flip(timesteps_idx, dims=[0])
-                # init_timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
-                # init_timesteps = init_timesteps.to(clean_images.device)
-                noise_scheduler.set_timesteps(timesteps_idx)
-                timesteps = noise_scheduler.timesteps
+                init_timesteps = torch.take(noise_scheduler.timesteps, timesteps_idx)
+                init_timesteps = init_timesteps.to(clean_images.device)
 
-                noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+                noisy_images = noise_scheduler.add_noise(clean_images, noise, init_timesteps)
             else:
                 timesteps = torch.randint(
                     0,
@@ -119,12 +117,13 @@ def train_loop(
                     # timesteps = noise_scheduler.timesteps
                     # noise_scheduler.set_begin_index()
                     # sample = noisy_images
-                    for i, t in enumerate(timesteps):
-                        scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
-                        model_output = model(scaled_sample, t, return_dict=False)[0]
+                    for i, t in enumerate(noise_scheduler.timesteps):
+                        if t in init_timesteps:
+                            scaled_sample = noise_scheduler.scale_model_input(noisy_images, t)
+                            model_output = model(scaled_sample, t, return_dict=False)[0]
 
-                        sample = noise_scheduler.step(model_output, t, noisy_images,
-                                                      generator=torch.manual_seed(step))[0]
+                            sample = noise_scheduler.step(model_output, t, noisy_images,
+                                                          generator=torch.manual_seed(step))[0]
 
                     loss = F.mse_loss(sample, clean_images)
 
