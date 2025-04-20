@@ -99,10 +99,10 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
-                    if noise_scheduler.step_index is None:
-                        noise_scheduler._init_step_index(init_timesteps[0])
-                    elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
-                        noise_scheduler._step_index = 0
+                    # if noise_scheduler.step_index is None:
+                    #     noise_scheduler._init_step_index(init_timesteps[0])
+                    # elif noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps - 1:
+                    #     noise_scheduler._step_index = 0
                     sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
                     model_output, denoised = denoise(model, noisy_images, sigma, noise_scheduler,
@@ -207,7 +207,7 @@ def train_loop(
 
 # def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
 def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
-    distillation = False
+    distillation = True
     if not distillation:
         c_skip, c_out, c_in = [
             append_dims(x, x_t.ndim) for x in get_scalings(noise_scheduler, sigma)
