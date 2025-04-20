@@ -12,8 +12,6 @@ import random
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
-from torch import Tensor
-from diffusers.utils.torch_utils import randn_tensor
 
 # Hugging Face
 from diffusers import ConsistencyModelPipeline
