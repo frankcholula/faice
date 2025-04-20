@@ -117,11 +117,12 @@ def train_loop(
                     noise_scheduler.set_begin_index()
                     sample = noisy_images
                     # # for i, t in enumerate(init_timesteps):
-                    t = random.choice(init_timesteps)
+                    # t = random.choice(init_timesteps)
+                    t = init_timesteps[0]
                     if noise_scheduler.step_index and noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps:
                         noise_scheduler._step_index = 0
                     scaled_sample = noise_scheduler.scale_model_input(sample, t)
-                    model_output = model(scaled_sample, init_timesteps, return_dict=False)[0]
+                    model_output = model(scaled_sample, t, return_dict=False)[0]
 
                     sample = noise_scheduler.step(model_output, t, sample,
                                                   generator=torch.manual_seed(0))[0]
