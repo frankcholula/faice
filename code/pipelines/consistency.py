@@ -117,7 +117,7 @@ def train_loop(
                     noise_scheduler.set_begin_index()
                     sample = noisy_images
                     # # for i, t in enumerate(init_timesteps):
-                    t = init_timesteps[-1]
+                    t = init_timesteps[0]
                     if noise_scheduler.step_index and noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps:
                         noise_scheduler._step_index = 0
                     scaled_sample = noise_scheduler.scale_model_input(sample, t)
