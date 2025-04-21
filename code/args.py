@@ -44,9 +44,9 @@ def create_model(model: str, config):
     elif model.lower() == "unet_resnet512":
         return create_unet_resnet512(config)
     elif model.lower() == "unet_resnet1024":
-        return create_unet_resnet512(config)
+        return create_unet_resnet1024(config)
     elif model.lower() == "unet_resnet768":
-        return create_unet_resnet512(config)
+        return create_unet_resnet768(config)
     else:
         raise ValueError(f"Model type '{model}' is not supported.")
 
