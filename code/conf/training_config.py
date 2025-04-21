@@ -74,8 +74,8 @@ class FaceConfig(BaseConfig):
     dataset: str = "face"
     dataset_name: str = "uos-celebahq-256x256"
     num_epochs: int = 1
-    save_image_epochs: int = 20
-    save_model_epochs: int = 20
+    save_image_epochs: int = 50
+    save_model_epochs: int = 50
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
 
