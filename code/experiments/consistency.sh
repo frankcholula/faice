@@ -18,7 +18,7 @@
 #    --dataset face \
 #    --pipeline consistency \
 #    --scheduler CMStochastic \
-#    --model unet_resnet \
+#    --model unet_resnet512 \
 #    --image_size 128 \
 #    --num_epochs 100 \
 #    --train_batch_size 64 \
@@ -36,7 +36,7 @@ python main.py \
     --dataset face \
     --pipeline consistency \
     --scheduler CMStochastic \
-    --model unet_resnet \
+    --model unet_resnet512 \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 64 \

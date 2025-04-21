@@ -5,7 +5,7 @@ from pipelines import ddpm, consistency
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from diffusers.schedulers import CMStochasticIterativeScheduler
 from models.unet import create_unet
-from models.unet_resnet import create_unet_resnet
+from models.unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
 from conf.training_config import get_config, get_all_datasets
 
 
@@ -41,8 +41,12 @@ def create_scheduler(
 def create_model(model: str, config):
     if model.lower() == "unet":
         return create_unet(config)
-    if model.lower() == "unet_resnet":
-        return create_unet_resnet(config)
+    elif model.lower() == "unet_resnet512":
+        return create_unet_resnet512(config)
+    elif model.lower() == "unet_resnet1024":
+        return create_unet_resnet512(config)
+    elif model.lower() == "unet_resnet768":
+        return create_unet_resnet512(config)
     else:
         raise ValueError(f"Model type '{model}' is not supported.")
 
