@@ -2,7 +2,7 @@
 """
 @Time : 22/04/2025 19:08
 @Author : xiaoguangliang
-@File : dit.py
+@File : transformer_2d.py
 @Project : code
 """
 from diffusers import Transformer2DModel

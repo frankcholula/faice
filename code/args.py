@@ -1,11 +1,12 @@
 import argparse
 import inspect
 import sys
-from pipelines import ddpm, consistency
+from pipelines import ddpm, consistency, dit
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from diffusers.schedulers import CMStochasticIterativeScheduler
-from models.unet import create_unet
-from models.unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
+# from models.unet import create_unet
+# from models.unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
+import models
 from conf.training_config import get_config, get_all_datasets
 
 
@@ -38,17 +39,19 @@ def create_scheduler(
         )
 
 
-def create_model(model: str, config):
-    if model.lower() == "unet":
-        return create_unet(config)
-    elif model.lower() == "unet_resnet512":
-        return create_unet_resnet512(config)
-    elif model.lower() == "unet_resnet1024":
-        return create_unet_resnet1024(config)
-    elif model.lower() == "unet_resnet768":
-        return create_unet_resnet768(config)
-    else:
-        raise ValueError(f"Model type '{model}' is not supported.")
+def create_model(model_name: str, config):
+    # if model.lower() == "unet":
+    #     return create_unet(config)
+    # elif model.lower() == "unet_resnet512":
+    #     return create_unet_resnet512(config)
+    # elif model.lower() == "unet_resnet1024":
+    #     return create_unet_resnet1024(config)
+    # elif model.lower() == "unet_resnet768":
+    #     return create_unet_resnet768(config)
+    # else:
+    #     raise ValueError(f"Model type '{model}' is not supported.")
+    model = models.init_model(model_name, config)
+    return model
 
 
 def create_pipeline(pipeline: str):
@@ -60,6 +63,8 @@ def create_pipeline(pipeline: str):
     #     return pndm.train_loop
     elif pipeline.lower() == 'consistency':
         return consistency.train_loop
+    elif pipeline.lower() == 'ditpipline':
+        return dit.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 
