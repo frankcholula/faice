@@ -82,15 +82,17 @@ def train_loop(
 
             # Encode image to latent space
             latents = vqvae.encode(clean_images).latents
+            print("latents.shape", latents.shape)
             # # Add noise (diffusion process)
             noise = torch.randn_like(latents).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
-            noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
+            noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
+            print("noisy_latents.shape", noisy_latents.shape)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                latent_model_input = torch.cat([noisy_images])
+                latent_model_input = noise_scheduler.scale_model_input(noisy_latents, timesteps)
                 noise_pred = model(latent_model_input, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
