@@ -88,11 +88,12 @@ def train_loop(
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
+            print(">"*9, noisy_latents.shape)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
-                loss = F.mse_loss(noise_pred, latents)
+                loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
