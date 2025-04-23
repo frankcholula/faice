@@ -66,7 +66,6 @@ def train_loop(
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
             # Sample noise to add to the images
-            noise = torch.randn(clean_images.shape).to(clean_images.device)
             bs = clean_images.shape[0]
 
             vqvae.to(clean_images.device)
@@ -91,7 +90,8 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
+                latent_model_input = torch.cat([noisy_images])
+                noise_pred = model(latent_model_input, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
