@@ -4,7 +4,7 @@ python main.py \
     --dataset face \
     --model unet \
     --pipeline ldpm \
-    --scheduler ddpm \
+    --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
     --num_epochs 500 \
