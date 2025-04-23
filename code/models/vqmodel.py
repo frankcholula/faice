@@ -37,15 +37,4 @@ def create_vqmodel(config):
 
 
 if __name__ == '__main__':
-    import torch
-
-    dummy_input = torch.randn(1, 3, 128, 128)
-
-
-    class Config():
-        image_size = 128
-
-
-    model = create_vqmodel(Config)
-    z = model.encoder(dummy_input)
-    print(z.shape)
+    pass
