@@ -4,8 +4,8 @@ python main.py \
     --dataset face \
     --model unet \
     --pipeline ldpm \
-    --scheduler ddim \
-    --beta_schedule scaled_linear \
+    --scheduler ddpm \
+    --beta_schedule linear \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 256 \

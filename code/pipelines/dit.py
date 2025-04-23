@@ -4,14 +4,13 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import DiTPipeline
+from diffusers import DiTPipeline, AutoencoderKL
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
-from models.vae import create_vae
 
 selected_pipeline = DiTPipeline
 
@@ -47,7 +46,8 @@ def train_loop(
 
     global_step = 0
 
-    vae = create_vae(config)
+    url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
+    vae = AutoencoderKL.from_single_file(url)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -59,6 +59,8 @@ def train_loop(
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
             bs = clean_images.shape[0]
+
+            vae.to(clean_images.device)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(

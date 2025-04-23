@@ -69,4 +69,5 @@ python main.py \
     --wandb_run_name liang_ddpm_linear_test \
     --calculate_fid \
     --calculate_is \
+    --no_confirm \
     --no_wandb

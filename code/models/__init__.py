@@ -1,13 +1,14 @@
 from .unet import create_unet
 from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
-from .transformer_2d import create_transformers_2d
+from .transformer import create_dit_transformer, create_transformer_2d
 
 __model_factory = {
     "unet": create_unet,
     "unet_resnet512": create_unet_resnet512,
     "unet_resnet1024": create_unet_resnet1024,
     "unet_resnet768": create_unet_resnet768,
-    "transformer_2d": create_transformers_2d,
+    "dit_transformer": create_dit_transformer,
+    "transformer_2d": create_transformer_2d,
 }
 
 
