@@ -5,7 +5,7 @@ python main.py \
     --model unet \
     --pipeline ldpm \
     --scheduler ddim \
-    --beta_schedule linear \
+    --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 352 \
