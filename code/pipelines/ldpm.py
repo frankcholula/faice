@@ -91,7 +91,7 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_latents, timesteps, return_dict=False).sample
+                noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
