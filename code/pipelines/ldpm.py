@@ -91,7 +91,7 @@ def train_loop(
 
             with accelerator.accumulate([model, vqvae]):
                 # Got the decoded image for vqvae
-                quantized_z, loss, _ = vqvae.quantize(latents)
+                quantized_z, quant_loss, _ = vqvae.quantize(latents)
                 decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
 
                 # Predict the noise residual
@@ -99,7 +99,6 @@ def train_loop(
 
                 # Calculate loss of vqvae
                 rec_loss = torch.nn.functional.mse_loss(batch, decoded)
-                quant_loss = loss
                 vqvae_loss = rec_loss + quant_loss * 0.0025
 
                 # Calculate the loss of unet
