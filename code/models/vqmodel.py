@@ -14,7 +14,13 @@ def create_vqmodel(config):
         in_channels=3,  # RGB images
         out_channels=3,
         layers_per_block=2,  # how many ResNet layers to use per UNet block
-        block_out_channels=(32, 64, 128, 256),
+        block_out_channels=(
+            128,
+            128,
+            256,
+            256,
+            512,
+            512,),
         act_fn="silu",
         latent_channels=3,
         num_vq_embeddings=512,  # Codebook size
@@ -25,8 +31,12 @@ def create_vqmodel(config):
             "DownEncoderBlock2D",
             "DownEncoderBlock2D",
             "DownEncoderBlock2D",
+            "DownEncoderBlock2D",
+            "DownEncoderBlock2D",
         ),
         up_block_types=(
+            "UpDecoderBlock2D",
+            "UpDecoderBlock2D",
             "UpDecoderBlock2D",
             "UpDecoderBlock2D",
             "UpDecoderBlock2D",
