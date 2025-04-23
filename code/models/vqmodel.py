@@ -13,7 +13,7 @@ def create_vqmodel(config):
         sample_size=config.image_size,  # the target image resolution
         in_channels=3,  # RGB images
         out_channels=3,
-        layers_per_block=2,  # how many ResNet layers to use per UNet block
+        layers_per_block=1,  # how many ResNet layers to use per UNet block
         block_out_channels=(32, 64, 128),
         act_fn="silu",
         latent_channels=3,

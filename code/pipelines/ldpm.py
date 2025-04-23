@@ -88,6 +88,7 @@ def train_loop(
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
+            print(">"*9, noisy_latents.shape)
 
             with accelerator.accumulate([model, vqvae]):
                 # Got the decoded image for vqvae
