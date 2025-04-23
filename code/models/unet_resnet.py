@@ -14,7 +14,7 @@ def create_unet_resnet512(config):
         in_channels=3,  # the number of input channels, 3 for RGB images
         out_channels=3,  # the number of output channels
         layers_per_block=2,  # how many ResNet layers to use per UNet block
-        attention_head_dim=64,
+        attention_head_dim=8,
         # attn_norm_num_groups=32,
         time_embedding_type="positional",
         upsample_type="resnet",
@@ -33,18 +33,18 @@ def create_unet_resnet512(config):
             "ResnetDownsampleBlock2D",
             "ResnetDownsampleBlock2D",
             "ResnetDownsampleBlock2D",
-            "ResnetDownsampleBlock2D",
-            # "AttnDownBlock2D",
+            # "ResnetDownsampleBlock2D",
             "AttnDownBlock2D",
-            "ResnetDownsampleBlock2D"
-            # "AttnDownBlock2D"
+            "AttnDownBlock2D",
+            # "ResnetDownsampleBlock2D"
+            "AttnDownBlock2D"
         ),
         up_block_types=(
-            "ResnetUpsampleBlock2D",
+            # "ResnetUpsampleBlock2D",
             "AttnUpBlock2D",
-            # "AttnUpBlock2D",
-            # "AttnUpBlock2D",
-            "ResnetUpsampleBlock2D",
+            "AttnUpBlock2D",
+            "AttnUpBlock2D",
+            # "ResnetUpsampleBlock2D",
             "ResnetUpsampleBlock2D",
             "ResnetUpsampleBlock2D",
             "ResnetUpsampleBlock2D"
