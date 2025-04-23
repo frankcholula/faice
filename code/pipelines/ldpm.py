@@ -84,31 +84,30 @@ def train_loop(
             latents = vqvae.encode(clean_images).latents
             # # Add noise (diffusion process)
             noise = torch.randn(latents.shape).to(clean_images.device)
-            # noise = torch.randn(clean_images.shape).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
 
             with accelerator.accumulate([model, vqvae]):
+                # Got the decoded image for vqvae
+                quantized_z, quant_loss, _ = vqvae.quantize(latents)
+                decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
+
+                # Calculate loss of vqvae
+                rec_loss = F.mse_loss(clean_images, decoded)
+                vqvae_loss = rec_loss + quant_loss * 0.0025
+
                 # Predict the noise residual
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
 
-                # Got the decoded image for vqvae
-                # quantized_z, quant_loss, _ = vqvae.quantize(noise_pred)
-                # decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
-                decoded = vqvae.decode(noise_pred, force_not_quantize=True)[0]
-
-                # Calculate loss of vqvae
-                rec_loss = torch.nn.functional.mse_loss(clean_images, decoded)
-                # vqvae_loss = rec_loss + quant_loss * 0.0025
-
                 # Calculate the loss of unet
-                # unet_loss = F.mse_loss(noise_pred, noise)
+                unet_loss = F.mse_loss(noise_pred, noise)
 
-                loss = rec_loss
+                loss = vqvae_loss + unet_loss
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
+                accelerator.clip_grad_norm_(vqvae.parameters(), 1.0)
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
