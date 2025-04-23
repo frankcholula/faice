@@ -89,6 +89,7 @@ def train_loop(
             latents_bsz, channels, latents_height, latents_width = latents.shape
             latents = vqvae.quantize(latents)[2][2].reshape(latents_bsz, latents_height, latents_width)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
+            print("noisy_latents.shape", noisy_latents.shape)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
