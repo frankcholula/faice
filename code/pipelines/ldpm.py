@@ -106,8 +106,9 @@ def train_loop(
                 loss = vqvae_loss + unet_loss
                 accelerator.backward(loss)
 
-                accelerator.clip_grad_norm_(model.parameters(), 1.0)
-                accelerator.clip_grad_norm_(vqvae.parameters(), 1.0)
+                param = model.parameters()
+                param.update(vqvae.parameters())
+                accelerator.clip_grad_norm_(param, 1.0)
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
