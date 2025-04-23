@@ -12,13 +12,12 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import LDMPipeline
+from diffusers import LDMPipeline, VQModel
 
 # Configuration
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
-from models.vqmodel import create_vqmodel
 
 selected_pipeline = LDMPipeline
 
@@ -54,7 +53,7 @@ def train_loop(
 
     global_step = 0
 
-    vqvae = create_vqmodel(config)
+    vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -89,27 +88,13 @@ def train_loop(
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
 
             with accelerator.accumulate([model, vqvae]):
-                # Got the decoded image for vqvae
-                quantized_z, quant_loss, _ = vqvae.quantize(latents)
-                decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
-
-                # Calculate loss of vqvae
-                rec_loss = F.mse_loss(clean_images, decoded)
-                vqvae_loss = rec_loss + quant_loss * 0.0025
-
                 # Predict the noise residual
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
 
-                # Calculate the loss of unet
-                unet_loss = F.mse_loss(noise_pred, noise)
-
-                loss = vqvae_loss + unet_loss
+                loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
-                # Merge parameters from model and vqvae
-                all_params = list(model.parameters()) + list(vqvae.parameters())
-
-                accelerator.clip_grad_norm_(all_params, 1.0)
+                accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
