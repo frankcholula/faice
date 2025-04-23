@@ -6,12 +6,10 @@
 @Project : code
 """
 # Deep learning framework
-from typing import Optional
 
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
-from torch import Tensor
 
 # Hugging Face
 from diffusers import LDMPipeline
@@ -161,105 +159,3 @@ def train_loop(
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
-
-
-def denoise(model, x_t, sigma, noise_scheduler, **model_kwargs):
-    import torch.distributed as dist
-    distillation = False
-    if not distillation:
-        c_skip, c_out, c_in = [
-            append_dims(x, x_t.ndim) for x in get_scalings(noise_scheduler, sigma)
-        ]
-    else:
-        c_skip, c_out, c_in = [
-            append_dims(x, x_t.ndim)
-            for x in get_scalings_for_boundary_condition(noise_scheduler, sigma)
-        ]
-    rescaled_t = 1000 * 0.25 * torch.log(sigma + 1e-44)
-    rescaled_t = torch.flatten(rescaled_t)
-    m_input = c_in * x_t
-    model_output = model(m_input, rescaled_t, **model_kwargs)[0]
-    denoised = c_out * model_output + c_skip * x_t
-    return model_output, denoised
-
-
-def append_dims(x, target_dims):
-    """Appends dimensions to the end of a tensor until it has target_dims dimensions."""
-    dims_to_append = target_dims - x.ndim
-    if dims_to_append < 0:
-        raise ValueError(
-            f"input has {x.ndim} dims but target_dims is {target_dims}, which is less"
-        )
-    return x[(...,) + (None,) * dims_to_append]
-
-
-def get_scalings(noise_scheduler, sigma):
-    sigma_data = noise_scheduler.config.sigma_data
-    c_skip = sigma_data ** 2 / (sigma ** 2 + sigma_data ** 2)
-    c_out = sigma * sigma_data / (sigma ** 2 + sigma_data ** 2) ** 0.5
-    c_in = 1 / (sigma ** 2 + sigma_data ** 2) ** 0.5
-    return c_skip, c_out, c_in
-
-
-def get_scalings_for_boundary_condition(noise_scheduler, sigma):
-    sigma_data = noise_scheduler.config.sigma_data
-    c_skip = sigma_data ** 2 / (
-            (sigma - noise_scheduler.sigma_min) ** 2 + sigma_data ** 2
-    )
-    c_out = (
-            (sigma - noise_scheduler.sigma_min)
-            * sigma_data
-            / (sigma ** 2 + sigma_data ** 2) ** 0.5
-    )
-    c_in = 1 / (sigma ** 2 + sigma_data ** 2) ** 0.5
-    return c_skip, c_out, c_in
-
-
-def convert_sigma(noise_scheduler, original_samples, timesteps):
-    sigmas = noise_scheduler.sigmas.to(device=original_samples.device, dtype=original_samples.dtype)
-    if original_samples.device.type == "mps" and torch.is_floating_point(timesteps):
-        # mps does not support float64
-        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device, dtype=torch.float32)
-        timesteps = timesteps.to(original_samples.device, dtype=torch.float32)
-    else:
-        schedule_timesteps = noise_scheduler.timesteps.to(original_samples.device)
-        timesteps = timesteps.to(original_samples.device)
-
-    # self.begin_index is None when scheduler is used for training, or pipeline does not implement set_begin_index
-    if noise_scheduler.begin_index is None:
-        step_indices = [noise_scheduler.index_for_timestep(t, schedule_timesteps) for t in timesteps]
-    elif noise_scheduler.step_index is not None:
-        # add_noise is called after first denoising step (for inpainting)
-        step_indices = [noise_scheduler.step_index] * timesteps.shape[0]
-    else:
-        # add noise is called before first denoising step to create initial latent(img2img)
-        step_indices = [noise_scheduler.begin_index] * timesteps.shape[0]
-
-    sigma = sigmas[step_indices].flatten()
-    while len(sigma.shape) < len(original_samples.shape):
-        sigma = sigma.unsqueeze(-1)
-
-    return sigma
-
-
-def get_weightings(weight_schedule, snrs, sigma_data):
-    if weight_schedule == "snr":
-        weightings = snrs
-    elif weight_schedule == "snr+1":
-        weightings = snrs + 1
-    elif weight_schedule == "karras":
-        weightings = snrs + 1.0 / sigma_data ** 2
-    elif weight_schedule == "truncated-snr":
-        weightings = torch.clamp(snrs, min=1.0)
-    elif weight_schedule == "uniform":
-        weightings = torch.ones_like(snrs)
-    else:
-        raise NotImplementedError()
-    return weightings
-
-
-def get_snr(sigmas):
-    return sigmas ** -2
-
-
-
