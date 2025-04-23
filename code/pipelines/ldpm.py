@@ -87,7 +87,8 @@ def train_loop(
             # noise = torch.randn(clean_images.shape).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
-            latents = vqvae.quantize(latents)
+            latents = vqvae.quantize(latents)[2][2]
+            print(">"*9, latents)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
 
             with accelerator.accumulate(model):
