@@ -99,7 +99,7 @@ def train_loop(
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
 
                 # Calculate loss of vqvae
-                rec_loss = torch.nn.functional.mse_loss(batch, decoded)
+                rec_loss = torch.nn.functional.mse_loss(clean_images, decoded)
                 vqvae_loss = rec_loss + quant_loss * 0.0025
 
                 # Calculate the loss of unet
