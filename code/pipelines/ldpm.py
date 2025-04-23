@@ -89,10 +89,23 @@ def train_loop(
             # # (this is the forward diffusion process)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
 
-            with accelerator.accumulate(model):
+            with accelerator.accumulate([model, vqvae]):
+                # Got the decoded image for vqvae
+                quantized_z, loss, _ = vqvae.quantize(latents)
+                decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
+
                 # Predict the noise residual
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
-                loss = F.mse_loss(noise_pred, noise)
+
+                # Calculate loss of vqvae
+                rec_loss = torch.nn.functional.mse_loss(batch, decoded)
+                quant_loss = loss
+                vqvae_loss = rec_loss + quant_loss * 0.0025
+
+                # Calculate the loss of unet
+                unet_loss = F.mse_loss(noise_pred, noise)
+
+                loss = unet_loss + vqvae_loss
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
