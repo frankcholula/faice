@@ -33,7 +33,7 @@ class BaseUNet(UNet2DModel):
 
 
 class DDPMUNet(UNet2DModel):
-    """This class mirrors the DDPM paper."""
+    """This class mirrors the DDPM paper. I've tweaked it to work with 128 x 128 images."""
 
     def __init__(self, config):
         super().__init__(
@@ -65,10 +65,11 @@ class DDPMUNet(UNet2DModel):
 
 class ADMUNet(UNet2DModel):
     """This is the model used in the ADM paper. We should run some ablations using this class.
-       Stuff we should try ablating:
-       - layers_per_block: this is the "depth" mentioned in the paper. We can try increasing it to 4.
-       - channel width: the paper uses 160, so we can change block_out_channels to (160, 160, 320, 320, 640, 640)
-       - fixing attention head dim
+    Stuff we should try ablating:
+    - layers_per_block: this is the "depth" mentioned in the paper. We can try increasing it to 4.
+    - channel width: the paper uses 160, so we can change block_out_channels to (160, 160, 320, 320, 640, 640)
+    - fix channels-per-head, vary # heads: this is table 2 in the paper (this class fixes it to 64). We can try 32 and 128.
+    - fix # heads, vary channels-per-head: this is also table 2 in the paper. (this requires us to do something like channel_dim // num_heads), with num_heads being [1, 2, 4, 8].
     """
 
     def __init__(self, config):
@@ -77,24 +78,24 @@ class ADMUNet(UNet2DModel):
             in_channels=3,
             out_channels=3,
             layers_per_block=2,
-            attention_head_dim=64,
+            attention_head_dim=64,  # this gives varying attention heads for each layer.
             downsample_type="resnet",  # This gives BigGAN-style residual samplers.
             upsample_type="resnet",  # same as the above.
             resnet_time_scale_shift="scale_shift",  # This is the AdaGN portion.
-            block_out_channels=(128, 128, 256, 256, 512, 512),  
+            block_out_channels=(128, 128, 256, 256, 512, 512),
             down_block_types=(
                 "DownBlock2D",  # 128 -> 64
-                "AttnDownBlock2D",  # 64 -> 32
-                "AttnDownBlock2D",  # 32 -> 16
-                "AttnDownBlock2D",  # 16 -> 8
+                "AttnDownBlock2D",  # 64 -> 32  (2 attention heads)
+                "AttnDownBlock2D",  # 32 -> 16 (4 attention heads)
+                "AttnDownBlock2D",  # 16 -> 8 (8 attention heads)
                 "DownBlock2D",  # 8 -> 4
                 "DownBlock2D",  # 4 -> 2
             ),
             up_block_types=(
                 "UpBlock2D",  # 2 -> 4
-                "AttnUpBlock2D",  # 4 -> 8
-                "AttnUpBlock2D",  # 8 -> 16
-                "AttnUpBlock2D",  # 16 -> 32
+                "AttnUpBlock2D",  # 4 -> 8 (8 attention heads)
+                "AttnUpBlock2D",  # 8 -> 16 (4 attention heads)
+                "AttnUpBlock2D",  # 16 -> 32 (2 attention heads)
                 "UpBlock2D",  # 32 -> 64
                 "UpBlock2D",  # 64 -> 128
             ),
