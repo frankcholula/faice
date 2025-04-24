@@ -1,3 +1,5 @@
+#!/bin/bash
+
 python main.py \
     --dataset face \
     --scheduler ddpm \
