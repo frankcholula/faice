@@ -9,6 +9,7 @@
 from typing import Optional
 
 import random
+import numpy as np
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
@@ -109,6 +110,8 @@ def train_loop(
                     )
 
                     loss = mean_flat(weights * (denoised - clean_images) ** 2)
+                    t, weights = sample(bs, clean_images.device, init_timesteps)
+                    loss = (loss * weights).mean()
 
                     # loss = F.mse_loss(denoised, clean_images)
 
@@ -313,3 +316,22 @@ def mean_flat(tensor):
     Take the mean over all non-batch dimensions.
     """
     return tensor.mean(dim=list(range(1, len(tensor.shape))))
+
+
+def sample(batch_size, device, num_timesteps):
+    """
+    Importance-sample timesteps for a batch.
+
+    :param batch_size: the number of timesteps.
+    :param device: the torch device to save to.
+    :return: a tuple (timesteps, weights):
+             - timesteps: a tensor of timestep indices.
+             - weights: a tensor of weights to scale the resulting losses.
+    """
+    w = np.ones([num_timesteps])
+    p = w / np.sum(w)
+    indices_np = np.random.choice(len(p), size=(batch_size,), p=p)
+    indices = torch.from_numpy(indices_np).long().to(device)
+    weights_np = 1 / (len(p) * p[indices_np])
+    weights = torch.from_numpy(weights_np).float().to(device)
+    return indices, weights
