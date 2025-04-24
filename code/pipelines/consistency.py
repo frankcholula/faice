@@ -110,7 +110,8 @@ def train_loop(
                     )
 
                     loss = mean_flat(weights * (denoised - clean_images) ** 2)
-                    t, weights = sample(bs, clean_images.device, init_timesteps)
+                    num_timesteps = noise_scheduler.config.num_train_timesteps
+                    t, weights = sample(bs, clean_images.device, num_timesteps)
                     loss = (loss * weights).mean()
 
                     # loss = F.mse_loss(denoised, clean_images)
