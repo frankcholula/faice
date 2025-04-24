@@ -157,6 +157,8 @@ def get_config_and_components():
 
     print(f"Selected dataset: {config.dataset} ({config.dataset_name})")
     print(f"Selected model: {config.model}")
+    if config.model == "unet":
+        print(f"Selected UNet variant: {config.unet_variant}")
     print(f"Selected scheduler: {config.scheduler}")
     print(f"Selected pipeline: {config.pipeline}")
     print(f"W&B run name: {config.wandb_run_name}")
