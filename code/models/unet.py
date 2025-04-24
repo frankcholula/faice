@@ -6,7 +6,8 @@ def create_unet(config):
         sample_size=config.image_size,  # the target image resolution
         in_channels=3,  # the number of input channels, 3 for RGB images
         out_channels=3,  # the number of output channels
-        layers_per_block=4,  # how many ResNet layers to use per UNet block
+        attention_head_dim=64,
+        layers_per_block=2,  # how many ResNet layers to use per UNet block
         block_out_channels=(
             128,
             128,
