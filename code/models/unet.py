@@ -64,7 +64,12 @@ class DDPMUNet(UNet2DModel):
 
 
 class ADMUNet(UNet2DModel):
-    """This is the model used in the AMDM paper. We should run some ablations using this class."""
+    """This is the model used in the ADM paper. We should run some ablations using this class.
+       Stuff we should try ablating:
+       - layers_per_block: this is the "depth" mentioned in the paper. We can try increasing it to 4.
+       - channel width: the paper uses 160, so we can change block_out_channels to (160, 160, 320, 320, 640, 640)
+       - fixing attention head dim
+    """
 
     def __init__(self, config):
         super().__init__(
@@ -73,22 +78,25 @@ class ADMUNet(UNet2DModel):
             out_channels=3,
             layers_per_block=2,
             attention_head_dim=64,
-            block_out_channels=(128, 128, 256, 256, 512, 512),
+            downsample_type="resnet",  # This gives BigGAN-style residual samplers.
+            upsample_type="resnet",  # same as the above.
+            resnet_time_scale_shift="scale_shift",  # This is the AdaGN portion.
+            block_out_channels=(128, 128, 256, 256, 512, 512),  
             down_block_types=(
-                "DownBlock2D",
-                "DownBlock2D",
-                "AttnDownBlock2D",
-                "AttnDownBlock2D",
-                "AttnDownBlock2D",
-                "DownBlock2D",
+                "DownBlock2D",  # 128 -> 64
+                "AttnDownBlock2D",  # 64 -> 32
+                "AttnDownBlock2D",  # 32 -> 16
+                "AttnDownBlock2D",  # 16 -> 8
+                "DownBlock2D",  # 8 -> 4
+                "DownBlock2D",  # 4 -> 2
             ),
             up_block_types=(
-                "UpBlock2D",
-                "AttnUpBlock2D",
-                "AttnUpBlock2D",
-                "AttnUpBlock2D",
-                "UpBlock2D",
-                "UpBlock2D",
+                "UpBlock2D",  # 2 -> 4
+                "AttnUpBlock2D",  # 4 -> 8
+                "AttnUpBlock2D",  # 8 -> 16
+                "AttnUpBlock2D",  # 16 -> 32
+                "UpBlock2D",  # 32 -> 64
+                "UpBlock2D",  # 64 -> 128
             ),
         )
 
