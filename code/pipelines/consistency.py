@@ -97,10 +97,19 @@ def train_loop(
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
-                    model_output, denoised = denoise(model, noisy_images, sigma, init_timesteps, noise_scheduler,
+                    model_output, denoised = denoise(model, noisy_images, sigma, init_timesteps,
+                                                     noise_scheduler,
                                                      **model_kwargs)
 
-                    loss = F.mse_loss(denoised, clean_images)
+                    snrs = get_snr(sigma)
+                    weights = append_dims(
+                        get_weightings(noise_scheduler.weight_schedule, snrs,
+                                       noise_scheduler.config.sigma_data), clean_images.dims
+                    )
+
+                    loss = mean_flat(weights * (denoised - clean_images) ** 2)
+
+                    # loss = F.mse_loss(denoised, clean_images)
 
                     # noise_scheduler.set_timesteps(1)
                     # timesteps = noise_scheduler.timesteps
@@ -296,3 +305,10 @@ def get_weightings(weight_schedule, snrs, sigma_data):
 
 def get_snr(sigmas):
     return sigmas ** -2
+
+
+def mean_flat(tensor):
+    """
+    Take the mean over all non-batch dimensions.
+    """
+    return tensor.mean(dim=list(range(1, len(tensor.shape))))
