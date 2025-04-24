@@ -105,7 +105,7 @@ def train_loop(
                     weight_schedule = 'karras'
                     weights = append_dims(
                         get_weightings(weight_schedule, snrs,
-                                       noise_scheduler.config.sigma_data), clean_images.dim
+                                       noise_scheduler.config.sigma_data), clean_images.ndim
                     )
 
                     loss = mean_flat(weights * (denoised - clean_images) ** 2)
