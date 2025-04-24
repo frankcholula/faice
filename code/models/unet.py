@@ -70,6 +70,9 @@ class ADMUNet(UNet2DModel):
     - channel width: the paper uses 160, so we can change block_out_channels to (160, 160, 320, 320, 640, 640)
     - fix channels-per-head, vary # heads: this is table 2 in the paper (this class fixes it to 64). We can try 32 and 128.
     - fix # heads, vary channels-per-head: this is also table 2 in the paper. (this requires us to do something like channel_dim // num_heads), with num_heads being [1, 2, 4, 8].
+    - remove the attention resolution at 32 and 64: this is the "multi-res attention" ablation in the paper.
+    - change the "upsample" and "downsample" attention from "resnet" to "default".
+    - using a "wide" unet by changing the channels to [160, 160, 320, 320, 640, 640].
     """
 
     def __init__(self, config):
