@@ -10,7 +10,7 @@ from conf.training_config import get_config, get_all_datasets
 
 
 def create_scheduler(
-        scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000
+    scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000
 ):
     if scheduler.lower() == "ddpm":
         return DDPMScheduler(
@@ -25,9 +25,7 @@ def create_scheduler(
             num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
         )
     elif scheduler.lower() == "cmstochastic":
-        return CMStochasticIterativeScheduler(
-            num_train_timesteps=num_train_timesteps
-        )
+        return CMStochasticIterativeScheduler(num_train_timesteps=num_train_timesteps)
     elif scheduler.lower() not in ["ddpm", "ddim", "pndm", "cmstochastic"]:
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
     elif beta_schedule.lower() not in ["linear", "squaredcos_cap_v2"]:
@@ -54,7 +52,7 @@ def create_pipeline(pipeline: str):
     #     return ddim.train_loop
     # elif pipeline.lower() == "pndm":
     #     return pndm.train_loop
-    elif pipeline.lower() == 'consistency':
+    elif pipeline.lower() == "consistency":
         return consistency.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
@@ -114,6 +112,12 @@ def parse_args():
     )
 
     model_group.add_argument("--model", help="Model architecture")
+    model_group.add_argument(
+        "--unet_variant",
+        choices=["base", "attention_heads", "multi_res"],
+        default="base",
+        help="Which UNet variant to use when --model==unet",
+    )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
     model_group.add_argument("--pipeline", help="Training pipeline")
@@ -144,9 +148,13 @@ def parse_args():
             elif key != "dataset":
                 setattr(config, key, value)
     if config.wandb_run_name is None:
-        config.wandb_run_name = f"{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
+        config.wandb_run_name = (
+            f"{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
+        )
     if config.output_dir is None:
-        config.output_dir = f"runs/{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
+        config.output_dir = (
+            f"runs/{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
+        )
     return config
 
 
@@ -179,7 +187,9 @@ def get_config_and_components():
     else:
         print("\nSkipping confirmation as --no_confirm flag is set.")
     model = create_model(config.model, config)
-    scheduler = create_scheduler(config.scheduler, config.beta_schedule, config.num_train_timesteps)
+    scheduler = create_scheduler(
+        config.scheduler, config.beta_schedule, config.num_train_timesteps
+    )
     pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline
