@@ -24,8 +24,8 @@ python main.py \
     --train_batch_size 128 \
     --eval_batch_size 128 \
     --num_train_timesteps 1000 \
-    --num_inference_steps 50 \
-    --wandb_run_name liang_unet_resnet512_consistency_CMStochastic_train1000_inference50 \
+    --num_inference_steps 100 \
+    --wandb_run_name liang_unet_resnet512_consistency_CMStochastic_train1000_inference100 \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
