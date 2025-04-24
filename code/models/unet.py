@@ -74,6 +74,7 @@ class ADMUNet(UNet2DModel):
     - change the "upsample" and "downsample" attention from "resnet" to "default".
     - using a "wide" unet by changing the channels to [160, 160, 320, 320, 640, 640].
     """
+
     def __init__(self, config):
         super().__init__(
             sample_size=config.image_size,
