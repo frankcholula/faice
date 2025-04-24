@@ -5,12 +5,11 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --model unet \
-    --unet_variant adm \
+    --unet_variant ddpm \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name adm_ddpm \
+    --wandb_run_name task1_ddpm \
     --calculate_fid \
-    --calculate_is \
-    --verbose
+    --calculate_is

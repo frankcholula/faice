@@ -10,7 +10,7 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name baseline_ddpm \
+    --wandb_run_name task1_baseline \
     --calculate_fid \
     --calculate_is \
     --verbose
