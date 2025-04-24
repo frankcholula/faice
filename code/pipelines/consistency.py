@@ -102,8 +102,9 @@ def train_loop(
                                                      **model_kwargs)
 
                     snrs = get_snr(sigma)
+                    weight_schedule = 'karras'
                     weights = append_dims(
-                        get_weightings(noise_scheduler.weight_schedule, snrs,
+                        get_weightings(weight_schedule, snrs,
                                        noise_scheduler.config.sigma_data), clean_images.dims
                     )
 
