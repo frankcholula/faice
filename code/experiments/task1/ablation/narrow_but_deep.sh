@@ -16,8 +16,8 @@ python main.py \
     --downsample_type conv \
     --image_size 128 \
     --num_epochs 500 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
+    --train_batch_size 20 \
+    --eval_batch_size 20 \
     --wandb_run_name task1_ddpm_width_depth_ablation \
     --calculate_fid \
     --calculate_is \
