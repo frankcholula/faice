@@ -26,7 +26,8 @@ python main.py \
     --wandb_run_name liang_unet_ddpm_linear_attention_head_dim_64 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm
+    --no_confirm \
+    --no_wandb
 
 
 #python main.py \
