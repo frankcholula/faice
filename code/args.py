@@ -1,7 +1,7 @@
 import argparse
 import inspect
 import sys
-from pipelines import ddpm, consistency, dit, ldpm
+from pipelines import ddpm, consistency, dit, ldpm, vae_train, vqvae_train
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from diffusers.schedulers import CMStochasticIterativeScheduler
 # from models.unet import create_unet
@@ -67,6 +67,10 @@ def create_pipeline(pipeline: str):
         return ldpm.train_loop
     elif pipeline.lower() == 'ditpipline':
         return dit.train_loop
+    elif pipeline.lower() == 'vqvae_train':
+        return vqvae_train.train_loop
+    elif pipeline.lower() == 'vae_train':
+        return vae_train.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 
