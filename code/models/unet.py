@@ -41,7 +41,7 @@ class DDPMUNet(UNet2DModel):
             in_channels=3,
             out_channels=3,
             layers_per_block=2,
-            attention_head_dim=512,  # 512 for single head attention at the 16 x 16 resolution.
+            attention_head_dim=256,  # 256 for single head attention at the 16 x 16 resolution.
             time_embedding_type="positional",
             block_out_channels=(128, 128, 256, 256, 512, 512),
             down_block_types=(
