@@ -122,4 +122,14 @@ def create_unet(config):
             f"Unknown UNet variant {config.unet_variant!r}. "
             f"Choose from {list(ARCHITECTURES)}"
         )
-    return cls(config)
+    model = cls(config)
+    if config.fixed_head:
+        for blk, ch in zip(model.down_blocks, model.config.block_out_channels):
+            if isinstance(blk, UNet2DModel.AttnDownBlock2D):
+                blk.attn1.num_attention_heads = 4
+                blk.attn1.attention_head_dim = ch // 4
+        for blk, ch in zip(model.up_blocks, reversed(model.config.block_out_channels)):
+            if isinstance(blk, UNet2DModel.AttnUpBlock2D):
+                blk.attn1.num_attention_heads = 4
+                blk.attn1.attention_head_dim = ch // 4
+    return model
