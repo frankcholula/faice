@@ -33,11 +33,20 @@ class BaseUNet(UNet2DModel):
 
 
 class DDPMUNet(UNet2DModel):
-    """This class mirrors the DDPM paper. I've tweaked it to work with 128 x 128 images."""
+    """This class mirrors the DDPM paper. I've tweaked it to work with 128 x 128 images.
+    We should run some ablations using this class so DO ARGIFY THIS.
+    Stuff we should try ablating:
+    - layers_per_block: this is the "depth" mentioned in the paper. We can try increasing it to 4.
+    - channel width: the paper uses 160, so we can change block_out_channels to (160, 160, 320, 320, 640, 640)
+    - fix channels-per-head, vary # heads: this is table 2 in the paper (this class fixes it to 64). We can try 32 and 128.
+    - fix # heads, vary channels-per-head: this is also table 2 in the paper. (this requires us to do something like channel_dim // num_heads), with num_heads being [1, 2, 4, 8].
+    - remove the attention resolution at 32 and 64: this is the "multi-res attention" ablation in the paper.
+    - change the "upsample" and "downsample" attention from "resnet" to "default".
+    - using a "wide" unet by changing the channels to [160, 160, 320, 320, 640, 640]."""
 
     def __init__(self, config):
         if config.multi_res:
-            # this is basically the same structure as the ADMUNet
+            # this is basically the same structure as the ADMUNet, making this for ablation purposes.
             down_block_types = (
                 "DownBlock2D",  # 128 -> 64
                 "DownBlock2D",  # 64 -> 32
@@ -83,20 +92,13 @@ class DDPMUNet(UNet2DModel):
             ),
             down_block_types=down_block_types,
             up_block_types=up_block_types,
+            upsample_type=config.downsample_type,
+            downsample_type=config.upsample_type,
         )
 
 
 class ADMUNet(UNet2DModel):
-    """This is the model used in the ADM paper. We should run some ablations using this class.
-    Stuff we should try ablating:
-    - layers_per_block: this is the "depth" mentioned in the paper. We can try increasing it to 4.
-    - channel width: the paper uses 160, so we can change block_out_channels to (160, 160, 320, 320, 640, 640)
-    - fix channels-per-head, vary # heads: this is table 2 in the paper (this class fixes it to 64). We can try 32 and 128.
-    - fix # heads, vary channels-per-head: this is also table 2 in the paper. (this requires us to do something like channel_dim // num_heads), with num_heads being [1, 2, 4, 8].
-    - remove the attention resolution at 32 and 64: this is the "multi-res attention" ablation in the paper.
-    - change the "upsample" and "downsample" attention from "resnet" to "default".
-    - using a "wide" unet by changing the channels to [160, 160, 320, 320, 640, 640].
-    """
+    """This is the model used in the ADM paper. DO NOT ARGIFY THIS."""
 
     def __init__(self, config):
         super().__init__(

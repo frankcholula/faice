@@ -127,19 +127,31 @@ def parse_args():
         "--multi_res",
         action="store_true",
         default=False,
-        help="Use multi-resolution attention for UNet (if applicable)",
+        help="Use multi-resolution attention for DDPMUNet (if applicable)",
     )
     model_group.add_argument(
         "--attention_head_dim",
         type=int,
         default=256,
-        help="Attention head dimension for UNet (if applicable)",
+        help="Attention head dimension for DDPMUNet (if applicable)",
     )
     model_group.add_argument(
         "--fixed_heads",
         type=int,
         default=0,
         help="If > 0, fix the number of attention heads to this value",
+    )
+    model_group.add_argument(
+        "--downsample_type",
+        choices=["conv", "resnet"],
+        default="conv",
+        help="Downsample type for DDPMUNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--upsample_type",
+        choices=["conv", "resnet"],
+        default="conv",
+        help="Upsample type for DDPMUNet (if applicable)",
     )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
