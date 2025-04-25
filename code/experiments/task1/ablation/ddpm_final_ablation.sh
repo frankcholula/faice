@@ -11,8 +11,8 @@ python main.py \
     --multi_res \
     --fixed_heads 4 \
     --image_size 128 \
-    --upsample_type res \
-    --downsample_type res \
+    --upsample_type resnet \
+    --downsample_type resnet \
     --num_epochs 500 \
     --train_batch_size 20 \
     --eval_batch_size 20 \
