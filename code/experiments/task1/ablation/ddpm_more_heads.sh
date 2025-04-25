@@ -11,6 +11,7 @@ python main.py \
     --model unet \
     --unet_variant ddpm \
     --attention_head_dim 64 \
+    --fixed_heads 1 \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 64 \

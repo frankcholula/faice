@@ -12,6 +12,8 @@ python main.py \
     --layers_per_block 4 \
     --base_channels 64 \
     --attention_head_dim 128 \
+    --upsample_type conv \
+    --downsample_type conv \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 28 \

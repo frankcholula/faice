@@ -10,6 +10,8 @@ python main.py \
     --unet_variant ddpm \
     --attention_head_dim 64 \
     --multi_res \
+    --upsample_type conv \
+    --downsample_type conv \
     --fixed_heads 1 \
     --image_size 128 \
     --num_epochs 500 \
