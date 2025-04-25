@@ -9,8 +9,8 @@ python main.py \
     --unet_variant adm \
     --image_size 128 \
     --num_epochs 500 \
-    --train_batch_size 32 \
-    --eval_batch_size 32 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
     --wandb_run_name task1_adm \
     --calculate_fid \
     --calculate_is \
