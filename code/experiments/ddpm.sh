@@ -23,11 +23,10 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_unet_ddpm_linear_attention_head_dim_64 \
+    --wandb_run_name liang_unet_ddpm_linear_attention_layers_per_block_4 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
 
 
 #python main.py \
