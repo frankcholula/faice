@@ -111,6 +111,12 @@ def parse_args():
         default="base",
         help="Which UNet variant to use when --model==unet",
     )
+    model_group.add_argument(
+        "--layers_per_block",
+        type=int,
+        default=2,
+        help="Number of layers per block for UNet (if applicable)",
+    )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
     model_group.add_argument("--pipeline", help="Training pipeline")
