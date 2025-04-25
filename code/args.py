@@ -123,6 +123,13 @@ def parse_args():
         default=128,
         help="Base channels for UNet (if applicable)",
     )
+
+    model_group.add_argument(
+        "--attention_head_dim",
+        type=int,
+        default=256,
+        help="Attention head dimension for UNet (if applicable)",
+    )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
     model_group.add_argument("--pipeline", help="Training pipeline")
