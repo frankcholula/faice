@@ -9,7 +9,7 @@ from diffusers import AutoencoderKL
 
 
 def create_vae(config):
-    vae = AutoencoderKL.from_pretrained(
+    vae = AutoencoderKL(
         sample_size=config.image_size,  # the target image resolution
         in_channels=3,  # the number of input channels, 3 for RGB images
         out_channels=3,  # the number of output channels
