@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# This is after all the optimizations for ADM.
 python main.py \
     --dataset face \
     --scheduler ddpm \

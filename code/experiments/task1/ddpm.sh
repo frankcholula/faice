@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# This is baseline for DDPM.
 python main.py \
     --dataset face \
     --scheduler ddpm \
