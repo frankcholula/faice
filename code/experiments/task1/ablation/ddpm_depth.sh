@@ -11,6 +11,6 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 28 \
     --eval_batch_size 28 \
-    --wandb_run_name task1_ddpm_depth_ablation \
+    --wandb_run_name task1_ddpm_depth_ablation_otter \
     --calculate_fid \
     --calculate_is
