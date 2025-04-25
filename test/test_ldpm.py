@@ -44,7 +44,8 @@ with torch.no_grad():
     image = vqvae.decode(image)
 
 # process image
-image_processed = image.cpu().permute(0, 2, 3, 1)
+image = image.to("cpu")
+image_processed = image.permute(0, 2, 3, 1)
 image_processed = (image_processed + 1.0) * 127.5
 image_processed = image_processed.clamp(0, 255).numpy().astype(np.uint8)
 image_pil = PIL.Image.fromarray(image_processed[0])
