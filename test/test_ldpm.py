@@ -41,7 +41,7 @@ for t in tqdm.tqdm(scheduler.timesteps):
 
 # decode image with vae
 with torch.no_grad():
-    image = vqvae.decode(image)
+    image = vqvae.decode(image).sample
 
 # process image
 image_processed = image.permute(0, 2, 3, 1)
