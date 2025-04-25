@@ -101,11 +101,12 @@ def train_loop(
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
+                    model_path = f"{config.output_dir}/checkpoints/model_vqvae.pth"
                     torch.save({
                         'model_state_dict': model.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
                         'loss': loss,
-                    }, config.output_dir)
+                    }, model_path)
 
             progress_bar.close()
 
