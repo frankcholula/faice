@@ -36,6 +36,41 @@ class DDPMUNet(UNet2DModel):
     """This class mirrors the DDPM paper. I've tweaked it to work with 128 x 128 images."""
 
     def __init__(self, config):
+        if config.multi_res:
+            # this is basically the same structure as the ADMUNet
+            down_block_types = (
+                "DownBlock2D",  # 128 -> 64
+                "DownBlock2D",  # 64 -> 32
+                "AttnDownBlock2D",  # 32 -> 16
+                "AttnDownBlock2D",  # 16 -> 8
+                "AttnDownBlock2D",  # 8 -> 4
+                "DownBlock2D",  # 4 -> 2
+            )
+            up_block_types = (
+                "UpBlock2D",  # 2 -> 4
+                "AttnUpBlock2D",  # 4 -> 8
+                "AttnUpBlock2D",  # 8 -> 16
+                "AttnUpBlock2D",  # 16 -> 32
+                "UpBlock2D",  # 32 -> 64
+                "UpBlock2D",  # 64 -> 128
+            )
+        else:
+            down_block_types = (
+                "DownBlock2D",  # 128 -> 64
+                "DownBlock2D",  # 64 -> 32
+                "DownBlock2D",  # 32 -> 16
+                "AttnDownBlock2D",  # 16 -> 8
+                "DownBlock2D",  # 8 -> 4
+                "DownBlock2D",  # 4 -> 2
+            )
+            up_block_types = (
+                "UpBlock2D",  # 2 -> 4
+                "UpBlock2D",  # 4 -> 8
+                "AttnUpBlock2D",  # 8 -> 16
+                "UpBlock2D",  # 16 -> 32
+                "UpBlock2D",  # 32 -> 64
+                "UpBlock2D",  # 64 -> 128
+            )
         super().__init__(
             sample_size=config.image_size,
             in_channels=3,
@@ -46,22 +81,8 @@ class DDPMUNet(UNet2DModel):
             block_out_channels=tuple(
                 config.base_channels * m for m in (1, 1, 2, 2, 4, 4)
             ),
-            down_block_types=(
-                "DownBlock2D",  # 128 -> 64
-                "DownBlock2D",  # 64 -> 32
-                "DownBlock2D",  # 32 -> 16
-                "AttnDownBlock2D",  # 16 -> 8
-                "DownBlock2D",  # 8 -> 4
-                "DownBlock2D",  # 4 -> 2
-            ),
-            up_block_types=(
-                "UpBlock2D",  # 2 -> 4
-                "UpBlock2D",  # 4 -> 8
-                "AttnUpBlock2D",  # 8 -> 16
-                "UpBlock2D",  # 16 -> 32
-                "UpBlock2D",  # 32 -> 64
-                "UpBlock2D",  # 64 -> 128
-            ),
+            down_block_types=down_block_types,
+            up_block_types=up_block_types,
         )
 
 
@@ -133,4 +154,5 @@ def create_unet(config):
             if isinstance(blk, UNet2DModel.AttnUpBlock2D):
                 blk.attn1.num_attention_heads = n_heads
                 blk.attn1.attention_head_dim = ch // n_heads
+
     return model
