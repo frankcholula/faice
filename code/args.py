@@ -67,9 +67,9 @@ def create_pipeline(pipeline: str):
         return ldpm.train_loop
     elif pipeline.lower() == 'ditpipline':
         return dit.train_loop
-    elif pipeline.lower() == 'vqvae_train':
+    elif pipeline.lower() == 'vqvae':
         return vqvae_train.train_loop
-    elif pipeline.lower() == 'vae_train':
+    elif pipeline.lower() == 'vae':
         return vae_train.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
