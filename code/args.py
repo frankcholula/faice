@@ -131,9 +131,9 @@ def parse_args():
     )
     model_group.add_argument(
         "--fixed_head",
-        action="store_true",
-        default=False,
-        help="Use fixed attention head dimension for UNet (if applicable)",
+        type=int,
+        default=0,
+        help="If > 0, fix the number of attention heads to this value",
     )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")

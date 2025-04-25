@@ -123,13 +123,14 @@ def create_unet(config):
             f"Choose from {list(ARCHITECTURES)}"
         )
     model = cls(config)
-    if config.fixed_head:
+    n_heads = config.fixed_head
+    if n_heads > 0:
         for blk, ch in zip(model.down_blocks, model.config.block_out_channels):
             if isinstance(blk, UNet2DModel.AttnDownBlock2D):
-                blk.attn1.num_attention_heads = 4
-                blk.attn1.attention_head_dim = ch // 4
+                blk.attn1.num_attention_heads = n_heads
+                blk.attn1.attention_head_dim = ch // n_heads
         for blk, ch in zip(model.up_blocks, reversed(model.config.block_out_channels)):
             if isinstance(blk, UNet2DModel.AttnUpBlock2D):
-                blk.attn1.num_attention_heads = 4
-                blk.attn1.attention_head_dim = ch // 4
+                blk.attn1.num_attention_heads = n_heads
+                blk.attn1.attention_head_dim = ch // n_heads
     return model
