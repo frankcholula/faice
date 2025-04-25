@@ -13,4 +13,5 @@ python main.py \
     --eval_batch_size 28 \
     --wandb_run_name task1_ddpm_depth_ablation_otter \
     --calculate_fid \
-    --calculate_is
+    --calculate_is \
+    --verbose
