@@ -43,7 +43,9 @@ class DDPMUNet(UNet2DModel):
             layers_per_block=config.layers_per_block,
             attention_head_dim=256,  # 256 for single head attention at the 16 x 16 resolution.
             time_embedding_type="positional",
-            block_out_channels=(128, 128, 256, 256, 512, 512),
+            block_out_channels=tuple(
+                config.base_channels * m for m in (1, 1, 2, 2, 4, 4)
+            ),
             down_block_types=(
                 "DownBlock2D",  # 128 -> 64
                 "DownBlock2D",  # 64 -> 32

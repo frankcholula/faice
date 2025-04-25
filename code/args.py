@@ -117,6 +117,13 @@ def parse_args():
         default=2,
         help="Number of layers per block for UNet (if applicable)",
     )
+    model_group.add_argument(
+        "--base_channels",
+        nargs=6,
+        default=128,
+        type=int,
+        help="Base channels for UNet (if applicable)",
+    )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
     model_group.add_argument("--pipeline", help="Training pipeline")
