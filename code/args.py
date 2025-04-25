@@ -119,9 +119,8 @@ def parse_args():
     )
     model_group.add_argument(
         "--base_channels",
-        nargs=6,
-        default=128,
         type=int,
+        default=128,
         help="Base channels for UNet (if applicable)",
     )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
