@@ -5,15 +5,15 @@
 @File : vae_train.py
 @Project : code
 """
+import os
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Configuration
-from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
-from models.vqmodel import create_vqmodel
+from models.vae import create_vae
 from utils.plot import plot_images
 
 
@@ -61,14 +61,13 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 encoded = model.encode(clean_images)
-                z = encoded.latents
-                quantized_z, loss, _ = model.quantize(z)
-                decoded = model.decode(quantized_z, force_not_quantize=True)[0]
+                z = encoded.latent_dist.sample()
+                decoded = model.decode(z)[0]
 
                 # 计算 loss
                 rec_loss = F.mse_loss(clean_images, decoded)
-                quant_loss = loss
-                loss = rec_loss + quant_loss * 0.0025
+                kl_loss = encoded.latent_dist.kl().mean()
+                loss = rec_loss + kl_loss * 0.0025
 
                 accelerator.backward(loss)
 
@@ -92,26 +91,20 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = selected_pipeline(
-                vqvae=accelerator.unwrap_model(vqvae),
-                unet=accelerator.unwrap_model(model),
-                scheduler=noise_scheduler
-            )
 
-            generate_samples = (
-                                       epoch + 1
-                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
                                  epoch + 1
                          ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
 
-            if generate_samples:
-                evaluate(config, epoch, pipeline)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    pipeline.save_pretrained(config.output_dir)
+                    torch.save({
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'loss': loss,
+                    }, config.output_dir)
 
             progress_bar.close()
 
@@ -121,42 +114,22 @@ def train_loop(
             and config.calculate_fid
             and test_dataloader is not None
     ):
-        pipeline = selected_pipeline(
-            unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
-        )
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        vae_inference(config.output_dir, config)
 
-        wandb_logger.log_fid_score(fid_score)
-
-    if (
-            accelerator.is_main_process
-            and config.calculate_is
-            and test_dataloader is not None
-    ):
-        inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device
-        )
-        wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
 
 
-def vqvae_inference(model_path, config, test_dataloader):
+def vae_inference(model_path, config):
     checkpoint = torch.load(model_path)
-    vqvae = create_vqmodel(config)
-    vqvae.load_state_dict(checkpoint['model_state_dict'])
+    vae = create_vae(config)
+    vae.load_state_dict(checkpoint['model_state_dict'])
 
-    vqvae.eval()
-    for batch in test_dataloader:
-        encoded = vqvae.encode(batch)
-        z = encoded.latents
-        generated_images = (z / 2 + 0.5).clamp(0, 1)
-        plot_images(generated_images, save_dir=config.proj_name, save_title="z", cols=9)
-
-        quantized_z, _, _ = vqvae.quantize(z)
-        generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
-        plot_images(generated_images, save_dir=config.proj_name, save_title="quantized_z", cols=9)
-
-        decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
-        generated_images = (decoded / 2 + 0.5).clamp(0, 1)
-        plot_images(generated_images, save_dir=config.proj_name, save_title="decoded", cols=9)
-        break
+    vae.eval()
+    with torch.no_grad():
+        noise = torch.randn(81, 16, 16, 16).to(config.device)
+        generated_images = vae.decode(noise).sample
+        generated_images = (generated_images / 2 + 0.5).clamp(0, 1)
+        img_dir = f"{config.output_dir}/samples"
+        if not os.path.exists(img_dir):
+            os.makedirs(img_dir)
+        plot_images(generated_images, img_dir, save_title="vae_decode", cols=9)

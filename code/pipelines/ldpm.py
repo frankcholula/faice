@@ -53,7 +53,7 @@ def train_loop(
 
     global_step = 0
 
-    vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
+    vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
     vqvae.scaling_factor = 1.0
 
     # Now you train the model
