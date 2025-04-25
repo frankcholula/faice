@@ -668,6 +668,26 @@ files = [
 ]
 
 [[package]]
+name = "clean-fid"
+version = "0.1.35"
+description = "FID calculation in PyTorch with proper image resizing and quantization steps"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "clean_fid-0.1.35-py3-none-any.whl", hash = "sha256:757cf49d75debe9b07ab14955fe59c845a296deaf0616153b40c5e75b3cf87fb"},
+]
+
+[package.dependencies]
+numpy = ">=1.14.3"
+pillow = ">=8.1"
+requests = "*"
+scipy = ">=1.0.1"
+torch = "*"
+torchvision = "*"
+tqdm = ">=4.28.1"
+
+[[package]]
 name = "click"
 version = "8.1.8"
 description = "Composable command line interface toolkit"
@@ -5686,4 +5706,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <4.0"
-content-hash = "7bfde2d37106b57ff95040fa8683f057adbabd49d58befeb68cc67c5878563c1"
+content-hash = "3d491ecdb76d498deb82eefdc69e4ff4fa55fe44de016d04bba28af06a06d8c7"
