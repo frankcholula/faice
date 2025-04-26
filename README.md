@@ -47,7 +47,7 @@ python main.py \
 ```
 Please use the `--verbose` flag to check your parameters before running the experiments.
 
-⚠️ **Unless you're running hyperparameter tuning, please make sure yoru experiement batch size is consistent for the ablation study** ⚠️
+⚠️ **Unless you're running hyperparameter tuning, please make sure yoru experiement batch size is consistent for the ablation study**
 1. If you're running the experiments on `Otter`, please lock the batch size to `24` for memory reasons. 
 2. If you're running the experiments on `Eureka2`, please set the batch size to `64` for faster training.
 
@@ -60,4 +60,4 @@ Please use the provided API key and entity in the `.env` file in order to store 
 # sample .env file WANDB_ENTITY=<your_wandb_entity>
 WANDB_API_KEY=<your_wandb_api_key>
 ```
-⚠️ **DO NOT COMMIT THE CREDENTIALS** ⚠️
+🚨 **DO NOT COMMIT THE CREDENTIALS**
