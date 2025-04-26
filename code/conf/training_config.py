@@ -17,6 +17,8 @@ class BaseConfig:
     scheduler: str = "ddpm"
     beta_schedule: str = "linear"
     pipeline: str = "ddpm"
+    prediction_type: str = "epsilon"
+    rescale_betas_zero_snr: bool = False
 
     # dataset params need to be set by subclass
     dataset: str = None
