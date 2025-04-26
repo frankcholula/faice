@@ -100,12 +100,14 @@ def train_loop(
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    model_path = f"{config.output_dir}/checkpoints/model_vae.pth"
+                    model_path = f"{config.output_dir}/checkpoints"
+                    if not os.path.exists(model_path):
+                        os.makedirs(model_path)
                     torch.save({
                         'model_state_dict': model.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
                         'loss': loss,
-                    }, model_path)
+                    }, model_path + '/model_vae.pth')
 
             progress_bar.close()
 
