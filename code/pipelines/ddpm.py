@@ -76,21 +76,24 @@ def train_loop(
                     loss = F.mse_loss(noise_pred, noise)
                 elif noise_scheduler.config.prediction_type == "v_prediction":
                     # manually calculate velocity
-                    alphas_cumprod = noise_scheduler.alphas_cumprod.to(clean_images.device)
+                    alphas_cumprod = noise_scheduler.alphas_cumprod.to(
+                        clean_images.device
+                    )
                     sqrt_alpha_prod = alphas_cumprod[timesteps] ** 0.5
                     sqrt_one_minus_alpha_prod = (1 - alphas_cumprod[timesteps]) ** 0.5
                     # reshape to match the shape of clean_images
                     sqrt_alpha_prod = sqrt_alpha_prod.view(-1, 1, 1, 1)
-                    sqrt_one_minus_alpha_prod = sqrt_one_minus_alpha_prod.view(-1, 1, 1, 1)
-                    v = sqrt_alpha_prod * noise - sqrt_one_minus_alpha_prod * clean_images
+                    sqrt_one_minus_alpha_prod = sqrt_one_minus_alpha_prod.view(
+                        -1, 1, 1, 1
+                    )
+                    v = (
+                        sqrt_alpha_prod * noise
+                        - sqrt_one_minus_alpha_prod * clean_images
+                    )
 
                     # Predict velocity
                     v_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(v_pred, v)
-
-                # # Predict the noise residual
-                # noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
-                # loss = F.mse_loss(noise_pred, noise)
 
                 accelerator.backward(loss)
 
