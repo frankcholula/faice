@@ -4,28 +4,27 @@ EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation wit
 ## Code Layout
 ```bash
 faice/code
-├── Makefile
-├── Training_Diffusion_Models.ipynb
-├── args.py
-├── conf
-│   └── training_config.py
-├── datasets
-│   └── celeba_hq_split
-├── main.py
-├── models
-│   └── unet.py
-├── pipelines
-│   └── ddpm.py
-├── runs
-│   ├── ddpm-face-10
-│   └── ddpm-butterfly-10
-├── tests
-├── utils
-│   ├── loggers.py
-│   ├── metrics.py
-│   └── training.py
-└── wandb
+├── code
+│   ├── args.py
+│   ├── conf
+│   ├── datasets
+│   ├── eda
+│   ├── experiments
+│   ├── main.py
+│   ├── Makefile
+│   ├── models
+│   ├── pipelines
+│   ├── runs
+│   └── utils
+├── docs
+├── environment.yml
+├── LICENSE
+├── poetry.lock
+├── pyproject.toml
+├── README.md
+└── Surrey_CSEE_Thesis_Template
 ```
+
 ## Running the Experiments
 Pleas see the `experiments` folder for running the experments.
 You have the option to use the `Makefile` as well. 
