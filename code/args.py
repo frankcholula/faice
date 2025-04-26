@@ -64,10 +64,8 @@ def parse_args():
 
     # define argument groups
     dataset_group = parser.add_argument_group("Dataset and Augmentation")
-    # TODO: tweak hyperparameters for training in training_group
     training_group = parser.add_argument_group("Training and Evaluation")
     logging_group = parser.add_argument_group("Logging and Output")  # Don't touch this
-    # TODO: implement more models, schedulers, and pipelines in model_group
     model_group = parser.add_argument_group("Model, Scheduler, and Pipeline")
 
     dataset_group.add_argument(
