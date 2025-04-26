@@ -9,29 +9,30 @@ from conf.training_config import get_config, get_all_datasets
 
 
 def create_scheduler(
-        scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000, 
-        prediction_type: str = "epsilon", rescale_betas_zero_snr: bool = False
+    scheduler: str,
+    beta_schedule: str,
+    num_train_timesteps: int,
+    prediction_type: str,
+    rescale_betas_zero_snr: bool,
 ):
     if scheduler.lower() == "ddpm":
         return DDPMScheduler(
-            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule,
-            prediction_type=prediction_type, rescale_betas_zero_snr=rescale_betas_zero_snr
+            num_train_timesteps=num_train_timesteps,
+            beta_schedule=beta_schedule,
+            prediction_type=prediction_type,
+            rescale_betas_zero_snr=rescale_betas_zero_snr,
         )
     elif scheduler.lower() == "ddim":
         return DDIMScheduler(
-            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule,
-            prediction_type=prediction_type, rescale_betas_zero_snr=rescale_betas_zero_snr
+            num_train_timesteps=num_train_timesteps,
+            beta_schedule=beta_schedule,
+            prediction_type=prediction_type,
+            rescale_betas_zero_snr=rescale_betas_zero_snr,
         )
     elif scheduler.lower() == "pndm":
         return PNDMScheduler(
             num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
         )
-    elif scheduler.lower() == "cmstochastic":
-        return CMStochasticIterativeScheduler(num_train_timesteps=num_train_timesteps)
-    elif scheduler.lower() not in ["ddpm", "ddim", "pndm", "cmstochastic"]:
-        raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
-    elif beta_schedule.lower() not in ["linear", "squaredcos_cap_v2"]:
-        raise ValueError(f"Noise schedule type '{beta_schedule}' is not supported.")
     else:
         raise ValueError(
             f"Scheduler type '{scheduler}' or noise scheduler type '{beta_schedule}' is not supported."
@@ -52,7 +53,7 @@ def create_pipeline(pipeline: str):
         return ddim.train_loop
     # elif pipeline.lower() == "pndm":
     #     return pndm.train_loop
-    elif pipeline.lower() == 'consistency':
+    elif pipeline.lower() == "consistency":
         return consistency.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
@@ -95,7 +96,7 @@ def parse_args():
         "--num_epochs", type=int, help="Number of training epochs"
     )
     training_group.add_argument(
-        "--num_train_timesteps", type=int, help="Number of training steps"
+        "--num_train_timesteps", type=int, default=1000, help="Number of training steps"
     )
     training_group.add_argument(
         "--num_inference_steps", type=int, help="Number of inference steps"
@@ -160,15 +161,29 @@ def parse_args():
         default="conv",
         help="Upsample type for DDPMUNet (if applicable)",
     )
-    model_group.add_argument("--scheduler", help="Sampling scheduler")
-    model_group.add_argument("--beta_schedule", help="Beta schedule")
+    model_group.add_argument(
+        "--scheduler",
+        choices=["ddpm", "ddim", "pndm", "cmstochastic"],
+        default="ddpm",
+        help="Sampling scheduler",
+    )
+    model_group.add_argument(
+        "--beta_schedule",
+        choices=["linear", "squaredcos_cap_v2"],
+        default="linear",
+        help="Beta schedule",
+    )
     model_group.add_argument("--pipeline", help="Training pipeline")
     model_group.add_argument(
         "--rescale_betas_zero_snr",
+        action="store_true",
+        default=False,
         help="Rescale betas to zero at the end of the training",
     )
     model_group.add_argument(
         "--prediction_type",
+        choices=["epsilon", "v_prediction"],
+        default="epsilon",
         help="Prediction type for sampling (epsilon or v)",
     )
 
@@ -242,7 +257,11 @@ def get_config_and_components():
         print("\nSkipping confirmation as --no_confirm flag is set.")
     model = create_model(config.model, config)
     scheduler = create_scheduler(
-        config.scheduler, config.beta_schedule, config.num_train_timesteps
+        config.scheduler,
+        config.beta_schedule,
+        config.num_train_timesteps,
+        config.prediction_type,
+        config.rescale_betas_zero_snr,
     )
     pipeline = create_pipeline(config.pipeline)
 
