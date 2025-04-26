@@ -17,5 +17,5 @@ python main.py \
     --eval_batch_size 24 \
     --wandb_run_name task1_ddpm_base \
     --calculate_fid \
-    --calculate_is
+    --calculate_is \
     --verbose
