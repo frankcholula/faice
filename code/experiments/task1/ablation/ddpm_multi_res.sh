@@ -15,8 +15,8 @@ python main.py \
     --fixed_heads 1 \
     --image_size 128 \
     --num_epochs 500 \
-    --train_batch_size 20 \
-    --eval_batch_size 20 \
+    --train_batch_size 24 \
+    --eval_batch_size 24 \
     --wandb_run_name task1_ddpm_multi_res_ablation \
     --calculate_fid \
     --calculate_is \
