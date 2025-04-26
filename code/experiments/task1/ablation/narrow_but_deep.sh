@@ -10,8 +10,8 @@ python main.py \
     --model unet \
     --unet_variant ddpm \
     --layers_per_block 4 \
-    --base_channels 64 \
-    --attention_head_dim 128 \
+    --base_channels 96 \
+    --attention_head_dim 192 \
     --upsample_type conv \
     --downsample_type conv \
     --image_size 128 \
