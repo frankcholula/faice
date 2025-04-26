@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#wandb artifact cache cleanup 1GB --remove-temp
+
 #python main.py \
 #    --dataset face \
 #    --scheduler ddpm \
@@ -14,6 +16,20 @@
 #    --gblur
 #    --RHFlip
 
+#python main.py \
+#    --dataset face \
+#    --scheduler ddpm \
+#    --beta_schedule linear \
+#    --model unet \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_unet_ddpm_linear_attention_layers_per_block_4 \
+#    --calculate_fid \
+#    --calculate_is \
+#    --no_confirm
+
 python main.py \
     --dataset face \
     --scheduler ddpm \
@@ -23,7 +39,7 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_unet_ddpm_linear_attention_layers_per_block_4 \
+    --wandb_run_name liang_unet_ddpm_linear_downsample_padding_0 \
     --calculate_fid \
     --calculate_is \
     --no_confirm

@@ -7,13 +7,14 @@ def create_unet(config):
         in_channels=3,  # the number of input channels, 3 for RGB images
         out_channels=3,  # the number of output channels
         attention_head_dim=8,
-        layers_per_block=4,  # how many ResNet layers to use per UNet block
+        layers_per_block=2,  # how many ResNet layers to use per UNet block
 
         # Setting from google/ddpm-celebahq-256
-        # downsample_padding=0,
-        # flip_sin_to_cos=False,
-        # freq_shift=1,
-        # norm_eps=1e-6,
+        downsample_padding=0,
+        flip_sin_to_cos=False,
+        freq_shift=1,
+        norm_eps=1e-6,
+
         block_out_channels=(
             128,
             128,
