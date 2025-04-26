@@ -5,7 +5,6 @@ from pipelines import ddpm, ddim, consistency
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from diffusers.schedulers import CMStochasticIterativeScheduler
 from models.unet import create_unet
-from models.unet_resnet import create_unet_resnet
 from conf.training_config import get_config, get_all_datasets
 
 
@@ -28,9 +27,7 @@ def create_scheduler(
             num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
         )
     elif scheduler.lower() == "cmstochastic":
-        return CMStochasticIterativeScheduler(
-            num_train_timesteps=num_train_timesteps
-        )
+        return CMStochasticIterativeScheduler(num_train_timesteps=num_train_timesteps)
     elif scheduler.lower() not in ["ddpm", "ddim", "pndm", "cmstochastic"]:
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
     elif beta_schedule.lower() not in ["linear", "squaredcos_cap_v2"]:
@@ -44,8 +41,6 @@ def create_scheduler(
 def create_model(model: str, config):
     if model.lower() == "unet":
         return create_unet(config)
-    if model.lower() == "unet_resnet":
-        return create_unet_resnet(config)
     else:
         raise ValueError(f"Model type '{model}' is not supported.")
 
@@ -117,6 +112,54 @@ def parse_args():
     )
 
     model_group.add_argument("--model", help="Model architecture")
+    model_group.add_argument(
+        "--unet_variant",
+        choices=["base", "ddpm", "adm"],
+        default="base",
+        help="Which UNet variant to use when --model==unet",
+    )
+    model_group.add_argument(
+        "--layers_per_block",
+        type=int,
+        default=2,
+        help="Number of layers per block for UNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--base_channels",
+        type=int,
+        default=128,
+        help="Base channels for UNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--multi_res",
+        action="store_true",
+        default=False,
+        help="Use multi-resolution attention for DDPMUNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--attention_head_dim",
+        type=int,
+        default=256,
+        help="Attention head dimension for DDPMUNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--fixed_heads",
+        type=int,
+        default=0,
+        help="If > 0, fix the number of attention heads to this value",
+    )
+    model_group.add_argument(
+        "--downsample_type",
+        choices=["conv", "resnet"],
+        default="conv",
+        help="Downsample type for DDPMUNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--upsample_type",
+        choices=["conv", "resnet"],
+        default="conv",
+        help="Upsample type for DDPMUNet (if applicable)",
+    )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
     model_group.add_argument("--pipeline", help="Training pipeline")
@@ -155,9 +198,13 @@ def parse_args():
             elif key != "dataset":
                 setattr(config, key, value)
     if config.wandb_run_name is None:
-        config.wandb_run_name = f"{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
+        config.wandb_run_name = (
+            f"{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
+        )
     if config.output_dir is None:
-        config.output_dir = f"runs/{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
+        config.output_dir = (
+            f"runs/{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
+        )
     return config
 
 
@@ -167,6 +214,8 @@ def get_config_and_components():
 
     print(f"Selected dataset: {config.dataset} ({config.dataset_name})")
     print(f"Selected model: {config.model}")
+    if config.model == "unet":
+        print(f"Selected UNet variant: {config.unet_variant}")
     print(f"Selected scheduler: {config.scheduler}")
     print(f"Selected pipeline: {config.pipeline}")
     print(f"W&B run name: {config.wandb_run_name}")
@@ -192,7 +241,9 @@ def get_config_and_components():
     else:
         print("\nSkipping confirmation as --no_confirm flag is set.")
     model = create_model(config.model, config)
-    scheduler = create_scheduler(config.scheduler, config.beta_schedule, config.num_train_timesteps)
+    scheduler = create_scheduler(
+        config.scheduler, config.beta_schedule, config.num_train_timesteps
+    )
     pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline
