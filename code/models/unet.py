@@ -1,5 +1,6 @@
 from diffusers import UNet2DModel
-from diffusers.models.unets.unet_2d_blocks import AttnDownBlock2D, AttnUpBlock2D
+from diffusers.models.attention
+from diffusers.models.unets.unet_2d_blocks import KAttentionBlock
 
 
 class BaseUNet(UNet2DModel):
@@ -149,13 +150,8 @@ def create_unet(config):
     model = cls(config)
     n_heads = config.fixed_heads
     if n_heads > 0:
-        for blk, ch in zip(model.down_blocks, model.config.block_out_channels):
-            if isinstance(blk, AttnDownBlock2D):
-                blk.attn1.num_attention_heads = n_heads
-                blk.attn1.attention_head_dim = ch // n_heads
-        for blk, ch in zip(model.up_blocks, reversed(model.config.block_out_channels)):
-            if isinstance(blk, AttnDownBlock2D):
-                blk.attn1.num_attention_heads = n_heads
-                blk.attn1.attention_head_dim = ch // n_heads
-
+        for sub in model.modules():
+            if isinstance(sub, KAttentionBlock):
+                sub.num_attention_heads = n_heads
+                sub.attention_head_dim = sub.embed_dim // n_heads
     return model
