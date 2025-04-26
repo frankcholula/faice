@@ -1,5 +1,4 @@
 from diffusers import UNet2DModel
-from diffusers.models.attention
 from diffusers.models.unets.unet_2d_blocks import KAttentionBlock
 
 
