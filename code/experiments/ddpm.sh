@@ -30,34 +30,34 @@
 #    --calculate_is \
 #    --no_confirm
 
-python main.py \
-    --dataset face \
-    --scheduler ddpm \
-    --beta_schedule linear \
-    --model unet \
-    --image_size 128 \
-    --num_epochs 500 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
-    --wandb_run_name liang_unet_ddpm_linear_downsample_padding_0 \
-    --calculate_fid \
-    --calculate_is \
-    --no_confirm
-
-
 #python main.py \
 #    --dataset face \
 #    --scheduler ddpm \
 #    --beta_schedule linear \
-#    --model unet_resnet512 \
+#    --model unet \
 #    --image_size 128 \
 #    --num_epochs 500 \
 #    --train_batch_size 64 \
 #    --eval_batch_size 64 \
-#    --wandb_run_name liang_unet_resnet512_ddpm_linear_3attention_head_dim8 \
+#    --wandb_run_name liang_unet_ddpm_linear_downsample_padding_0 \
 #    --calculate_fid \
 #    --calculate_is \
 #    --no_confirm
+
+
+python main.py \
+    --dataset face \
+    --scheduler ddpm \
+    --beta_schedule linear \
+    --model unet_resnet512 \
+    --image_size 128 \
+    --num_epochs 500 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
+    --wandb_run_name liang_unet_resnet512_ddpm_linear_3attention_3ResnetSample \
+    --calculate_fid \
+    --calculate_is \
+    --no_confirm
 
 #python main.py \
 #    --dataset face \
