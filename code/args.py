@@ -111,6 +111,48 @@ def parse_args():
         default="base",
         help="Which UNet variant to use when --model==unet",
     )
+    model_group.add_argument(
+        "--layers_per_block",
+        type=int,
+        default=2,
+        help="Number of layers per block for UNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--base_channels",
+        type=int,
+        default=128,
+        help="Base channels for UNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--multi_res",
+        action="store_true",
+        default=False,
+        help="Use multi-resolution attention for DDPMUNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--attention_head_dim",
+        type=int,
+        default=256,
+        help="Attention head dimension for DDPMUNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--fixed_heads",
+        type=int,
+        default=0,
+        help="If > 0, fix the number of attention heads to this value",
+    )
+    model_group.add_argument(
+        "--downsample_type",
+        choices=["conv", "resnet"],
+        default="conv",
+        help="Downsample type for DDPMUNet (if applicable)",
+    )
+    model_group.add_argument(
+        "--upsample_type",
+        choices=["conv", "resnet"],
+        default="conv",
+        help="Upsample type for DDPMUNet (if applicable)",
+    )
     model_group.add_argument("--scheduler", help="Sampling scheduler")
     model_group.add_argument("--beta_schedule", help="Beta schedule")
     model_group.add_argument("--pipeline", help="Training pipeline")
