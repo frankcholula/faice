@@ -10,10 +10,10 @@ python main.py \
     --unet_variant ddpm \
     --attention_head_dim 64 \
     --multi_res \
-    --upsample_type conv \
-    --downsample_type conv \
     --fixed_heads 1 \
     --image_size 128 \
+    --upsample_type conv \
+    --downsample_type conv \
     --num_epochs 500 \
     --train_batch_size 24 \
     --eval_batch_size 24 \
