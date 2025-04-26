@@ -50,6 +50,8 @@ Please use the `--verbose` flag to check your parameters before running the expe
 1. If you're running the experiments on `Otter`, please lock the batch size to `24` for memory reasons. 
 2. If you're running the experiments on `Eureka2`, please set the batch size to `64` for faster training.
 
+After you've run the experiments, please documen the results in the Notion [page](https://frankcholula.notion.site/faice?pvs=4).
+
 ## Dataset
 As seen in the code layout above, please download the attached dataset `celeba_hq_split.zip` from the email and extract it into the `datasets` folder in order to run the code.
 
