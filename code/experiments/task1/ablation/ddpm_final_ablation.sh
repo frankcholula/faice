@@ -14,8 +14,8 @@ python main.py \
     --upsample_type resnet \
     --downsample_type resnet \
     --num_epochs 500 \
-    --train_batch_size 24 \
-    --eval_batch_size 24 \
+    --train_batch_size 32 \
+    --eval_batch_size 32 \
     --wandb_run_name task1_ddpm_final_ablation_otter \
     --calculate_fid \
     --calculate_is \
