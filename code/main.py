@@ -2,7 +2,6 @@ import os
 import glob
 
 import torch
-from torchvision import transforms
 
 from PIL import Image
 from args import get_config_and_components
@@ -10,8 +9,9 @@ from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
 from utils.transforms import build_transforms
 
+
 def setup_dataset(config):
-    preprocess = transforms.Compose(build_transforms(config))
+    transform_train, transform_test = build_transforms(config)
 
     if isinstance(config, FaceConfig):
         from torch.utils.data import Dataset, DataLoader
@@ -28,17 +28,18 @@ def setup_dataset(config):
             def __getitem__(self, idx):
                 img_path = self.image_paths[idx]
                 image = Image.open(img_path).convert("RGB")
+                image_name = os.path.splitext(os.path.basename(img_path))[0]
                 if self.transform:
                     image = self.transform(image)
-                return {"images": image}
+                return {"images": image, "image_names": image_name}
 
         train_dataset = CelebaAHQDataset(
-            root_dir=config.train_dir, transform=preprocess
+            root_dir=config.train_dir, transform=transform_train
         )
         train_dataloader = DataLoader(
             train_dataset, batch_size=config.train_batch_size, shuffle=True
         )
-        test_dataset = CelebaAHQDataset(root_dir=config.test_dir, transform=preprocess)
+        test_dataset = CelebaAHQDataset(root_dir=config.test_dir, transform=transform_test)
         test_dataloader = DataLoader(
             test_dataset, batch_size=config.eval_batch_size, shuffle=False
         )
@@ -49,7 +50,7 @@ def setup_dataset(config):
         dataset = load_dataset(config.dataset_name, split="train")
 
         def transform(examples):
-            images = [preprocess(image.convert("RGB")) for image in examples["image"]]
+            images = [transform_train(image.convert("RGB")) for image in examples["image"]]
             return {"images": images}
 
         dataset.set_transform(transform)
@@ -76,19 +77,19 @@ def main():
         try:
             # Determine device
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            
+
             # Move model to the device first
             model.to(device)
-            
+
             sample_batch = next(iter(train_dataloader))
             sample_image = sample_batch["images"].to(device)
-            
+
             if len(sample_image.shape) == 3:  # Add batch dimension if missing
                 sample_image = sample_image.unsqueeze(0)
-            
+
             # Create timestep tensor on the same device
             timestep = torch.tensor([0], device=device)
-            
+
             # Just check if the model runs
             _ = model(sample_image, timestep=timestep)
             print(f"Model sanity check passed on {device}!")
@@ -113,6 +114,7 @@ def main():
         print(f"Generated {len(sample_images)} sample images")
     except Exception as e:
         print(f"Error retrieving sample images: {e}")
+
 
 if __name__ == "__main__":
     main()

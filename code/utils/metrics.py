@@ -3,12 +3,12 @@ import wandb
 import torch
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
-from torchvision.transforms import functional as F
 from torchvision.utils import save_image
 from torchvision import transforms
 from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
+from cleanfid import fid
 
 
 def make_grid(images, rows, cols):
@@ -27,7 +27,7 @@ def evaluate(config, epoch, pipeline):
     images = pipeline(
         batch_size=batch_size,
         generator=torch.manual_seed(config.seed),
-        num_inference_steps=1000,
+        num_inference_steps=config.num_inference_steps,
     ).images
 
     # Make a grid out of the images
@@ -50,14 +50,13 @@ def evaluate(config, epoch, pipeline):
         )
 
 
-def preprocess_image(image, img_src, device, img_size):
+def preprocess_image(image, img_src, device):
     if img_src == "loaded":
-        image = (image + 1.0) / 2.0
+        return image
     elif img_src == "generated":
         image = torch.tensor(image, device=device)
         image = image.permute(0, 3, 1, 2)
-    image = F.resize(image, (img_size, img_size))
-    return image
+        return image
 
 
 def calculate_inception_score(config, pipeline, test_dataloader, device=None):
@@ -81,7 +80,6 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                         torch.cat(fake_images, dim=0),
                         img_src="loaded",
                         device=device,
-                        img_size=config.image_size,
                     )
                     inception_score.update(processed_fake)
                     fake_images = []
@@ -90,7 +88,6 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                     torch.cat(fake_images, dim=0),
                     img_src="loaded",
                     device=device,
-                    img_size=config.image_size,
                 )
                 inception_score.update(processed_fake)
         else:
@@ -101,13 +98,12 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                     ),
                     generator=torch.manual_seed(config.seed),
                     output_type="np",
-                    num_inference_steps=1000,
+                    num_inference_steps=config.num_inference_steps,
                 ).images
                 processed_fake = preprocess_image(
                     output,
                     img_src="generated",
                     device=device,
-                    img_size=config.image_size,
                 )
                 inception_score.update(processed_fake)
     inception_mean, inception_std = inception_score.compute()
@@ -123,7 +119,6 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     # Create FID instance with normalize=True since we'll provide images in [0,1] range
     fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
 
-    real_count = 0
     fake_count = 0
 
     if save:
@@ -134,25 +129,25 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
 
     with torch.no_grad():
         for batch in tqdm(
-            test_dataloader, desc="Loading Real Images for FID Calculation..."
+                test_dataloader, desc="Loading Real Images for FID Calculation..."
         ):
             real_images = batch["images"].to(device)
+            real_image_names = batch["image_names"]
             processed_real = preprocess_image(
                 real_images,
                 img_src="loaded",
                 device=device,
-                img_size=config.image_size,
             )
             if save:
-                for image in processed_real:
-                    save_image(image, os.path.join(real_dir, f"{real_count:03d}.jpg"))
-                    real_count += 1
+                for i, image in enumerate(processed_real):
+                    img_name = real_image_names[i]
+                    save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
             fid.update(processed_real, real=True)
 
     with torch.no_grad():
         for batch in tqdm(
-            range(0, len(test_dataloader.dataset), config.eval_batch_size),
-            desc="Loading Fake Images for FID Calculation..",
+                range(0, len(test_dataloader.dataset), config.eval_batch_size),
+                desc="Loading Fake Images for FID Calculation..",
         ):
             # Generate images as numpy arrays
             output = pipeline(
@@ -161,13 +156,12 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                 ),
                 generator=torch.manual_seed(config.seed + batch),
                 output_type="np",
-                num_inference_steps=1000,
+                num_inference_steps=config.num_inference_steps,
             ).images
             processed_fake = preprocess_image(
                 output,
                 img_src="generated",
                 device=device,
-                img_size=config.image_size,
             )
             if save:
                 for image in processed_fake:
@@ -181,7 +175,10 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
     # Compute final FID score
     fid_score = fid.compute().item()
     print(f"FID Score: {fid_score}")
-    return fid_score
+    clean_fid_score = calculate_clean_fid(real_dir, fake_dir)
+    min_fid_score = min(float(clean_fid_score), float(fid_score))
+    print(f"Minimum FID Score: {min_fid_score}")
+    return min_fid_score
 
 
 def get_full_repo_name(model_id: str, organization: str = None, token: str = None):
@@ -192,3 +189,11 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
         return f"{username}/{model_id}"
     else:
         return f"{organization}/{model_id}"
+
+
+def calculate_clean_fid(real_images_dir, fake_images_dir):
+    score = fid.compute_fid(real_images_dir, fake_images_dir)
+    fid_score = round(score, 5)
+
+    print(f"Clean FID score: {fid_score}")
+    return fid_score

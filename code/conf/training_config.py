@@ -17,6 +17,8 @@ class BaseConfig:
     scheduler: str = "ddpm"
     beta_schedule: str = "linear"
     pipeline: str = "ddpm"
+    prediction_type: str = "epsilon"
+    rescale_betas_zero_snr: bool = False
 
     # dataset params need to be set by subclass
     dataset: str = None
@@ -32,6 +34,8 @@ class BaseConfig:
     lr_warmup_steps: int = 500
     mixed_precision: str = "fp16"
     seed: int = 0
+    num_train_timesteps: int = 1000
+    num_inference_steps: int = 1000
 
     # saving params
     save_image_epochs: int = 5

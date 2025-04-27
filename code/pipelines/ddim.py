@@ -1,10 +1,11 @@
 # Deep learning framework
+
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import DDPMPipeline
+from diffusers import DDIMPipeline
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -117,7 +118,7 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = DDPMPipeline(
+            pipeline = DDIMPipeline(
                 unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
             )
 
@@ -147,7 +148,7 @@ def train_loop(
         and config.calculate_fid
         and test_dataloader is not None
     ):
-        pipeline = DDPMPipeline(
+        pipeline = DDIMPipeline(
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
