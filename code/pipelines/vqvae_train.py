@@ -9,6 +9,7 @@ import os
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
+from torchvision.utils import save_image
 
 # Configuration
 from utils.loggers import WandBLogger
@@ -134,16 +135,25 @@ def vqvae_inference(model_path, config, test_dataloader):
     vqvae.load_state_dict(checkpoint['model_state_dict'])
 
     vqvae.eval()
+
+    real_dir = os.path.join(config.output_dir, "fid", "real")
+    fake_dir = os.path.join(config.output_dir, "fid", "fake")
+    os.makedirs(real_dir, exist_ok=True)
+    os.makedirs(fake_dir, exist_ok=True)
+
+    fake_count = 0
+
     print(">" * 10, "Evaluate the vqvae model ...")
     for batch in test_dataloader:
-        clean_images = batch["images"]
-        encoded = vqvae.encode(clean_images)
+        real_images = batch["images"].to(device)
+        encoded = vqvae.encode(real_images)
         z = encoded.latents
 
         img_dir = f"{config.output_dir}/samples"
         if not os.path.exists(img_dir):
             os.makedirs(img_dir)
 
+        # Plot images
         generated_images = (z / 2 + 0.5).clamp(0, 1)
         plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
@@ -154,3 +164,21 @@ def vqvae_inference(model_path, config, test_dataloader):
         decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
         generated_images = (decoded / 2 + 0.5).clamp(0, 1)
         plot_images(generated_images, save_dir=img_dir, save_title="decoded", cols=9)
+
+        # Calculate FID
+        real_image_names = batch["image_names"]
+        for i, image in enumerate(real_images):
+            img_name = real_image_names[i]
+            save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
+
+        generated_images = torch.tensor(generated_images, device=device)
+        generated_images = generated_images.permute(0, 3, 1, 2)
+        for image in generated_images:
+            save_image(
+                image,
+                os.path.join(fake_dir, f"{fake_count:03d}.jpg"),
+            )
+            fake_count += 1
+
+    clean_fid_score = calculate_clean_fid(real_dir, fake_dir)
+

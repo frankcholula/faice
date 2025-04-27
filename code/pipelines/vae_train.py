@@ -121,7 +121,6 @@ def train_loop(
     ):
         model_path = f"{config.output_dir}/checkpoints/model_vae.pth"
         vae_inference(model_path, config)
-        vae_inference(config.output_dir, config)
 
     wandb_logger.finish()
 
