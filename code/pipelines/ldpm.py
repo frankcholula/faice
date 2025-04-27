@@ -21,6 +21,8 @@ from utils.training import setup_accelerator
 
 selected_pipeline = LDMPipeline
 
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 
 def train_loop(
         config,
@@ -53,8 +55,12 @@ def train_loop(
 
     global_step = 0
 
-    vqvae = VQModel.from_pretrained("runs/vqvae-vqvae-ddpm-face-20/checkpoints/")
-    vqvae.scaling_factor = 1.0
+    # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
+    vqmodel = VQModel().to(device)
+    vqmodel.load_state_dict(
+        torch.load("runs/vqvae-vqvae-ddpm-face-20/checkpoints/model_vqvae.pth", map_location=device)[
+            'state_dict'])
+    vqmodel.eval().requires_grad_(False)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -68,8 +74,6 @@ def train_loop(
             # Sample noise to add to the images
             bs = clean_images.shape[0]
 
-            vqvae.to(clean_images.device)
-
             # Sample a random timestep for each image
             # Add noise to the clean images according to the noise magnitude at each timestep
             # (this is the forward diffusion process)
@@ -81,14 +85,14 @@ def train_loop(
             ).long()
 
             # Encode image to latent space
-            latents = vqvae.encode(clean_images).latents
+            latents = vqmodel.encode(clean_images).latents
             # # Add noise (diffusion process)
             noise = torch.randn(latents.shape).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
 
-            with accelerator.accumulate([model, vqvae]):
+            with accelerator.accumulate([model, vqmodel]):
                 # Predict the noise residual
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
 
@@ -116,7 +120,7 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                vqvae=accelerator.unwrap_model(vqvae),
+                vqvae=accelerator.unwrap_model(vqmodel),
                 unet=accelerator.unwrap_model(model),
                 scheduler=noise_scheduler
             )
