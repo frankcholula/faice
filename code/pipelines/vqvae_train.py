@@ -171,7 +171,6 @@ def vqvae_inference(model_path, config, test_dataloader):
             img_name = real_image_names[i]
             save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
 
-        generated_images = torch.tensor(generated_images, device=device)
         generated_images = generated_images.permute(0, 3, 1, 2)
         for image in generated_images:
             save_image(
