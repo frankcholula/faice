@@ -134,7 +134,8 @@ def vqvae_inference(model_path, config, test_dataloader):
     vqvae.eval().requires_grad_(False)
     print(">"*10, "Evaluate the vqvae model ...")
     for batch in test_dataloader:
-        encoded = vqvae.encode(batch)
+        clean_images = batch["images"]
+        encoded = vqvae.encode(clean_images)
         z = encoded.latents
 
         img_dir = f"{config.output_dir}/samples"
