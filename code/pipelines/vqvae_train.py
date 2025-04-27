@@ -131,7 +131,7 @@ def vqvae_inference(model_path, config, test_dataloader):
     vqvae = vqvae.to(device)
     vqvae.load_state_dict(checkpoint['model_state_dict'])
 
-    vqvae.eval().requires_grad_(False)
+    vqvae.eval()
     print(">"*10, "Evaluate the vqvae model ...")
     for batch in test_dataloader:
         clean_images = batch["images"]
