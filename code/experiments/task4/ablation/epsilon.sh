@@ -6,11 +6,12 @@ python main.py \
     --beta_schedule linear \
     --model unet \
     --unet_variant ddpm \
+    --prediction_type epsilon \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name task4_ablation_baseline \
+    --wandb_run_name task4_ablation_epsilon \
     --calculate_fid \
     --calculate_is \
     --verbose
