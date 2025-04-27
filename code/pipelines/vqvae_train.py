@@ -171,8 +171,6 @@ def vqvae_inference(model_path, config, test_dataloader):
             img_name = real_image_names[i]
             save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
 
-        # generated_images = generated_images.permute(0, 2, 3, 1)
-        print('>'*9, f"generated_images.shape: {generated_images.shape}")
         for image in generated_images:
             save_image(
                 image,
@@ -180,5 +178,5 @@ def vqvae_inference(model_path, config, test_dataloader):
             )
             fake_count += 1
 
-    clean_fid_score = calculate_clean_fid(real_dir, fake_dir)
+    _ = calculate_clean_fid(real_dir, fake_dir)
 
