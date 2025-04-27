@@ -118,7 +118,8 @@ def train_loop(
             and config.calculate_fid
             and test_dataloader is not None
     ):
-        vqvae_inference(config.output_dir, config, test_dataloader)
+        model_path = config.output_dir + '/model_vqvae.pth'
+        vqvae_inference(model_path, config, test_dataloader)
 
     wandb_logger.finish()
 
