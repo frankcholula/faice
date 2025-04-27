@@ -45,7 +45,7 @@ def create_unet(config):
 
 def create_lant_unet(config):
     model = UNet2DModel(
-        sample_size=config.image_size / 4,  # the target image resolution
+        sample_size=int(config.image_size / 4),  # the target image resolution
         in_channels=3,  # the number of input channels, 3 for RGB images
         out_channels=3,  # the number of output channels
         attention_head_dim=32,
