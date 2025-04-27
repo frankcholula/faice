@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#wandb artifact cache cleanup 1GB --remove-temp
+wandb sync --include-synced --clean-old-hours 1
+wandb artifact cache cleanup 0GB --remove-temp
 
 #python main.py \
 #    --dataset face \

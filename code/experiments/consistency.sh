@@ -1,5 +1,8 @@
 #!/bin/bash
 
+wandb sync --include-synced --clean-old-hours 1
+wandb artifact cache cleanup 0GB --remove-temp
+
 #python main.py \
 #    --dataset face \
 #    --pipeline consistency \

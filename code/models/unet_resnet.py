@@ -32,25 +32,20 @@ def create_unet_resnet512(config):
 
         down_block_types=(
             "ResnetDownsampleBlock2D",
-            # "ResnetDownsampleBlock2D",
-            # "ResnetDownsampleBlock2D",
-            # "ResnetDownsampleBlock2D",
+            "ResnetDownsampleBlock2D",
+            "ResnetDownsampleBlock2D",
             "AttnDownBlock2D",
             "AttnDownBlock2D",
             # "ResnetDownsampleBlock2D"
             "AttnDownBlock2D",
-            "ResnetDownsampleBlock2D",
-            "ResnetDownsampleBlock2D"
         ),
         up_block_types=(
-            "ResnetUpsampleBlock2D",
             "AttnUpBlock2D",
             "AttnUpBlock2D",
             "AttnUpBlock2D",
             "ResnetUpsampleBlock2D",
             "ResnetUpsampleBlock2D",
-            # "ResnetUpsampleBlock2D",
-            # "ResnetUpsampleBlock2D"
+            "ResnetUpsampleBlock2D"
         ),
 
     )
