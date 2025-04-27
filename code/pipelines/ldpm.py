@@ -21,6 +21,7 @@ from utils.training import setup_accelerator
 
 selected_pipeline = LDMPipeline
 
+vqmodel_path = "runs/vqvae-vqvae-ddpm-face-20/checkpoints/model_vqvae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
@@ -57,9 +58,7 @@ def train_loop(
 
     # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
     vqmodel = VQModel().to(device)
-    vqmodel.load_state_dict(
-        torch.load("runs/vqvae-vqvae-ddpm-face-20/checkpoints/model_vqvae.pth", map_location=device)[
-            'state_dict'])
+    vqmodel.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
     vqmodel.eval().requires_grad_(False)
 
     # Now you train the model
