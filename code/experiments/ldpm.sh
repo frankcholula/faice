@@ -5,7 +5,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model unet \
+    --model lant_unet \
     --pipeline ldpm \
     --scheduler ddim \
     --beta_schedule linear \
