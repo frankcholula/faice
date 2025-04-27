@@ -117,7 +117,7 @@ def train_loop(
             and config.calculate_fid
             and test_dataloader is not None
     ):
-        model_path = config.output_dir + '/model_vae.pth'
+        model_path = f"{config.output_dir}/checkpoints/model_vae.pth"
         vae_inference(model_path, config)
         vae_inference(config.output_dir, config)
 
