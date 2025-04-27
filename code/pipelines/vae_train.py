@@ -117,7 +117,8 @@ def train_loop(
             and config.calculate_fid
             and test_dataloader is not None
     ):
-        vae_inference(config.output_dir, config)
+        model_path = config.output_dir + '/model_vae.pth'
+        vae_inference(model_path, config)
 
     wandb_logger.finish()
 
