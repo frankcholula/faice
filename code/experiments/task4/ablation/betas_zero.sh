@@ -7,10 +7,13 @@ python main.py \
     --model unet \
     --unet_variant ddpm \
     --rescale_betas_zero_snr \
+    --attention_head_dim 256 \
+    --upsample_type conv \
+    --downsample_type conv \
     --image_size 128 \
     --num_epochs 500 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --train_batch_size 24 \
+    --eval_batch_size 24 \
     --wandb_run_name task4_ablation_betas_zero \
     --calculate_fid \
     --calculate_is \
