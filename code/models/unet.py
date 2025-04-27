@@ -41,3 +41,33 @@ def create_unet(config):
         ),
     )
     return model
+
+
+def create_lant_unet(config):
+    model = UNet2DModel(
+        sample_size=32,  # the target image resolution
+        in_channels=3,  # the number of input channels, 3 for RGB images
+        out_channels=3,  # the number of output channels
+        attention_head_dim=32,
+        layers_per_block=2,  # how many ResNet layers to use per UNet block
+
+        block_out_channels=(
+            224,
+            448,
+            672,
+            896
+        ),
+        down_block_types=(
+            "DownBlock2D",
+            "AttnDownBlock2D",
+            "AttnDownBlock2D",
+            "AttnDownBlock2D"
+        ),
+        up_block_types=(
+            "AttnUpBlock2D",
+            "AttnUpBlock2D",
+            "AttnUpBlock2D",
+            "UpBlock2D"
+        ),
+    )
+    return model

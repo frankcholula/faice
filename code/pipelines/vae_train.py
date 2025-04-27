@@ -16,6 +16,8 @@ from utils.training import setup_accelerator
 from models.vae import create_vae
 from utils.plot import plot_images
 
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 
 def train_loop(
         config,
@@ -127,6 +129,7 @@ def train_loop(
 def vae_inference(model_path, config):
     checkpoint = torch.load(model_path)
     vae = create_vae(config)
+    vae = vae.to(device)
     vae.load_state_dict(checkpoint['model_state_dict'])
 
     vae.eval()
@@ -137,4 +140,4 @@ def vae_inference(model_path, config):
         img_dir = f"{config.output_dir}/samples"
         if not os.path.exists(img_dir):
             os.makedirs(img_dir)
-        plot_images(generated_images, img_dir, save_title="vae_decode", cols=9)
+        plot_images(generated_images, save_dir=img_dir, save_title="vae_decode", cols=9)
