@@ -9,8 +9,8 @@ python main.py \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 2000 \
-    --train_batch_size 24 \
-    --eval_batch_size 24 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
     --wandb_run_name adm_increase_steps \
     --calculate_fid \
     --calculate_is \
