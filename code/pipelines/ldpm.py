@@ -12,12 +12,13 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import LDMPipeline, VQModel
+from diffusers import LDMPipeline
 
 # Configuration
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
+from models.vqmodel import create_vqmodel
 
 selected_pipeline = LDMPipeline
 
@@ -57,7 +58,8 @@ def train_loop(
     global_step = 0
 
     # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
-    vqmodel = VQModel().to(device)
+    vqmodel = create_vqmodel(config)
+    vqmodel = vqmodel.to(device)
     vqmodel.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
     vqmodel.eval().requires_grad_(False)
 
