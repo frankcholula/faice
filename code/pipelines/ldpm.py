@@ -86,8 +86,8 @@ def train_loop(
             ).long()
 
             # Encode image to latent space
-            # latents = vqmodel.encode(clean_images).latents
-            latents = to_latent(clean_images, vqmodel)
+            latents = vqmodel.encode(clean_images).latents
+            # latents = to_latent(clean_images, vqmodel)
             print('>'*9, "latents.shape:", latents.shape)
             # # Add noise (diffusion process)
             noise = torch.randn(latents.shape).to(clean_images.device)
