@@ -22,7 +22,7 @@ from models.vqmodel import create_vqmodel
 
 selected_pipeline = LDMPipeline
 
-vqmodel_path = "runs/vqvae-vqvae-ddpm-face-20/checkpoints/model_vqvae.pth"
+vqmodel_path = "runs/vqvae-vqvae-ddpm-face-5/checkpoints/model_vqvae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
