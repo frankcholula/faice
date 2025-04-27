@@ -9,9 +9,9 @@ python main.py \
     --model vqvae \
     --pipeline vqvae \
     --image_size 128 \
-    --num_epochs 500 \
-    --train_batch_size 5 \
-    --eval_batch_size 5 \
+    --num_epochs 5 \
+    --train_batch_size 60 \
+    --eval_batch_size 60 \
     --wandb_run_name liang_vqvae \
     --no_confirm \
     --no_wandb
