@@ -129,20 +129,23 @@ def vqvae_inference(model_path, config, test_dataloader):
     vqvae.load_state_dict(checkpoint['model_state_dict'])
 
     vqvae.eval()
+    print(">"*10, "Evaluate the vqvae model ...")
     for batch in test_dataloader:
         encoded = vqvae.encode(batch)
         z = encoded.latents
-        generated_images = (z / 2 + 0.5).clamp(0, 1)
-        plot_images(generated_images, save_dir=config.proj_name, save_title="z", cols=9)
-
-        quantized_z, _, _ = vqvae.quantize(z)
-        generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
-        plot_images(generated_images, save_dir=config.proj_name, save_title="quantized_z", cols=9)
-
-        decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
-        generated_images = (decoded / 2 + 0.5).clamp(0, 1)
 
         img_dir = f"{config.output_dir}/samples"
         if not os.path.exists(img_dir):
             os.makedirs(img_dir)
+
+        generated_images = (z / 2 + 0.5).clamp(0, 1)
+        plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
+
+        quantized_z, _, _ = vqvae.quantize(z)
+        generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
+        plot_images(generated_images, save_dir=img_dir, save_title="quantized_z", cols=9)
+
+        decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
+        generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+
         plot_images(generated_images, save_dir=img_dir, save_title="decoded", cols=9)
