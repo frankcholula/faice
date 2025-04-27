@@ -86,7 +86,8 @@ def train_loop(
             ).long()
 
             # Encode image to latent space
-            latents = vqmodel.encode(clean_images).latents
+            # latents = vqmodel.encode(clean_images).latents
+            latents = to_latent(clean_images, vqmodel)
             # # Add noise (diffusion process)
             noise = torch.randn(latents.shape).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
@@ -166,3 +167,7 @@ def train_loop(
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
+
+
+def to_latent(x, vqmodel):
+    return vqmodel.encode(x)[0][1].contiguous()
