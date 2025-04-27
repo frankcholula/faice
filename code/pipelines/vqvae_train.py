@@ -16,6 +16,7 @@ from utils.training import setup_accelerator
 from models.vqmodel import create_vqmodel
 from utils.plot import plot_images
 
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 def train_loop(
         config,
@@ -125,11 +126,12 @@ def train_loop(
 
 
 def vqvae_inference(model_path, config, test_dataloader):
-    checkpoint = torch.load(model_path)
+    checkpoint = torch.load(model_path, map_location=device)
     vqvae = create_vqmodel(config)
+    vqvae = vqvae.to(device)
     vqvae.load_state_dict(checkpoint['model_state_dict'])
 
-    vqvae.eval()
+    vqvae.eval().requires_grad_(False)
     print(">"*10, "Evaluate the vqvae model ...")
     for batch in test_dataloader:
         encoded = vqvae.encode(batch)
