@@ -15,8 +15,10 @@ from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vqmodel import create_vqmodel
 from utils.plot import plot_images
+from utils.metrics import calculate_clean_fid
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 
 def train_loop(
         config,
@@ -132,7 +134,7 @@ def vqvae_inference(model_path, config, test_dataloader):
     vqvae.load_state_dict(checkpoint['model_state_dict'])
 
     vqvae.eval()
-    print(">"*10, "Evaluate the vqvae model ...")
+    print(">" * 10, "Evaluate the vqvae model ...")
     for batch in test_dataloader:
         clean_images = batch["images"]
         encoded = vqvae.encode(clean_images)
@@ -151,5 +153,4 @@ def vqvae_inference(model_path, config, test_dataloader):
 
         decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
         generated_images = (decoded / 2 + 0.5).clamp(0, 1)
-
         plot_images(generated_images, save_dir=img_dir, save_title="decoded", cols=9)
