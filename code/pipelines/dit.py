@@ -70,7 +70,7 @@ def train_loop(
             bs = clean_images.shape[0]
             map_ids = image_names
             map_ids = map_ids.to(clean_images.device)
-            map_ids = map_ids.to(torch.long)
+            # map_ids = map_ids.to(torch.long)
 
             vae.to(clean_images.device)
 
