@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This enforces single head attention at multiple resolutions. 1 head with 256 channels at 32x32, 1 head with 256 channels at 16x16, and 2 heads with 512 channels at 8x8.
+# This enforce attention at 3 different resolutions.
+# 1 head with 256 channels at 32x32, 1 head with 256 channels at 16x16, and 2 heads with 512 channels at 8x8.
 
 python main.py \
     --dataset face \
