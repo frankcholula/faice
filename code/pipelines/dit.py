@@ -69,7 +69,7 @@ def train_loop(
             bs = clean_images.shape[0]
             num_classes = bs
             # Convert the name in image_names to int number
-            class_embedding = nn.Embedding(num_classes, config.image_size)
+            class_embedding = nn.Embedding(num_classes, bs)
 
             class_embedding_vector = class_embedding(image_names)
             map_ids = class_embedding_vector
