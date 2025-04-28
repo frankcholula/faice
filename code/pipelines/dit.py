@@ -62,17 +62,10 @@ def train_loop(
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
             image_names = batch["image_names"]
-            image_names = np.array(image_names)
-            # Convert the name in image_names to int number
-            image_names = image_names.astype(int)
-            image_names = torch.tensor(image_names, dtype=torch.int)
-            bs = clean_images.shape[0]
-            # num_classes = 2700
-            # # Convert the name in image_names to int number
-            # class_embedding = nn.Embedding(num_classes, bs)
-            #
-            # class_embedding_vector = class_embedding(image_names)
-            map_ids = image_names
+            class_to_idx = {x: int(x) for x in image_names}
+            class_to_idx = torch.tensor(class_to_idx)
+            map_ids = class_to_idx.to(torch.long)
+
             map_ids.to(clean_images.device)
 
             vae.to(clean_images.device)
@@ -93,7 +86,6 @@ def train_loop(
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
-            timesteps.to(clean_images.device)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
