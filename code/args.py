@@ -3,7 +3,6 @@ import inspect
 import sys
 from pipelines import ddpm, ddim, consistency
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
-from diffusers.schedulers import CMStochasticIterativeScheduler
 from models.unet import create_unet
 from conf.training_config import get_config, get_all_datasets
 
