@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This decraeses the base channel from 128 to 64 and increase the depth from 2 to 4.
+# This decraeses the base channel from 128 to 96 and increase the depth from 2 to 4.
 # The rest of the configuration is the same as the ddpm_base.sh file.
 
 python main.py \
