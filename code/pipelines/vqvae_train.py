@@ -100,6 +100,7 @@ def train_loop(
             save_model = (
                                  epoch + 1
                          ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+            save_to_wandb = epoch == config.num_epochs - 1
 
             if save_model:
                 if config.push_to_hub:
@@ -113,6 +114,8 @@ def train_loop(
                         'optimizer_state_dict': optimizer.state_dict(),
                         'loss': loss,
                     }, model_path + '/model_vqvae.pth')
+                    if save_to_wandb:
+                        wandb_logger.save_model()
 
             progress_bar.close()
 

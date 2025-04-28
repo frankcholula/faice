@@ -10,13 +10,14 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 from torchvision.utils import save_image
+import wandb
 
 # Configuration
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vae import create_vae
 from utils.plot import plot_images
-from utils.metrics import calculate_clean_fid
+from utils.metrics import calculate_clean_fid, make_grid
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -99,6 +100,7 @@ def train_loop(
             save_model = (
                                  epoch + 1
                          ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+            save_to_wandb = epoch == config.num_epochs - 1
 
             if save_model:
                 if config.push_to_hub:
@@ -112,6 +114,8 @@ def train_loop(
                         'optimizer_state_dict': optimizer.state_dict(),
                         'loss': loss,
                     }, model_path + '/model_vae.pth')
+                    if save_to_wandb:
+                        wandb_logger.save_model()
 
             progress_bar.close()
 
@@ -184,4 +188,26 @@ def vae_inference(model_path, config, test_dataloader):
             fake_count += 1
 
     _ = calculate_clean_fid(real_dir, fake_dir)
+
+
+def evaluate(config, epoch, decoded):
+    generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+    # Make a grid out of the images
+    image_grid = make_grid(generated_images, rows=4, cols=4)
+
+    # Save the images
+    test_dir = os.path.join(config.output_dir, "samples")
+    os.makedirs(test_dir, exist_ok=True)
+    image_grid_path = f"{test_dir}/{epoch:04d}.png"
+    image_grid.save(image_grid_path)
+
+    if config.use_wandb:
+        wandb.log(
+            {
+                "generated_images": wandb.Image(
+                    image_grid_path, caption=f"Epoch {epoch}"
+                ),
+                "epoch": epoch,
+            }
+        )
 
