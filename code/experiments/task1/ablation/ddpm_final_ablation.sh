@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# This enforces single head attention at multiple resolutions.
+# This enforces different heads at 3 different resolutions. (1 head with 256 channels at 32x32, 1 head with 256 channels at 16x16, and 1 head with 512 channels at 8x8)
+
 python main.py \
     --dataset face \
     --scheduler ddpm \
     --beta_schedule linear \
     --model unet \
     --unet_variant ddpm \
-    --attention_head_dim 32 \
+    --attention_head_dim 256 \
     --multi_res \
-    --fixed_heads 4 \
     --image_size 128 \
     --upsample_type resnet \
     --downsample_type resnet \
