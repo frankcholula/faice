@@ -10,9 +10,9 @@ from diffusers import DiTTransformer2DModel, Transformer2DModel
 
 def create_dit_transformer(config):
     dit_transformer_2d = DiTTransformer2DModel(
-        sample_size=config.image_size,
-        in_channels=3,
-        out_channels=3,
+        sample_size=int(config.image_size / 8),
+        in_channels=4,
+        out_channels=4,
         activation_fn="gelu-approximate",
         attention_bias=True,
         attention_head_dim=64,
