@@ -1,12 +1,15 @@
 # Deep learning framework
+from typing import List, Optional, Tuple, Union
+
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import numpy as np
 from torch import nn
+import pandas as pd
 
-# Hugging Face
-from diffusers import DDPMPipeline
+from diffusers.utils.torch_utils import randn_tensor
+from diffusers.pipelines.pipeline_utils import DiffusionPipeline, ImagePipelineOutput
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -14,7 +17,85 @@ from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
-selected_pipeline = DDPMPipeline
+
+class CustomDiTPipeline(DiffusionPipeline):
+    def __init__(self, dit, scheduler):
+        super().__init__()
+        self.register_modules(dit=dit, scheduler=scheduler)
+
+    @torch.no_grad()
+    def __call__(
+            self,
+            batch_size: int = 1,
+            generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+            num_inference_steps: int = 1000,
+            output_type: Optional[str] = "pil",
+            return_dict: bool = True,
+    ) -> Union[ImagePipelineOutput, Tuple]:
+        r"""
+        The call function to the pipeline for generation.
+
+        Args:
+            batch_size (`int`, *optional*, defaults to 1):
+                The number of images to generate.
+            generator (`torch.Generator`, *optional*):
+                A [`torch.Generator`](https://pytorch.org/docs/stable/generated/torch.Generator.html) to make
+                generation deterministic.
+            num_inference_steps (`int`, *optional*, defaults to 1000):
+                The number of denoising steps. More denoising steps usually lead to a higher quality image at the
+                expense of slower inference.
+            output_type (`str`, *optional*, defaults to `"pil"`):
+                The output format of the generated image. Choose between `PIL.Image` or `np.array`.
+            return_dict (`bool`, *optional*, defaults to `True`):
+                Whether or not to return a [`~pipelines.ImagePipelineOutput`] instead of a plain tuple.
+
+        Example:
+
+        Returns:
+            [`~pipelines.ImagePipelineOutput`] or `tuple`:
+                If `return_dict` is `True`, [`~pipelines.ImagePipelineOutput`] is returned, otherwise a `tuple` is
+                returned where the first element is a list with the generated images
+        """
+        # Sample gaussian noise to begin loop
+        if isinstance(self.dit.sample_size, int):
+            image_shape = (
+                batch_size,
+                self.dit.channel,
+                self.dit.sample_size,
+                self.dit.sample_size,
+            )
+        else:
+            image_shape = (batch_size, self.dit.channel, *self.dit.sample_size)
+
+        if self.device.type == "mps":
+            # randn does not work reproducibly on mps
+            image = randn_tensor(image_shape, generator=generator, dtype=self.dit.dtype)
+            image = image.to(self.device)
+        else:
+            image = randn_tensor(image_shape, generator=generator, device=self.device, dtype=self.dit.dtype)
+
+        # set step values
+        self.scheduler.set_timesteps(num_inference_steps)
+
+        for t in self.progress_bar(self.scheduler.timesteps):
+            # 1. predict noise model_output
+            model_output = self.dit(image, t).sample
+
+            # 2. compute previous image: x_t -> x_t-1
+            image = self.scheduler.step(model_output, t, image, generator=generator).prev_sample
+
+        image = (image / 2 + 0.5).clamp(0, 1)
+        image = image.cpu().permute(0, 2, 3, 1).numpy()
+        if output_type == "pil":
+            image = self.numpy_to_pil(image)
+
+        if not return_dict:
+            return (image,)
+
+        return ImagePipelineOutput(images=image)
+
+
+selected_pipeline = CustomDiTPipeline
 
 
 def train_loop(
@@ -61,7 +142,7 @@ def train_loop(
             image_names = batch["image_names"]
             bs = clean_images.shape[0]
 
-            image_names = [img_name[0] for img_name in image_names]
+            image_names = [name_to_label(img_name) for img_name in image_names]
 
             image_names = np.array(image_names)
             # Convert the name in image_names to int number
@@ -149,7 +230,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+            dit=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
@@ -165,3 +246,10 @@ def train_loop(
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
+
+
+def name_to_label(name):
+    train_label_path = 'datasets/celebaAHQ_train.xlsx'
+    label_data = pd.read_excel(train_label_path)
+    label_dict = dict(zip(label_data['image'], label_data['label']))
+    return label_dict[name]

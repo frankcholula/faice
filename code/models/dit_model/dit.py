@@ -18,7 +18,7 @@ def create_dit_model(config):
         patch_size=2,
         channel=3,
         emb_size=64,
-        label_num=11,
+        label_num=2,
         dit_num=3,
         head=4,
 
@@ -29,10 +29,11 @@ def create_dit_model(config):
 class DiT(nn.Module):
     def __init__(self, img_size, patch_size, channel, emb_size, label_num, dit_num, head):
         super().__init__()
-
+        self.sample_size = img_size
         self.patch_size = patch_size
         self.patch_count = img_size // self.patch_size
         self.channel = channel
+        self.dtype = torch.float
 
         # patchify
         self.conv = nn.Conv2d(in_channels=channel, out_channels=channel * patch_size ** 2,
