@@ -73,6 +73,7 @@ def train_loop(
             #
             # class_embedding_vector = class_embedding(image_names)
             map_ids = image_names
+            map_ids.to(clean_images.device)
 
             vae.to(clean_images.device)
 
