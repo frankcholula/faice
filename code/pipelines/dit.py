@@ -67,7 +67,7 @@ def train_loop(
             # Convert the name in image_names to int number
             class_embedding = nn.Embedding(num_classes, bs)
 
-            class_embedding_vector = class_embedding(torch.tensor(image_names))
+            class_embedding_vector = class_embedding(torch.tensor(image_names, dtype=torch.int))
             map_ids = class_embedding_vector
 
             vae.to(clean_images.device)
