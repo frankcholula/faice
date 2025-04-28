@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import numpy as np
+from torch import nn
 
 # Hugging Face
 from diffusers import DiTPipeline, AutoencoderKL
@@ -61,10 +62,13 @@ def train_loop(
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
             image_names = batch["image_names"]
-            # Convert the name in image_names to int number
-            image_names = [int(name) for name in image_names]
-            map_ids = np.array(image_names)
             bs = clean_images.shape[0]
+            num_classes = 2000
+            # Convert the name in image_names to int number
+            class_embedding = nn.Embedding(num_classes, bs)
+
+            class_embedding_vector = class_embedding(image_names)
+            map_ids = class_embedding_vector
 
             vae.to(clean_images.device)
 
