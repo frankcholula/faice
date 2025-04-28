@@ -66,7 +66,7 @@ def train_loop(
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
             image_names = torch.tensor(image_names, dtype=torch.int)
-            # bs = clean_images.shape[0]
+            bs = clean_images.shape[0]
             # num_classes = 2700
             # # Convert the name in image_names to int number
             # class_embedding = nn.Embedding(num_classes, bs)
