@@ -67,8 +67,6 @@ def train_loop(
 
             image_names = [img_name[0] for img_name in image_names]
 
-            print("image_names: ", image_names)
-
             image_names = np.array(image_names)
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
