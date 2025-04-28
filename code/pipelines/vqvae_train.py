@@ -63,7 +63,6 @@ def train_loop(
             clean_images = batch["images"]
 
             with accelerator.accumulate(model):
-                # Predict the noise residual
                 encoded = model.encode(clean_images)
                 z = encoded.latents
                 quantized_z, loss, _ = model.quantize(z)
