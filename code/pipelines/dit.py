@@ -70,9 +70,8 @@ def train_loop(
             # image_names = image_names.reshape(bs, 1)
             image_names = torch.tensor(image_names, dtype=torch.int)
 
-
             num_classes = 2700
-            embedding_dim = 64
+            embedding_dim = 16
 
             class_embedding = nn.Embedding(num_classes, embedding_dim)
 
