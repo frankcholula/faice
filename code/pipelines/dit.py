@@ -67,10 +67,18 @@ def train_loop(
             image_names = np.array(image_names)
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
-            image_names = image_names.reshape(bs, 1)
+            # image_names = image_names.reshape(bs, 1)
             image_names = torch.tensor(image_names, dtype=torch.int)
-            map_ids = image_names
-            map_ids = map_ids.to(clean_images.device)
+            image_names = image_names.to(clean_images.device)
+
+            num_classes = 2700
+            embedding_dim = 64
+
+            class_embedding = nn.Embedding(num_classes, embedding_dim)
+
+            map_ids = class_embedding(image_names)
+            print("(map_ids.shape", map_ids.shape)
+            print("(map_ids", map_ids)
 
             vae.to(clean_images.device)
 
