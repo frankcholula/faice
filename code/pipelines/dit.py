@@ -71,6 +71,12 @@ def train_loop(
             map_ids = torch.tensor(image_names, dtype=torch.int)
             # map_ids = map_ids.to(clean_images.device)
 
+            label_num = 2700
+            emb_size = 64
+            label_emb = nn.Embedding(num_embeddings=label_num, embedding_dim=emb_size)
+
+            map_ids = label_emb(map_ids)
+
             # vae.to(clean_images.device)
 
             # Sample a random timestep for each image

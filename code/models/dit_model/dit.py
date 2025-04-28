@@ -65,7 +65,6 @@ class DiT(nn.Module):
     def forward(self, x, t, y):  # x:(batch,channel,height,width)   t:(batch,)  y:(batch,)
         # label emb
         y_emb = self.label_emb(y)  # (batch,emb_size)
-        y_emb = y_emb.to(x.device)
         # time emb
         t_emb = self.time_emb(t)  # (batch,emb_size)
 
