@@ -59,6 +59,10 @@ def train_loop(
 
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
+            image_names = batch["image_names"]
+            # Convert the name in image_names to int number
+            image_names = [int(name) for name in image_names]
+            map_ids = image_names
             bs = clean_images.shape[0]
 
             vae.to(clean_images.device)
@@ -82,7 +86,9 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
+                noise_pred = model(hidden_states=noisy_images,
+                                   class_labels=map_ids,
+                                   timestep=timesteps, return_dict=False)[0]
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 

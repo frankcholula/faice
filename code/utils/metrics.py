@@ -19,16 +19,50 @@ def make_grid(images, rows, cols):
     return grid
 
 
-def evaluate(config, epoch, pipeline):
+def pipeline_inference(config, pipeline, batch_size, output_type="pil", generator=torch.manual_seed(0),
+                       class_labels=[]):
+    pipeline_name = pipeline.__class__.__name__
+    if "DiT" in pipeline_name:
+        images = pipeline(
+            class_labels,
+            batch_size=batch_size,
+            generator=generator,
+            num_inference_steps=config.num_inference_steps,
+            output_type=output_type
+        ).images
+    else:
+        images = pipeline(
+            batch_size=batch_size,
+            generator=generator,
+            num_inference_steps=config.num_inference_steps,
+            output_type=output_type
+        ).images
+
+    return images
+
+
+def evaluate(config, epoch, pipeline, class_labels=[]):
     # Sample some images from random noise (this is the backward diffusion process).
     # The default pipeline output type is `List[PIL.Image]`
     batch_size = 16
     # batch_size = config.eval_batch_size
-    images = pipeline(
-        batch_size=batch_size,
-        generator=torch.manual_seed(config.seed),
-        num_inference_steps=config.num_inference_steps,
-    ).images
+
+    # pipeline_name = pipeline.__class__.__name__
+    # if "DiT" in pipeline_name:
+    #     images = pipeline(
+    #         class_labels,
+    #         batch_size=batch_size,
+    #         generator=torch.manual_seed(config.seed),
+    #         num_inference_steps=config.num_inference_steps,
+    #     ).images
+    # else:
+    #     images = pipeline(
+    #         batch_size=batch_size,
+    #         generator=torch.manual_seed(config.seed),
+    #         num_inference_steps=config.num_inference_steps,
+    #     ).images
+
+    images = pipeline_inference(config, pipeline, batch_size, class_labels=class_labels)
 
     # Make a grid out of the images
     image_grid = make_grid(images, rows=4, cols=4)
@@ -92,14 +126,20 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 inception_score.update(processed_fake)
         else:
             for batch in tqdm(test_dataloader, desc="Calculating Inception Score"):
-                output = pipeline(
-                    batch_size=min(
-                        config.eval_batch_size, len(test_dataloader.dataset) - batch
-                    ),
-                    generator=torch.manual_seed(config.seed),
-                    output_type="np",
-                    num_inference_steps=config.num_inference_steps,
-                ).images
+                batch_size = min(
+                    config.eval_batch_size, len(test_dataloader.dataset) - batch
+                )
+                generator = torch.manual_seed(config.seed + batch)
+                output = pipeline_inference(config, pipeline, batch_size, generator=generator,
+                                            output_type="np")
+                # output = pipeline(
+                #     batch_size=min(
+                #         config.eval_batch_size, len(test_dataloader.dataset) - batch
+                #     ),
+                #     generator=torch.manual_seed(config.seed),
+                #     output_type="np",
+                #     num_inference_steps=config.num_inference_steps,
+                # ).images
                 processed_fake = preprocess_image(
                     output,
                     img_src="generated",
@@ -150,14 +190,19 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                 desc="Loading Fake Images for FID Calculation..",
         ):
             # Generate images as numpy arrays
-            output = pipeline(
-                batch_size=min(
-                    config.eval_batch_size, len(test_dataloader.dataset) - batch
-                ),
-                generator=torch.manual_seed(config.seed + batch),
-                output_type="np",
-                num_inference_steps=config.num_inference_steps,
-            ).images
+            batch_size = min(
+                config.eval_batch_size, len(test_dataloader.dataset) - batch
+            )
+            generator = torch.manual_seed(config.seed + batch)
+            output = pipeline_inference(config, pipeline, batch_size, generator=generator, output_type="np")
+            # output = pipeline(
+            #     batch_size=min(
+            #         config.eval_batch_size, len(test_dataloader.dataset) - batch
+            #     ),
+            #     generator=torch.manual_seed(config.seed + batch),
+            #     output_type="np",
+            #     num_inference_steps=config.num_inference_steps,
+            # ).images
             processed_fake = preprocess_image(
                 output,
                 img_src="generated",

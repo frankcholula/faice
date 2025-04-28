@@ -1,7 +1,7 @@
 import argparse
 import inspect
 import sys
-from pipelines import ddpm, consistency, dit, ldpm, vae_train, vqvae_train
+from pipelines import ddpm, consistency, dit, ldmp, vae_train, vqvae_train
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from diffusers.schedulers import CMStochasticIterativeScheduler
 # from models.unet import create_unet
@@ -63,8 +63,8 @@ def create_pipeline(pipeline: str):
     #     return pndm.train_loop
     elif pipeline.lower() == 'consistency':
         return consistency.train_loop
-    elif pipeline.lower() == 'ldpm':
-        return ldpm.train_loop
+    elif pipeline.lower() == 'ldmp':
+        return ldmp.train_loop
     elif pipeline.lower() == 'ditpipline':
         return dit.train_loop
     elif pipeline.lower() == 'vqvae':
