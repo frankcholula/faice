@@ -8,7 +8,7 @@ python main.py \
     --beta_schedule linear \
     --model unet \
     --unet_variant ddpm \
-    --attention_head_dim 256 \
+    --attention_head_dim 64 \
     --multi_res \
     --image_size 128 \
     --upsample_type resnet \

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# This decraeses the channel from 128 to 64 and increase the depth from 2 to 4.
+# This decraeses the base channel from 128 to 64 and increase the depth from 2 to 4.
 # The rest of the configuration is the same as the ddpm_base.sh file.
-# Run this second.
+
 python main.py \
     --dataset face \
     --scheduler ddpm \
