@@ -18,7 +18,7 @@ def create_dit_model(config):
         patch_size=1,
         channel=3,
         emb_size=64,
-        label_num=2700,
+        label_num=10,
         dit_num=3,
         head=16,
 
