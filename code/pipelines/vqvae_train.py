@@ -70,8 +70,9 @@ def train_loop(
 
                 # 计算 loss
                 rec_loss = F.mse_loss(clean_images, decoded)
-                quant_loss = loss
-                loss = rec_loss + quant_loss * 0.0025
+                # quant_loss = loss
+                # loss = rec_loss + quant_loss * 0.0025
+                loss = rec_loss
 
                 accelerator.backward(loss)
 
