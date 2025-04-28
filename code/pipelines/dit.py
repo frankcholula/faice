@@ -249,7 +249,7 @@ def train_loop(
 
 
 def name_to_label(name):
-    train_label_path = 'datasets/celebaAHQ_train.xlsx'
+    train_label_path = 'datasets/celeba_hq_split/celebaAHQ_train.xlsx'
     label_data = pd.read_excel(train_label_path)
     label_dict = dict(zip(label_data['image'], label_data['label']))
     return label_dict[name]
