@@ -65,6 +65,8 @@ def train_loop(
             image_names = batch["image_names"]
             bs = clean_images.shape[0]
 
+            image_names = [img_name[0] for img_name in image_names]
+
             image_names = np.array(image_names)
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
