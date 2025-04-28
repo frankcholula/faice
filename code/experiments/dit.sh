@@ -5,7 +5,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model transformer_2d \
+    --model dit_model \
     --pipeline dit \
     --scheduler ddpm \
     --beta_schedule linear \

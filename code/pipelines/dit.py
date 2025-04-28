@@ -69,6 +69,7 @@ def train_loop(
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
             map_ids = torch.tensor(image_names, dtype=torch.int)
+            map_ids = map_ids.to(clean_images.device)
 
             # vae.to(clean_images.device)
 
@@ -88,7 +89,6 @@ def train_loop(
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
-            # noisy_images = noisy_images.to(clean_images.device)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
