@@ -87,6 +87,8 @@ def train_loop(
 
             # Encode image to latent space
             latents = vqmodel.encode(clean_images).latents
+            # latents = latents.detach().clone()
+            latents = latents * vqmodel.config.scaling_factor
             # # Add noise (diffusion process)
             noise = torch.randn(latents.shape).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
@@ -97,7 +99,14 @@ def train_loop(
                 # Predict the noise residual
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
 
-                loss = F.mse_loss(noise_pred, noise)
+                if noise_scheduler.config.prediction_type == "epsilon":
+                    target = noise
+                elif noise_scheduler.config.prediction_type == "v_prediction":
+                    target = noise_scheduler.get_velocity(clean_images, noise, timesteps)
+                else:
+                    raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+
+                loss = F.mse_loss(noise_pred, target)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
