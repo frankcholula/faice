@@ -67,9 +67,7 @@ def train_loop(
             image_names = np.array(image_names)
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
-            print('image_names.shape', image_names.shape)
             image_names = image_names.reshape(bs, 1)
-            print('image_names.shape', image_names.shape)
             image_names = torch.tensor(image_names, dtype=torch.int)
             map_ids = image_names
             map_ids = map_ids.to(clean_images.device)
