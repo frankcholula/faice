@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# This increases the number of attention heads to 4 by decreasing the head dimension from 128 to 64.
-
+# This increases the number of attention heads to 4 by decreasing the head dimension from 256 to 64.
 
 python main.py \
     --dataset face \
