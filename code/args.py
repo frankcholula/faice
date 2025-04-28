@@ -142,12 +142,6 @@ def parse_args():
         help="Attention head dimension for DDPMUNet (if applicable)",
     )
     model_group.add_argument(
-        "--fixed_heads",
-        type=int,
-        default=0,
-        help="If > 0, fix the number of attention heads to this value",
-    )
-    model_group.add_argument(
         "--downsample_type",
         choices=["conv", "resnet"],
         default="conv",

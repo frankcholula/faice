@@ -147,10 +147,4 @@ def create_unet(config):
             f"Choose from {list(ARCHITECTURES)}"
         )
     model = cls(config)
-    n_heads = config.fixed_heads
-    if n_heads > 0:
-        for sub in model.modules():
-            if isinstance(sub, KAttentionBlock):
-                sub.num_attention_heads = n_heads
-                sub.attention_head_dim = sub.embed_dim // n_heads
     return model
