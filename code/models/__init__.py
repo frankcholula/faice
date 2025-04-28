@@ -3,7 +3,7 @@ from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_u
 from .transformer import create_dit_transformer, create_transformer_2d
 from .vae import create_vae
 from .vqmodel import create_vqmodel
-from .dit_model.dit_model import create_dit_model
+from .dit_model.dit import create_dit_model
 
 __model_factory = {
     "unet": create_unet,

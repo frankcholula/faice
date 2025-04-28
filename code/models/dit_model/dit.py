@@ -2,13 +2,13 @@
 """
 @Time : 28/04/2025 18:09
 @Author : xiaoguangliang
-@File : dit_model.py
+@File : dit.py
 @Project : code
 """
 from torch import nn
 import torch
-from time_emb import TimeEmbedding
-from dit_block import DiTBlock
+from models.dit_model.time_emb import TimeEmbedding
+from models.dit_model.dit_block import DiTBlock
 
 
 def create_dit_model(config):
