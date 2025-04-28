@@ -52,6 +52,7 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
+    model.train()
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
@@ -67,18 +68,7 @@ def train_loop(
             image_names = np.array(image_names)
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
-            # image_names = image_names.reshape(bs, 1)
             map_ids = torch.tensor(image_names, dtype=torch.int)
-
-            # num_classes = 2700
-            # embedding_dim = 16
-            #
-            # class_embedding = nn.Embedding(num_classes, embedding_dim)
-            #
-            # map_ids = class_embedding(image_names)
-            # print("(map_ids.shape", map_ids.shape)
-            # print("(map_ids", map_ids)
-            map_ids = map_ids.to(clean_images.device)
 
             # vae.to(clean_images.device)
 
@@ -102,9 +92,12 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(hidden_states=noisy_images,
-                                   class_labels=map_ids,
-                                   timestep=timesteps, return_dict=False)[0]
+                # noise_pred = model(hidden_states=noisy_images,
+                #                    class_labels=map_ids,
+                #                    timestep=timesteps, return_dict=False)[0]
+                noise_pred = model(noisy_images,
+                                   timesteps,
+                                   map_ids)
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
