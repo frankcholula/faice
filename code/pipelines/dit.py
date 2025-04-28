@@ -62,7 +62,7 @@ def train_loop(
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
             image_names = batch["image_names"]
-            image_names = image_names.numpy()
+            image_names = np.array(image_names)
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
             image_names = torch.tensor(image_names, dtype=torch.int)
