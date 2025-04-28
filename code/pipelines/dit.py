@@ -6,7 +6,7 @@ import numpy as np
 from torch import nn
 
 # Hugging Face
-from diffusers import DiTPipeline, AutoencoderKL
+from diffusers import DiTPipeline
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -48,10 +48,6 @@ def train_loop(
 
     global_step = 0
 
-    # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
-    # vae = AutoencoderKL.from_single_file(url)
-    # vae.eval().requires_grad_(False)
-
     model.train()
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -81,8 +77,6 @@ def train_loop(
             #
             # map_ids = label_emb(map_ids)
 
-            # vae.to(clean_images.device)
-
             # Sample a random timestep for each image
             timesteps = torch.randint(
                 0,
@@ -91,9 +85,6 @@ def train_loop(
                 device=clean_images.device,
             ).long()
 
-            # Encode image to latent space
-            # latents = vae.encode(clean_images).latent_dist.sample()
-            # latents = latents * vae.config.scaling_factor
             # # Add noise (diffusion process)
             noise = torch.randn_like(clean_images).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
@@ -101,10 +92,6 @@ def train_loop(
             noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
             with accelerator.accumulate(model):
-                # Predict the noise residual
-                # noise_pred = model(hidden_states=noisy_images,
-                #                    class_labels=map_ids,
-                #                    timestep=timesteps, return_dict=False)[0]
                 noise_pred = model(noisy_images,
                                    timesteps,
                                    map_ids)
@@ -133,7 +120,6 @@ def train_loop(
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
                 accelerator.unwrap_model(model),
-                accelerator.unwrap_model(vae),
                 noise_scheduler
             )
 
