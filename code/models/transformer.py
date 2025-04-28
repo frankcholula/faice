@@ -29,8 +29,8 @@ def create_dit_transformer(config):
 def create_transformer_2d(config):
     transformer_2d = Transformer2DModel(
         sample_size=config.image_size,
-        in_channels=3,
-        out_channels=3,
+        in_channels=4,
+        out_channels=4,
         activation_fn="gelu-approximate",
         attention_bias=True,
         attention_head_dim=64,
