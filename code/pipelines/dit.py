@@ -93,6 +93,7 @@ def train_loop(
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
+            noisy_images.to(clean_images.device)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
