@@ -1,4 +1,4 @@
-from dataset import MNIST
+from datasets import MNIST
 from torch.utils.data import DataLoader
 
 dataset = MNIST()
