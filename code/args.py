@@ -71,6 +71,8 @@ def create_pipeline(pipeline: str):
         return vqvae_train.train_loop
     elif pipeline.lower() == 'vae':
         return vae_train.train_loop
+    elif pipeline.lower() == 'dit':
+        return dit.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 
