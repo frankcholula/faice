@@ -62,10 +62,13 @@ def train_loop(
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
             image_names = batch["image_names"]
-            class_to_idx = {x: int(x) for x in image_names}
-            class_to_idx = torch.tensor(class_to_idx)
-            map_ids = class_to_idx.to(torch.long)
 
+            image_names = np.array(image_names)
+            # Convert the name in image_names to int number
+            image_names = image_names.astype(int)
+            image_names = torch.tensor(image_names, dtype=torch.int)
+            bs = clean_images.shape[0]
+            map_ids = image_names
             map_ids.to(clean_images.device)
 
             vae.to(clean_images.device)
