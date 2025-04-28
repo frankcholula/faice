@@ -17,9 +17,9 @@ def create_dit_model(config):
         img_size=config.image_size,
         patch_size=2,
         channel=3,
-        emb_size=32,
+        emb_size=64,
         label_num=11,
-        dit_num=3,
+        dit_num=2,
         head=4,
 
     )
