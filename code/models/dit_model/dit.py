@@ -16,11 +16,11 @@ def create_dit_model(config):
         # sample_size=int(config.image_size / 8),
         img_size=config.image_size,
         patch_size=1,
-        channel=3,
+        channel=1,
         emb_size=64,
         label_num=11,
         dit_num=3,
-        head=16,
+        head=4,
 
     )
     return dit_transformer_2d
