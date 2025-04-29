@@ -163,7 +163,7 @@ def parse_args():
     )
     model_group.add_argument(
         "--beta_schedule",
-        choices=["linear", "squaredcos_cap_v2"],
+        choices=["linear", "scaled_linear", "squaredcos_cap_v2"],
         default="linear",
         help="Beta schedule",
     )

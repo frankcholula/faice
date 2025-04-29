@@ -3,7 +3,7 @@
 python main.py \
     --dataset face \
     --scheduler ddpm \
-    --beta_schedule linear \
+    --beta_schedule scaled_linear \
     --model unet \
     --unet_variant ddpm \
     --attention_head_dim 256 \
