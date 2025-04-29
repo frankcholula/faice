@@ -46,12 +46,8 @@ def create_model(model: str, config):
 
 
 def create_pipeline(pipeline: str):
-    if pipeline.lower() == "ddpm":
+    if pipeline.lower() in ["ddim", "ddpm", "pndm"]:
         return base_pipeline.train_loop
-    elif pipeline.lower() == "ddim":
-        return base_pipeline.train_loop
-    # elif pipeline.lower() == "pndm":
-    #     return pndm.train_loop
     elif pipeline.lower() == "consistency":
         return consistency.train_loop
     else:
@@ -259,7 +255,7 @@ def get_config_and_components():
         config.prediction_type,
         config.rescale_betas_zero_snr,
     )
-    pipeline = create_pipeline(config.pipeline, config.eta, config.num_inference_steps)
+    pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline
 
