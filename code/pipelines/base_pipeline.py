@@ -20,8 +20,6 @@ def create_pipeline(config, model, noise_scheduler):
         pipeline = DDIMPipeline(
             unet=model,
             scheduler=noise_scheduler,
-            eta=config.eta,
-            num_inference_steps=config.num_inference_steps,
         )
     else:
         raise ValueError(f"Pipeline type '{config.pipeline}' is not supported.")
@@ -90,7 +88,9 @@ def train_loop(
                     target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
                     # Predict velocity
-                    target = noise_scheduler.get_velocity(noisy_images, noise, timesteps)
+                    target = noise_scheduler.get_velocity(
+                        noisy_images, noise, timesteps
+                    )
                 pred = model(noisy_images, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(pred, target)
 

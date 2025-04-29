@@ -28,6 +28,7 @@ def evaluate(config, epoch, pipeline):
         batch_size=batch_size,
         generator=torch.manual_seed(config.seed),
         num_inference_steps=config.num_inference_steps,
+        eta=config.eta,
     ).images
 
     # Make a grid out of the images
@@ -99,6 +100,7 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                     generator=torch.manual_seed(config.seed),
                     output_type="np",
                     num_inference_steps=config.num_inference_steps,
+                    eta=config.eta,
                 ).images
                 processed_fake = preprocess_image(
                     output,
@@ -157,6 +159,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                 generator=torch.manual_seed(config.seed + batch),
                 output_type="np",
                 num_inference_steps=config.num_inference_steps,
+                eta=config.eta,
             ).images
             processed_fake = preprocess_image(
                 output,
