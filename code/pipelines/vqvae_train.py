@@ -162,9 +162,10 @@ def vqvae_inference(vqvae, config, test_dataloader):
         real_images = batch["images"].to(device)
         encoded = vqvae.encode(real_images)
         z = encoded.latents
-        # noise = torch.randn(z.shape).to(device)
+        noise = torch.randn(z.shape).to(device)
 
         del encoded
+        del z
         gc.collect()
 
         img_dir = f"{config.output_dir}/samples"
@@ -175,9 +176,9 @@ def vqvae_inference(vqvae, config, test_dataloader):
         # generated_images = (z / 2 + 0.5).clamp(0, 1)
         # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
-        quantized_z, _, _ = vqvae.quantize(z)
+        quantized_z, _, _ = vqvae.quantize(noise)
 
-        del z
+        del noise
         gc.collect()
 
         # generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
@@ -224,13 +225,15 @@ def evaluate(config, epoch, vqvae, test_dataloader):
             real_images = batch["images"].to(device)
             encoded = vqvae.encode(real_images)
             z = encoded.latents
+            noise = torch.randn(z.shape).to(device)
 
             del encoded
+            del z
             gc.collect()
 
-            quantized_z, _, _ = vqvae.quantize(z)
+            quantized_z, _, _ = vqvae.quantize(noise)
 
-            del z
+            del noise
             gc.collect()
 
             decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
