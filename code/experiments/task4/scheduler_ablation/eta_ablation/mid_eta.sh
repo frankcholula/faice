@@ -3,7 +3,7 @@
 python main.py \
     --dataset face \
     --scheduler ddim \
-    --eta 0.0 \
+    --eta 0.5 \
     --num_inference_steps 100 \
     --beta_schedule squaredcos_cap_v2 \
     --model unet \
@@ -15,7 +15,7 @@ python main.py \
     --num_train_timesteps 4000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name task4_ddim \
+    --wandb_run_name task4_ddim_0.5eta \
     --calculate_fid \
     --calculate_is \
     --verbose
