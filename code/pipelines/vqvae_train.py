@@ -228,12 +228,21 @@ def evaluate(config, epoch, vqvae, test_dataloader):
             del encoded
             gc.collect()
 
-            decoded = vqvae.decode(z)[0]
+            quantized_z, _, _ = vqvae.quantize(z)
 
             del z
             gc.collect()
 
+            decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
+
+            del quantized_z
+            gc.collect()
+
             generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+
+            del decoded
+            gc.collect()
+
             to_generate_images.append(generated_images)
 
             del generated_images

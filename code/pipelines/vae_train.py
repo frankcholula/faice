@@ -227,6 +227,10 @@ def evaluate(config, epoch, vae, test_dataloader):
             gc.collect()
 
             generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+
+            del decoded
+            gc.collect()
+
             to_generate_images.append(generated_images)
 
             del generated_images
