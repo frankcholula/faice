@@ -1,4 +1,5 @@
 # Deep learning framework
+import os
 from typing import List, Optional, Tuple, Union
 
 import torch
@@ -229,7 +230,16 @@ def train_loop(
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    pipeline.save_pretrained(config.output_dir)
+                    # pipeline.save_pretrained(config.output_dir)
+                    torch.save(model.state_dict(), '.model.pth')
+                    model_path = f"{config.output_dir}/dit"
+                    if not os.path.exists(model_path):
+                        os.makedirs(model_path)
+                    torch.save({
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'loss': loss,
+                    }, model_path + '/model_dit.pth')
                     if save_to_wandb:
                         wandb_logger.save_model()
 
