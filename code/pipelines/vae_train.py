@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 from torchvision.utils import save_image
 import wandb
+from diffusers.utils.pil_utils import numpy_to_pil
 
 # Configuration
 from utils.loggers import WandBLogger
@@ -216,7 +217,9 @@ def evaluate(config, epoch, decoded):
     generated_images = (decoded / 2 + 0.5).clamp(0, 1)
     # Make a grid out of the images
     # Convert the image size (b, c, h, w) to (b, w, h)
-    generated_images = generated_images.permute(0, 3, 2, 1)
+    generated_images = generated_images.cpu().permute(0, 2, 3, 1).numpy()
+    generated_images = numpy_to_pil(generated_images)
+    # generated_images = generated_images.permute(0, 3, 2, 1)
     generated_images = generated_images[:16]
     image_grid = make_grid(generated_images, rows=4, cols=4)
 
