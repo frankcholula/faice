@@ -3,6 +3,7 @@
 python main.py \
     --dataset face \
     --scheduler ddim \
+    --pipeline ddim \
     --eta 0.0 \
     --num_inference_steps 100 \
     --beta_schedule squaredcos_cap_v2 \
