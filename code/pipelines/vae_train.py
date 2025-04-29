@@ -71,10 +71,14 @@ def train_loop(
                 z = encoded.latent_dist.sample()
                 decoded = model.decode(z)[0]
 
-                # 计算 loss
-                rec_loss = F.mse_loss(clean_images, decoded)
+                # Calculate loss
+                # rec_loss = F.mse_loss(clean_images, decoded)
+                # kl_loss = encoded.latent_dist.kl().mean()
+                # loss = rec_loss + kl_loss * 0.0025
+
+                rec_loss = F.mse_loss(clean_images, decoded, reduction="sum") / config.train_batch_size
                 kl_loss = encoded.latent_dist.kl().mean()
-                loss = rec_loss + kl_loss * 0.0025
+                loss = rec_loss + kl_loss * 0.002
 
                 accelerator.backward(loss)
 
@@ -216,6 +220,7 @@ def vae_inference(vae, config, test_dataloader):
 
 
 def evaluate(config, epoch, decoded):
+    print("Evaluate training ...")
     with torch.no_grad():
         generated_images = (decoded / 2 + 0.5).clamp(0, 1)
         # Make a grid out of the images
