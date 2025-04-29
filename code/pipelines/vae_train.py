@@ -77,7 +77,7 @@ def train_loop(
                 # loss = rec_loss + kl_loss * 0.0025
 
                 rec_loss = F.mse_loss(clean_images, decoded, reduction="sum") / config.train_batch_size
-                kl_loss = encoded.latent_dist.kl().mean()
+                kl_loss = encoded.latent_dist.kl()
                 loss = rec_loss + kl_loss * 0.002
 
                 accelerator.backward(loss)
@@ -158,15 +158,6 @@ def vae_inference(vae, config, test_dataloader):
     fake_count = 0
 
     print(">" * 10, "Evaluate the vae model ...")
-    # with torch.no_grad():
-    #     noise = torch.randn(81, 16, 16, 16).to(device)
-    #     generated_images = vae.decode(noise).sample
-    #     generated_images = (generated_images / 2 + 0.5).clamp(0, 1)
-    #     img_dir = f"{config.output_dir}/samples"
-    #     if not os.path.exists(img_dir):
-    #         os.makedirs(img_dir)
-    #     # Plot images
-    #     plot_images(generated_images, save_dir=img_dir, save_title="vae_decode", cols=9)
 
     for batch in tqdm(test_dataloader):
         real_images = batch["images"].to(device)
