@@ -17,7 +17,8 @@ python main.py \
     --num_train_timesteps 4000 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
-    --wandb_run_name task4_ddim_100 \
+    --wandb_run_name task4_ddim_100_epsilon \
     --calculate_fid \
     --calculate_is \
     --verbose
+g
