@@ -20,6 +20,7 @@ from utils.training import setup_accelerator
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
 
+
 class CustomDiTPipeline(DiffusionPipeline):
     def __init__(self, dit, scheduler):
         super().__init__()
@@ -83,8 +84,14 @@ class CustomDiTPipeline(DiffusionPipeline):
         self.dit.eval()
         for time in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
-            t = torch.full((image.size(0),), time).to(device)
-            model_output = self.dit(image, t, class_labels)
+            t = torch.full((batch_size,), time).to(device)
+            y = torch.randint(
+                0,
+                num_class,
+                (batch_size,),
+                device=device,
+            ).long()
+            model_output = self.dit(image, t, y)
 
             # 2. compute previous image: x_t -> x_t-1
             image = self.scheduler.step(model_output, t, image, generator=generator).prev_sample
@@ -217,13 +224,7 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                y = torch.randint(
-                    0,
-                    num_class,
-                    (bs,),
-                    device=device,
-                ).long()
-                evaluate(config, epoch, pipeline, class_labels=y)
+                evaluate(config, epoch, pipeline)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -243,13 +244,7 @@ def train_loop(
         pipeline = selected_pipeline(
             dit=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
-        y = torch.randint(
-            0,
-            num_class,
-            (bs,),
-            device=device,
-        ).long()
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=y)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -258,14 +253,8 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
-        y = torch.randint(
-            0,
-            num_class,
-            (bs,),
-            device=device,
-        ).long()
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, class_labels=y
+            config, pipeline, test_dataloader, device=accelerator.device
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
