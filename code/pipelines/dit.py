@@ -97,7 +97,7 @@ class CustomDiTPipeline(DiffusionPipeline):
             model_output = self.dit(image, t, y)
 
             # 2. compute previous image: x_t -> x_t-1
-            image = self.scheduler.step(model_output, t, image, generator=generator).prev_sample
+            image = self.scheduler.step(model_output, time, image, generator=generator).prev_sample
 
         image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()
@@ -145,6 +145,7 @@ def train_loop(
     global_step = 0
 
     model.train()
+    model_name = model.__class__.__name__
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
@@ -187,11 +188,14 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_images,
-                                   timesteps,
-                                   map_ids)
-                # loss = F.mse_loss(noise_pred, noise)
-                loss = F.l1_loss(noise_pred, noise)
+                if "Transformer2D" in model_name:
+                    pass
+                else:
+                    noise_pred = model(noisy_images,
+                                       timesteps,
+                                       map_ids)
+                    # loss = F.mse_loss(noise_pred, noise)
+                    loss = F.l1_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)

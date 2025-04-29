@@ -11,11 +11,12 @@ from conf.training_config import get_config, get_all_datasets
 
 
 def create_scheduler(
-        scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000
+        scheduler: str, beta_schedule: str, num_train_timesteps: int = 1000, prediction_type='epsilon'
 ):
     if scheduler.lower() == "ddpm":
         return DDPMScheduler(
-            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule,
+            prediction_type=prediction_type,
         )
     elif scheduler.lower() == "ddim":
         return DDIMScheduler(
@@ -119,6 +120,9 @@ def parse_args():
     training_group.add_argument(
         "--num_inference_steps", type=int, help="Number of inference steps"
     )
+    training_group.add_argument(
+        "--prediction_type", help="type of scheduler prediction"
+    )
     training_group.add_argument("--learning_rate", type=float, help="Learning rate")
     training_group.add_argument(
         "--image_size", type=int, help="Image size for training"
@@ -196,7 +200,8 @@ def get_config_and_components():
     else:
         print("\nSkipping confirmation as --no_confirm flag is set.")
     model = create_model(config.model, config)
-    scheduler = create_scheduler(config.scheduler, config.beta_schedule, config.num_train_timesteps)
+    scheduler = create_scheduler(config.scheduler, config.beta_schedule, config.num_train_timesteps,
+                                 config.prediction_type)
     pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline

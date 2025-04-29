@@ -9,6 +9,7 @@ python main.py \
     --pipeline dit \
     --scheduler ddpm \
     --beta_schedule linear \
+    --prediction_type sample \
     --image_size 128 \
     --num_epochs 1 \
     --num_train_timesteps 1000 \
