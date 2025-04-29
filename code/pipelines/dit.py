@@ -151,7 +151,7 @@ def train_loop(
             # Convert the name in image_names to int number
             image_names = image_names.astype(int)
             map_ids = torch.tensor(image_names, dtype=torch.int)
-            map_ids = map_ids.to(clean_images.device)
+            map_ids = map_ids.to(device)
 
             # label_num = 2700
             # emb_size = 64
@@ -215,7 +215,7 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                y = torch.arange(start=0, end=2, dtype=torch.long)
+                y = torch.arange(start=0, end=2, dtype=torch.long, device=device)
                 evaluate(config, epoch, pipeline, class_labels=y)
             if save_model:
                 if config.push_to_hub:
@@ -236,7 +236,7 @@ def train_loop(
         pipeline = selected_pipeline(
             dit=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
-        y = torch.arange(start=0, end=2, dtype=torch.long)
+        y = torch.arange(start=0, end=2, dtype=torch.long, device=device)
         fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=y)
 
         wandb_logger.log_fid_score(fid_score)
@@ -246,7 +246,7 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
-        y = torch.arange(start=0, end=2, dtype=torch.long)
+        y = torch.arange(start=0, end=2, dtype=torch.long, device=device)
         inception_score = calculate_inception_score(
             config, pipeline, test_dataloader, device=accelerator.device, class_labels=y
         )
