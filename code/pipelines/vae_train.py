@@ -148,7 +148,7 @@ def vae_inference(model_path, config, test_dataloader):
 
     print(">" * 10, "Evaluate the vae model ...")
     with torch.no_grad():
-        noise = torch.randn(81, 16, 16, 16).to(config.device)
+        noise = torch.randn(81, 16, 16, 16).to(device)
         generated_images = vae.decode(noise).sample
         generated_images = (generated_images / 2 + 0.5).clamp(0, 1)
         img_dir = f"{config.output_dir}/samples"
