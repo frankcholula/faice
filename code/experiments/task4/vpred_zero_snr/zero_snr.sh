@@ -7,7 +7,6 @@ python main.py \
     --model unet \
     --unet_variant ddpm \
     --rescale_betas_zero_snr \
-    --attention_head_dim 256 \
     --upsample_type conv \
     --downsample_type conv \
     --image_size 128 \

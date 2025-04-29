@@ -6,7 +6,6 @@ python main.py \
     --beta_schedule squaredcos_cap_v2 \
     --model unet \
     --unet_variant adm \
-    --attention_head_dim 256 \
     --upsample_type conv \
     --downsample_type conv \
     --image_size 128 \

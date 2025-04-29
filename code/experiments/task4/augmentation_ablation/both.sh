@@ -8,7 +8,6 @@ python main.py \
     --unet_variant adm \
     --gblur \
     --RHFlip \
-    --attention_head_dim 256 \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 64 \
