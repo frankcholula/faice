@@ -77,7 +77,7 @@ def train_loop(
                 # loss = rec_loss + kl_loss * 0.0025
 
                 rec_loss = F.mse_loss(clean_images, decoded, reduction="sum") / config.train_batch_size
-                kl_loss = encoded.latent_dist.kl()
+                kl_loss = encoded.latent_dist.kl().mean()
                 loss = rec_loss + kl_loss * 0.002
 
                 accelerator.backward(loss)
