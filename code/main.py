@@ -1,17 +1,18 @@
 import os
 import glob
+import warnings
 
 import torch
 
 from PIL import Image
 from args import get_config_and_components
-import diffusers
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
 from utils.transforms import build_transforms
 from utils.loggers import timer
 
-diffusers.utils.logging.set_verbosity_error()
+# Suppress all FutureWarnings from the 'diffusers' module
+warnings.filterwarnings("ignore", category=FutureWarning, module="diffusers")
 
 
 def setup_dataset(config):
