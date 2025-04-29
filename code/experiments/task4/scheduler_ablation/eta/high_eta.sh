@@ -8,8 +8,6 @@ python main.py \
     --beta_schedule squaredcos_cap_v2 \
     --model unet \
     --unet_variant adm \
-    --upsample_type resnet \
-    --downsample_type resnet \
     --prediction_type v_prediction \
     --rescale_betas_zero_snr \
     --image_size 128 \
