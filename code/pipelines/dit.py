@@ -158,12 +158,12 @@ def train_loop(
             image_names = batch["image_names"]
             bs = clean_images.shape[0]
 
-            image_names = [name_to_label(img_name) for img_name in image_names]
+            image_labels = [name_to_label(img_name) for img_name in image_names]
 
-            image_names = np.array(image_names)
+            image_labels = np.array(image_labels)
             # Convert the name in image_names to int number
-            image_names = image_names.astype(int)
-            map_ids = torch.tensor(image_names, dtype=torch.int)
+            image_labels = image_labels.astype(int)
+            map_ids = torch.tensor(image_labels, dtype=torch.int)
             map_ids = map_ids.to(device)
 
             # label_num = 2700

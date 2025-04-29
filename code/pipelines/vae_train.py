@@ -209,17 +209,39 @@ def vae_inference(vae, config, test_dataloader):
     _ = calculate_clean_fid(real_dir, fake_dir)
 
 
-def evaluate(config, epoch, decoded):
+def evaluate(config, epoch, vae, test_dataloader):
     print("Evaluate training ...")
     with torch.no_grad():
-        generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+        to_generate_images = []
+        for batch in tqdm(test_dataloader):
+            real_images = batch["images"].to(device)
+            encoded = vae.encode(real_images)
+            z = encoded.latent_dist.sample()
+
+            del encoded
+            gc.collect()
+
+            decoded = vae.decode(z)[0]
+
+            del z
+            gc.collect()
+
+            generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+            to_generate_images.append(generated_images)
+
+            del generated_images
+            gc.collect()
+
+            to_generate_images = torch.cat(to_generate_images, dim=0)
+            if to_generate_images.shape[0] >= 16:
+                break
         # Make a grid out of the images
         # Convert the image size (b, c, h, w) to (b, w, h)
-        generated_images = generated_images.cpu().permute(0, 2, 3, 1).numpy()
-        generated_images = numpy_to_pil(generated_images)
+        to_generate_images = to_generate_images.cpu().permute(0, 2, 3, 1).numpy()
+        to_generate_images = numpy_to_pil(to_generate_images)
         # generated_images = generated_images.permute(0, 3, 2, 1)
-        generated_images = generated_images[:16]
-        image_grid = make_grid(generated_images, rows=4, cols=4)
+
+        image_grid = make_grid(to_generate_images, rows=4, cols=4)
 
         # Save the images
         test_dir = os.path.join(config.output_dir, "samples")

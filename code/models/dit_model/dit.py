@@ -33,7 +33,7 @@ class DiT(nn.Module):
         self.patch_size = patch_size
         self.patch_count = img_size // self.patch_size
         self.channel = channel
-        self.dtype = torch.float
+        self.dtype = torch.long
 
         # patchify
         self.conv = nn.Conv2d(in_channels=channel, out_channels=channel * patch_size ** 2,
