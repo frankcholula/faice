@@ -150,7 +150,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None):
                 idx += 1
 
     # 3) Compute Clean FID
-    score = clean_fid.compute_fid(real_dir, fake_dir)
+    score = fid.compute_fid(real_dir, fake_dir)
     print(f"Clean FID: {score:.5f}")
     return score
 
