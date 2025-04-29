@@ -177,8 +177,8 @@ def vae_inference(model_path, config, test_dataloader):
             os.makedirs(img_dir)
 
         # Plot images
-        generated_images = (z / 2 + 0.5).clamp(0, 1)
-        plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
+        # generated_images = (z / 2 + 0.5).clamp(0, 1)
+        # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
         decoded = vae.decode(z)[0]
 
