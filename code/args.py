@@ -1,7 +1,8 @@
 import argparse
 import inspect
 import sys
-from pipelines import ddpm, ddim, consistency
+from code.pipelines import base_pipeline
+from pipelines import ddim, consistency
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from models.unet import create_unet
 from conf.training_config import get_config, get_all_datasets
@@ -47,9 +48,9 @@ def create_model(model: str, config):
 
 def create_pipeline(pipeline: str):
     if pipeline.lower() == "ddpm":
-        return ddpm.train_loop
+        return base_pipeline.train_loop
     elif pipeline.lower() == "ddim":
-        return ddim.train_loop
+        return base_pipeline.train_loop
     # elif pipeline.lower() == "pndm":
     #     return pndm.train_loop
     elif pipeline.lower() == "consistency":
