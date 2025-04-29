@@ -214,28 +214,29 @@ def vae_inference(model_path, config, test_dataloader):
 
 
 def evaluate(config, epoch, decoded):
-    generated_images = (decoded / 2 + 0.5).clamp(0, 1)
-    # Make a grid out of the images
-    # Convert the image size (b, c, h, w) to (b, w, h)
-    generated_images = generated_images.cpu().permute(0, 2, 3, 1).numpy()
-    generated_images = numpy_to_pil(generated_images)
-    # generated_images = generated_images.permute(0, 3, 2, 1)
-    generated_images = generated_images[:16]
-    image_grid = make_grid(generated_images, rows=4, cols=4)
+    with torch.no_grad():
+        generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+        # Make a grid out of the images
+        # Convert the image size (b, c, h, w) to (b, w, h)
+        generated_images = generated_images.cpu().permute(0, 2, 3, 1).numpy()
+        generated_images = numpy_to_pil(generated_images)
+        # generated_images = generated_images.permute(0, 3, 2, 1)
+        generated_images = generated_images[:16]
+        image_grid = make_grid(generated_images, rows=4, cols=4)
 
-    # Save the images
-    test_dir = os.path.join(config.output_dir, "samples")
-    os.makedirs(test_dir, exist_ok=True)
-    image_grid_path = f"{test_dir}/{epoch:04d}.png"
-    image_grid.save(image_grid_path)
+        # Save the images
+        test_dir = os.path.join(config.output_dir, "samples")
+        os.makedirs(test_dir, exist_ok=True)
+        image_grid_path = f"{test_dir}/{epoch:04d}.png"
+        image_grid.save(image_grid_path)
 
-    if config.use_wandb:
-        wandb.log(
-            {
-                "generated_images": wandb.Image(
-                    image_grid_path, caption=f"Epoch {epoch}"
-                ),
-                "epoch": epoch,
-            }
-        )
+        if config.use_wandb:
+            wandb.log(
+                {
+                    "generated_images": wandb.Image(
+                        image_grid_path, caption=f"Epoch {epoch}"
+                    ),
+                    "epoch": epoch,
+                }
+            )
 
