@@ -191,7 +191,7 @@ def train_loop(
                 if "Transformer2D" in model_name:
                     noise_pred = model(noisy_images,
                                        timestep=timesteps,
-                                       class_labels=map_ids)
+                                       class_labels=map_ids).sample
                     loss = F.mse_loss(noise_pred, noise)
                 else:
                     noise_pred = model(noisy_images,
