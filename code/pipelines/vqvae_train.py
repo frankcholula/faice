@@ -160,16 +160,16 @@ def vqvae_inference(model_path, config, test_dataloader):
             os.makedirs(img_dir)
 
         # Plot images
-        generated_images = (z / 2 + 0.5).clamp(0, 1)
-        plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
+        # generated_images = (z / 2 + 0.5).clamp(0, 1)
+        # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
         quantized_z, _, _ = vqvae.quantize(z)
 
         del z
         gc.collect()
 
-        generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
-        plot_images(generated_images, save_dir=img_dir, save_title="quantized_z", cols=9)
+        # generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
+        # plot_images(generated_images, save_dir=img_dir, save_title="quantized_z", cols=9)
 
         decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
 
