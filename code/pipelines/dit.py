@@ -190,7 +190,8 @@ def train_loop(
                 noise_pred = model(noisy_images,
                                    timesteps,
                                    map_ids)
-                loss = F.mse_loss(noise_pred, noise)
+                # loss = F.mse_loss(noise_pred, noise)
+                loss = F.l1_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
