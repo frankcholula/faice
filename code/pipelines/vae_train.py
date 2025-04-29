@@ -112,7 +112,7 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, decoded)
+                evaluate(config, epoch, model, test_dataloader)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
