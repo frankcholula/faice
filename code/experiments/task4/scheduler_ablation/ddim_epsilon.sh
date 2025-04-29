@@ -13,7 +13,7 @@ python main.py \
     --prediction_type epsilon \
     --rescale_betas_zero_snr \
     --image_size 128 \
-    --num_epochs 50 \
+    --num_epochs 500 \
     --num_train_timesteps 4000 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
