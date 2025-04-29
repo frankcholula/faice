@@ -99,9 +99,7 @@ class CustomDiTPipeline(DiffusionPipeline):
             # 2. compute previous image: x_t -> x_t-1
             image = self.scheduler.step(model_output, time, image, generator=generator).prev_sample
 
-        # image = (image / 2 + 0.5).clamp(0, 1)
-        image = torch.clamp(image, -1.0, 1.0).detach()
-        image = (image / 2 + 0.5)
+        image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()
         if output_type == "pil":
             image = self.numpy_to_pil(image)
@@ -191,7 +189,10 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 if "Transformer2D" in model_name:
-                    pass
+                    noise_pred = model(noisy_images,
+                                       timestep=timesteps,
+                                       class_labels=map_ids)
+                    loss = F.mse_loss(noise_pred, noise)
                 else:
                     noise_pred = model(noisy_images,
                                        timesteps,

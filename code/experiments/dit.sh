@@ -5,11 +5,10 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model dit_model \
+    --model transformer_2d \
     --pipeline dit \
     --scheduler ddpm \
     --beta_schedule linear \
-    --prediction_type sample \
     --image_size 128 \
     --num_epochs 1 \
     --num_train_timesteps 1000 \
