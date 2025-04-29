@@ -14,7 +14,7 @@ python main.py \
     --num_train_timesteps 4000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name task4_pndm \
+    --wandb_run_name task4_pndm_50 \
     --calculate_fid \
     --calculate_is \
     --verbose

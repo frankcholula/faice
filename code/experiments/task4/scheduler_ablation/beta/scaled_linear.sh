@@ -6,8 +6,6 @@ python main.py \
     --beta_schedule scaled_linear \
     --model unet \
     --unet_variant adm \
-    --upsample_type resnet \
-    --downsample_type resnet \
     --attention_head_dim 256 \
     --upsample_type conv \
     --downsample_type conv \

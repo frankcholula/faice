@@ -6,8 +6,8 @@ python main.py \
     --beta_schedule linear \
     --model unet \
     --unet_variant adm \
-    --RHFlip \
     --gblur \
+    --RHFlip \
     --attention_head_dim 256 \
     --image_size 128 \
     --num_epochs 500 \

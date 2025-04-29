@@ -5,7 +5,7 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --model unet \
-    --unet_variant ddpm \
+    --unet_variant adm \
     --gblur \
     --attention_head_dim 256 \
     --upsample_type conv \
