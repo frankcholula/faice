@@ -125,17 +125,17 @@ def train_loop(
             and config.calculate_fid
             and test_dataloader is not None
     ):
-        model_path = f"{config.output_dir}/checkpoints/model_vqvae.pth"
-        vqvae_inference(model_path, config, test_dataloader)
+        # model_path = f"{config.output_dir}/checkpoints/model_vqvae.pth"
+        vqvae_inference(model, config, test_dataloader)
 
     wandb_logger.finish()
 
 
-def vqvae_inference(model_path, config, test_dataloader):
-    checkpoint = torch.load(model_path, map_location=device)
-    vqvae = create_vqmodel(config)
-    vqvae = vqvae.to(device)
-    vqvae.load_state_dict(checkpoint['model_state_dict'])
+def vqvae_inference(vqvae, config, test_dataloader):
+    # checkpoint = torch.load(model_path, map_location=device)
+    # vqvae = create_vqmodel(config)
+    # vqvae = vqvae.to(device)
+    # vqvae.load_state_dict(checkpoint['model_state_dict'])
 
     vqvae.eval()
 
