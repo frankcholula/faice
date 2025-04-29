@@ -1,9 +1,8 @@
 import argparse
 import inspect
 import sys
-from pipelines import ddpm, ddim, consistency
+from pipelines import base_pipeline, consistency
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
-from diffusers.schedulers import CMStochasticIterativeScheduler
 from models.unet import create_unet
 from conf.training_config import get_config, get_all_datasets
 
@@ -48,9 +47,9 @@ def create_model(model: str, config):
 
 def create_pipeline(pipeline: str):
     if pipeline.lower() == "ddpm":
-        return ddpm.train_loop
+        return base_pipeline.train_loop
     elif pipeline.lower() == "ddim":
-        return ddim.train_loop
+        return base_pipeline.train_loop
     # elif pipeline.lower() == "pndm":
     #     return pndm.train_loop
     elif pipeline.lower() == "consistency":
@@ -97,7 +96,10 @@ def parse_args():
         "--num_train_timesteps", type=int, default=1000, help="Number of training steps"
     )
     training_group.add_argument(
-        "--num_inference_steps", type=int, help="Number of inference steps"
+        "--num_inference_steps",
+        type=int,
+        default=1000,
+        help="Number of inference steps",
     )
     training_group.add_argument("--learning_rate", type=float, help="Learning rate")
     training_group.add_argument(
@@ -161,7 +163,7 @@ def parse_args():
     )
     model_group.add_argument(
         "--beta_schedule",
-        choices=["linear", "squaredcos_cap_v2"],
+        choices=["linear", "scaled_linear", "squaredcos_cap_v2"],
         default="linear",
         help="Beta schedule",
     )
@@ -178,7 +180,9 @@ def parse_args():
         default="epsilon",
         help="Prediction type for sampling (epsilon or v)",
     )
-
+    model_group.add_argument(
+        "--eta", type=float, default=1.0, help="eta value for DDIM scheduler"
+    )
     logging_group.add_argument(
         "--output_dir", help="Directory to save models and results"
     )
@@ -255,7 +259,7 @@ def get_config_and_components():
         config.prediction_type,
         config.rescale_betas_zero_snr,
     )
-    pipeline = create_pipeline(config.pipeline)
+    pipeline = create_pipeline(config.pipeline, config.eta, config.num_inference_steps)
 
     return config, model, scheduler, pipeline
 

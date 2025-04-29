@@ -1,17 +1,22 @@
 # Deep learning framework
-
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import DDIMPipeline
+from diffusers import DDPMPipeline, DDIMPipeline
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
+
+
+AVAILABLE_PIPELINES = {
+    "ddpm": DDPMPipeline,
+    "ddim": DDIMPipeline,
+}
 
 
 def train_loop(
@@ -73,31 +78,14 @@ def train_loop(
             with accelerator.accumulate(model):
                 if noise_scheduler.config.prediction_type == "epsilon":
                     # Predict the noise residual
-                    noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
-                    loss = F.mse_loss(noise_pred, noise)
+                    target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
-                    # manually calculate velocity
-                    alphas_cumprod = noise_scheduler.alphas_cumprod.to(
-                        clean_images.device
-                    )
-                    sqrt_alpha_prod = alphas_cumprod[timesteps] ** 0.5
-                    sqrt_one_minus_alpha_prod = (1 - alphas_cumprod[timesteps]) ** 0.5
-                    # reshape to match the shape of clean_images
-                    sqrt_alpha_prod = sqrt_alpha_prod.view(-1, 1, 1, 1)
-                    sqrt_one_minus_alpha_prod = sqrt_one_minus_alpha_prod.view(
-                        -1, 1, 1, 1
-                    )
-                    v = (
-                        sqrt_alpha_prod * noise
-                        - sqrt_one_minus_alpha_prod * clean_images
-                    )
-
                     # Predict velocity
-                    v_pred = model(noisy_images, timesteps, return_dict=False)[0]
-                    loss = F.mse_loss(v_pred, v)
+                    target = noise_scheduler.get_veocity(noisy_images, noise, timesteps)
+                pred = model(noisy_images, timesteps, return_dict=False)[0]
+                loss = F.mse_loss(pred, target)
 
                 accelerator.backward(loss)
-
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
                 lr_scheduler.step()
@@ -118,10 +106,9 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = DDIMPipeline(
+            pipeline = AVAILABLE_PIPELINES[config.pipeline](
                 unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
             )
-
             generate_samples = (
                 epoch + 1
             ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
@@ -148,7 +135,7 @@ def train_loop(
         and config.calculate_fid
         and test_dataloader is not None
     ):
-        pipeline = DDIMPipeline(
+        pipeline = AVAILABLE_PIPELINES[config.pipeline](
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
