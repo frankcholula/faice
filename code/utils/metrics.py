@@ -93,7 +93,7 @@ def preprocess_image(image, img_src, device):
         return image
 
 
-def calculate_inception_score(config, pipeline, test_dataloader, device=None):
+def calculate_inception_score(config, pipeline, test_dataloader, device=None, class_labels=[]):
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     inception_score = InceptionScore(
@@ -131,7 +131,7 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 )
                 generator = torch.manual_seed(config.seed + batch)
                 output = pipeline_inference(config, pipeline, batch_size, generator=generator,
-                                            output_type="np")
+                                            output_type="np", class_labels=class_labels)
                 # output = pipeline(
                 #     batch_size=min(
                 #         config.eval_batch_size, len(test_dataloader.dataset) - batch
@@ -151,7 +151,7 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
     return inception_mean, inception_std
 
 
-def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=True):
+def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=True, class_labels=[]):
     """Calculate FID score between generated images and test dataset"""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -194,7 +194,8 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
                 config.eval_batch_size, len(test_dataloader.dataset) - batch
             )
             generator = torch.manual_seed(config.seed + batch)
-            output = pipeline_inference(config, pipeline, batch_size, generator=generator, output_type="np")
+            output = pipeline_inference(config, pipeline, batch_size, generator=generator, output_type="np",
+                                        class_labels=class_labels)
             # output = pipeline(
             #     batch_size=min(
             #         config.eval_batch_size, len(test_dataloader.dataset) - batch

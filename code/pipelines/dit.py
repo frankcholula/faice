@@ -26,6 +26,7 @@ class CustomDiTPipeline(DiffusionPipeline):
     @torch.no_grad()
     def __call__(
             self,
+            class_labels,
             batch_size: int = 1,
             generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
             num_inference_steps: int = 1000,
@@ -79,7 +80,7 @@ class CustomDiTPipeline(DiffusionPipeline):
 
         for t in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
-            model_output = self.dit(image, t).sample
+            model_output = self.dit(image, t, class_labels).sample
 
             # 2. compute previous image: x_t -> x_t-1
             image = self.scheduler.step(model_output, t, image, generator=generator).prev_sample
@@ -212,7 +213,8 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, pipeline)
+                y = torch.arange(start=0, end=2, dtype=torch.long)
+                evaluate(config, epoch, pipeline, class_labels=y)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -232,7 +234,8 @@ def train_loop(
         pipeline = selected_pipeline(
             dit=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        y = torch.arange(start=0, end=2, dtype=torch.long)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=y)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -241,8 +244,9 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
+        y = torch.arange(start=0, end=2, dtype=torch.long)
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device
+            config, pipeline, test_dataloader, device=accelerator.device, class_labels=y
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
