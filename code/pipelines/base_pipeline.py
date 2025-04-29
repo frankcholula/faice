@@ -13,10 +13,19 @@ from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
 
-AVAILABLE_PIPELINES = {
-    "ddpm": DDPMPipeline,
-    "ddim": DDIMPipeline,
-}
+def create_pipeline(config, model, noise_scheduler):
+    if config.pipeline == "ddpm":
+        pipeline = DDPMPipeline(unet=model, scheduler=noise_scheduler)
+    elif config.pipeline == "ddim" or config.pipeline == "pndm":
+        pipeline = DDIMPipeline(
+            unet=model,
+            scheduler=noise_scheduler,
+            eta=config.eta,
+            num_inference_steps=config.num_inference_steps,
+        )
+    else:
+        raise ValueError(f"Pipeline type '{config.pipeline}' is not supported.")
+    return pipeline
 
 
 def train_loop(
@@ -81,7 +90,7 @@ def train_loop(
                     target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
                     # Predict velocity
-                    target = noise_scheduler.get_veocity(noisy_images, noise, timesteps)
+                    target = noise_scheduler.get_velocity(noisy_images, noise, timesteps)
                 pred = model(noisy_images, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(pred, target)
 
@@ -106,8 +115,8 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = AVAILABLE_PIPELINES[config.pipeline](
-                unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+            pipeline = create_pipeline(
+                config, accelerator.unwrap_model(model), noise_scheduler
             )
             generate_samples = (
                 epoch + 1
@@ -135,8 +144,8 @@ def train_loop(
         and config.calculate_fid
         and test_dataloader is not None
     ):
-        pipeline = AVAILABLE_PIPELINES[config.pipeline](
-            unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+        pipeline = create_pipeline(
+            config, accelerator.unwrap_model(model), noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
