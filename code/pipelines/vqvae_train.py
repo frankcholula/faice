@@ -7,17 +7,19 @@
 """
 import os
 import gc
+import wandb
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 from torchvision.utils import save_image
+from diffusers.utils.pil_utils import numpy_to_pil
 
 # Configuration
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vqmodel import create_vqmodel
 from utils.plot import plot_images
-from utils.metrics import calculate_clean_fid
+from utils.metrics import calculate_clean_fid, make_grid
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -70,9 +72,13 @@ def train_loop(
                 decoded = model.decode(quantized_z, force_not_quantize=True)[0]
 
                 # Calculate loss
-                rec_loss = F.mse_loss(clean_images, decoded)
+                # rec_loss = F.mse_loss(clean_images, decoded)
+                # quant_loss = loss
+                # loss = rec_loss + quant_loss * 0.0025
+
+                rec_loss = F.mse_loss(clean_images, decoded, reduction="sum") / config.train_batch_size
                 quant_loss = loss
-                loss = rec_loss + quant_loss * 0.0025
+                loss = rec_loss + quant_loss * 0.002
 
                 accelerator.backward(loss)
 
@@ -97,11 +103,16 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
 
+            generate_samples = (
+                                       epoch + 1
+                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
                                  epoch + 1
                          ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
+            if generate_samples:
+                evaluate(config, epoch, decoded)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -151,8 +162,10 @@ def vqvae_inference(vqvae, config, test_dataloader):
         real_images = batch["images"].to(device)
         encoded = vqvae.encode(real_images)
         z = encoded.latents
+        noise = torch.randn(z.shape).to(device)
 
         del encoded
+        del z
         gc.collect()
 
         img_dir = f"{config.output_dir}/samples"
@@ -163,9 +176,9 @@ def vqvae_inference(vqvae, config, test_dataloader):
         # generated_images = (z / 2 + 0.5).clamp(0, 1)
         # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
-        quantized_z, _, _ = vqvae.quantize(z)
+        quantized_z, _, _ = vqvae.quantize(noise)
 
-        del z
+        del noise
         gc.collect()
 
         # generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
@@ -203,3 +216,31 @@ def vqvae_inference(vqvae, config, test_dataloader):
 
     _ = calculate_clean_fid(real_dir, fake_dir)
 
+
+def evaluate(config, epoch, decoded):
+    print("Evaluate training ...")
+    with torch.no_grad():
+        generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+        # Make a grid out of the images
+        # Convert the image size (b, c, h, w) to (b, w, h)
+        generated_images = generated_images.cpu().permute(0, 2, 3, 1).numpy()
+        generated_images = numpy_to_pil(generated_images)
+        # generated_images = generated_images.permute(0, 3, 2, 1)
+        generated_images = generated_images[:16]
+        image_grid = make_grid(generated_images, rows=4, cols=4)
+
+        # Save the images
+        test_dir = os.path.join(config.output_dir, "samples")
+        os.makedirs(test_dir, exist_ok=True)
+        image_grid_path = f"{test_dir}/{epoch:04d}.png"
+        image_grid.save(image_grid_path)
+
+        if config.use_wandb:
+            wandb.log(
+                {
+                    "generated_images": wandb.Image(
+                        image_grid_path, caption=f"Epoch {epoch}"
+                    ),
+                    "epoch": epoch,
+                }
+            )
