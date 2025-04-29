@@ -1,8 +1,7 @@
 import argparse
 import inspect
 import sys
-from code.pipelines import base_pipeline
-from pipelines import ddim, consistency
+from pipelines import base_pipeline, consistency
 from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
 from models.unet import create_unet
 from conf.training_config import get_config, get_all_datasets
@@ -97,7 +96,10 @@ def parse_args():
         "--num_train_timesteps", type=int, default=1000, help="Number of training steps"
     )
     training_group.add_argument(
-        "--num_inference_steps", type=int, default=1000, help="Number of inference steps"
+        "--num_inference_steps",
+        type=int,
+        default=1000,
+        help="Number of inference steps",
     )
     training_group.add_argument("--learning_rate", type=float, help="Learning rate")
     training_group.add_argument(
