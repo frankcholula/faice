@@ -132,6 +132,7 @@ class CustomDiTPipeline2D(DiffusionPipeline):
     @torch.no_grad()
     def __call__(
             self,
+            class_labels,
             batch_size: int = 1,
             generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
             num_inference_steps: int = 1000,
