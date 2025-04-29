@@ -136,6 +136,7 @@ def parse_args():
     model_group.add_argument(
         "--attention_head_dim",
         type=int,
+        default=256,
         help="Attention head dimension for DDPMUNet (if applicable)",
     )
     model_group.add_argument(
