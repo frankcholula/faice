@@ -166,7 +166,6 @@ def vae_inference(vae, config, test_dataloader):
         # noise = torch.randn(z.shape).to(device)
 
         del encoded
-        del z
         gc.collect()
 
         img_dir = f"{config.output_dir}/samples"
@@ -179,7 +178,7 @@ def vae_inference(vae, config, test_dataloader):
 
         decoded = vae.decode(z)[0]
 
-        del noise
+        del z
         gc.collect()
 
         generated_images = (decoded / 2 + 0.5).clamp(0, 1)

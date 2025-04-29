@@ -165,7 +165,6 @@ def vqvae_inference(vqvae, config, test_dataloader):
         # noise = torch.randn(z.shape).to(device)
 
         del encoded
-        del z
         gc.collect()
 
         img_dir = f"{config.output_dir}/samples"
@@ -178,7 +177,7 @@ def vqvae_inference(vqvae, config, test_dataloader):
 
         quantized_z, _, _ = vqvae.quantize(z)
 
-        del noise
+        del z
         gc.collect()
 
         # generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
