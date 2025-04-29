@@ -110,7 +110,7 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = AVAILABLE_PIPELINES[config.pipeline](
-                config, accelerator.unwrap_model(model), noise_scheduler
+                unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
             )
             generate_samples = (
                 epoch + 1
@@ -139,7 +139,7 @@ def train_loop(
         and test_dataloader is not None
     ):
         pipeline = AVAILABLE_PIPELINES[config.pipeline](
-            config, accelerator.unwrap_model(model), noise_scheduler
+            unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
