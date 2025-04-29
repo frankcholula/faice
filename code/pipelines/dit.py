@@ -82,16 +82,18 @@ class CustomDiTPipeline(DiffusionPipeline):
         # set step values
         self.scheduler.set_timesteps(num_inference_steps)
 
+        y = torch.randint(
+            0,
+            num_class,
+            (batch_size,),
+            device=device,
+        ).long()
+
         self.dit.eval()
         for time in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
             t = torch.full((batch_size,), time).to(device)
-            y = torch.randint(
-                0,
-                num_class,
-                (batch_size,),
-                device=device,
-            ).long()
+
             model_output = self.dit(image, t, y)
 
             # 2. compute previous image: x_t -> x_t-1

@@ -179,6 +179,9 @@ def vqvae_inference(model_path, config, test_dataloader):
         generated_images = (decoded / 2 + 0.5).clamp(0, 1)
         plot_images(generated_images, save_dir=img_dir, save_title="decoded", cols=9)
 
+        del decoded
+        gc.collect()
+
         # Calculate FID
         real_image_names = batch["image_names"]
         for i, image in enumerate(real_images):
