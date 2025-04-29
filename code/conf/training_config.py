@@ -38,8 +38,8 @@ class BaseConfig:
     num_inference_steps: int = 1000
 
     # saving params
-    save_image_epochs: int = 5
-    save_model_epochs: int = 10
+    save_image_epochs: int = 50
+    save_model_epochs: int = 50
     output_dir: str = None
     overwrite_output_dir: bool = True
 
