@@ -12,6 +12,6 @@ python main.py \
     --train_batch_size 32 \
     --eval_batch_size 32 \
     --wandb_run_name liang_vae \
-    --no_confirm \
     --calculate_fid \
+    --no_confirm \
     --no_wandb

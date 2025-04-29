@@ -68,11 +68,10 @@ def train_loop(
                 quantized_z, loss, _ = model.quantize(z)
                 decoded = model.decode(quantized_z, force_not_quantize=True)[0]
 
-                # 计算 loss
+                # Calculate loss
                 rec_loss = F.mse_loss(clean_images, decoded)
-                # quant_loss = loss
-                # loss = rec_loss + quant_loss * 0.0025
-                loss = rec_loss
+                quant_loss = loss
+                loss = rec_loss + quant_loss * 0.0025
 
                 accelerator.backward(loss)
 

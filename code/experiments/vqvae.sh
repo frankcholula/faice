@@ -13,6 +13,6 @@ python main.py \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --wandb_run_name liang_vqvae \
-    --no_confirm \
     --calculate_fid \
+    --no_confirm \
     --no_wandb

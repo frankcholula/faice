@@ -14,9 +14,10 @@ def create_vqmodel(config):
         in_channels=3,  # RGB images
         out_channels=3,
         layers_per_block=2,  # how many ResNet layers to use per UNet block
-        block_out_channels=(128, 256, 512),
+        # block_out_channels=(128, 256, 512),
+        block_out_channels=(128, 64, 32),
         latent_channels=3,
-        num_vq_embeddings=8192,  # Codebook size
+        # num_vq_embeddings=8192,  # Codebook size
         vq_embed_dim=3,  # Latent dimension
         # the number of output channels for each UNet block
         down_block_types=(

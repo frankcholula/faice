@@ -17,6 +17,8 @@ from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 
 class CustomDiTPipeline(DiffusionPipeline):
     def __init__(self, dit, scheduler):
@@ -68,12 +70,12 @@ class CustomDiTPipeline(DiffusionPipeline):
         else:
             image_shape = (batch_size, self.dit.channel, *self.dit.sample_size)
 
-        if self.device.type == "mps":
+        if device.type == "mps":
             # randn does not work reproducibly on mps
             image = randn_tensor(image_shape, generator=generator, dtype=self.dit.dtype)
-            image = image.to(self.device)
+            image = image.to(device)
         else:
-            image = randn_tensor(image_shape, generator=generator, device=self.device, dtype=self.dit.dtype)
+            image = randn_tensor(image_shape, generator=generator, device=device, dtype=self.dit.dtype)
 
         # set step values
         self.scheduler.set_timesteps(num_inference_steps)
