@@ -153,6 +153,7 @@ def vqvae_inference(model_path, config, test_dataloader):
         z = encoded.latents
 
         del encoded
+        del real_images
         gc.collect()
 
         img_dir = f"{config.output_dir}/samples"
