@@ -7,6 +7,7 @@ python main.py \
     --beta_schedule linear \
     --model unet \
     --unet_variant adm \
+    --attention_head_dim 64 \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 24 \
