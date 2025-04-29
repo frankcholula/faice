@@ -34,6 +34,7 @@ class BaseConfig:
     seed: int = 0
     num_train_timesteps: int = 1000
     num_inference_steps: int = 1000
+    prediction_type: str = "epsilon"
 
     # saving params
     save_image_epochs: int = 5
