@@ -78,7 +78,7 @@ def train_loop(
 
                 rec_loss = F.mse_loss(clean_images, decoded, reduction="sum") / config.train_batch_size
                 codebook_loss = F.mse_loss(quantized_z, z.detach())
-                loss = rec_loss + commitment_cost * 0.0025 + codebook_loss
+                loss = rec_loss + (commitment_cost * 0.0025 + codebook_loss) * 0.1
 
                 accelerator.backward(loss)
 
