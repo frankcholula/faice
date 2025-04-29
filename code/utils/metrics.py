@@ -1,14 +1,13 @@
 import os
 import wandb
 import torch
-from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
+from clean_fid import fid
 from torchvision.utils import save_image
 from torchvision import transforms
 from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
-from cleanfid import fid
 
 
 def make_grid(images, rows, cols):
@@ -113,75 +112,47 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
     return inception_mean, inception_std
 
 
-def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=True):
-    """Calculate FID score between generated images and test dataset"""
+def calculate_fid_score(config, pipeline, test_dataloader, device=None):
+    """Calculate FID score between generated images and test dataset via CleanFID."""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Create FID instance with normalize=True since we'll provide images in [0,1] range
-    fid = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
+    # Make directories
+    real_dir = os.path.join(config.output_dir, "fid", "real")
+    fake_dir = os.path.join(config.output_dir, "fid", "fake")
+    os.makedirs(real_dir, exist_ok=True)
+    os.makedirs(fake_dir, exist_ok=True)
 
-    fake_count = 0
+    # 1) Save all real images
+    idx = 0
+    for batch in tqdm(test_dataloader, desc="Saving real images"):
+        # assume batch["images"] is a float tensor in [0,1]
+        for img in batch["images"].to(device):
+            save_image(img, os.path.join(real_dir, f"{idx:06d}.png"))
+            idx += 1
 
-    if save:
-        real_dir = os.path.join(config.output_dir, "fid", "real")
-        fake_dir = os.path.join(config.output_dir, "fid", "fake")
-        os.makedirs(real_dir, exist_ok=True)
-        os.makedirs(fake_dir, exist_ok=True)
-
+    # 2) Generate & save fake images
+    total = len(test_dataloader.dataset)
+    batch_size = config.eval_batch_size
+    idx = 0
     with torch.no_grad():
-        for batch in tqdm(
-                test_dataloader, desc="Loading Real Images for FID Calculation..."
-        ):
-            real_images = batch["images"].to(device)
-            real_image_names = batch["image_names"]
-            processed_real = preprocess_image(
-                real_images,
-                img_src="loaded",
-                device=device,
-            )
-            if save:
-                for i, image in enumerate(processed_real):
-                    img_name = real_image_names[i]
-                    save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
-            fid.update(processed_real, real=True)
-
-    with torch.no_grad():
-        for batch in tqdm(
-                range(0, len(test_dataloader.dataset), config.eval_batch_size),
-                desc="Loading Fake Images for FID Calculation..",
-        ):
-            # Generate images as numpy arrays
-            output = pipeline(
-                batch_size=min(
-                    config.eval_batch_size, len(test_dataloader.dataset) - batch
-                ),
-                generator=torch.manual_seed(config.seed + batch),
-                output_type="np",
+        for start in tqdm(range(0, total, batch_size), desc="Saving fake images"):
+            bs = min(batch_size, total - start)
+            fake_images = pipeline(
+                batch_size=bs,
+                generator=torch.manual_seed(config.seed + start),
+                output_type="pt",  # get back torch.Tensor (bs,C,H,W) in [0,1]
                 num_inference_steps=config.num_inference_steps,
                 eta=config.eta,
             ).images
-            processed_fake = preprocess_image(
-                output,
-                img_src="generated",
-                device=device,
-            )
-            if save:
-                for image in processed_fake:
-                    save_image(
-                        image,
-                        os.path.join(fake_dir, f"{fake_count:03d}.jpg"),
-                    )
-                    fake_count += 1
-            fid.update(processed_fake, real=False)
+            for img in fake_images.to(device):
+                save_image(img, os.path.join(fake_dir, f"{idx:06d}.png"))
+                idx += 1
 
-    # Compute final FID score
-    fid_score = fid.compute().item()
-    print(f"FID Score: {fid_score}")
-    clean_fid_score = calculate_clean_fid(real_dir, fake_dir)
-    min_fid_score = min(float(clean_fid_score), float(fid_score))
-    print(f"Minimum FID Score: {min_fid_score}")
-    return min_fid_score
+    # 3) Compute Clean FID
+    score = clean_fid.compute_fid(real_dir, fake_dir)
+    print(f"Clean FID: {score:.5f}")
+    return score
 
 
 def get_full_repo_name(model_id: str, organization: str = None, token: str = None):
