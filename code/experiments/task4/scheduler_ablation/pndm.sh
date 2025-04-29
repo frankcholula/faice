@@ -3,6 +3,7 @@
 python main.py \
     --dataset face \
     --scheduler pndm \
+    --pipeline pndm \
     --num_inference_steps 50 \
     --beta_schedule squaredcos_cap_v2 \
     --model unet \
