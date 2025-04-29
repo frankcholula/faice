@@ -96,7 +96,7 @@ def parse_args():
         "--num_train_timesteps", type=int, default=1000, help="Number of training steps"
     )
     training_group.add_argument(
-        "--num_inference_steps", type=int, help="Number of inference steps"
+        "--num_inference_steps", type=int, default=1000, help="Number of inference steps"
     )
     training_group.add_argument("--learning_rate", type=float, help="Learning rate")
     training_group.add_argument(
