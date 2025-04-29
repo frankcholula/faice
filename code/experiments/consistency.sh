@@ -3,7 +3,7 @@
 python main.py \
     --dataset face \
     --pipeline consistency \
-    --scheduler CMStochastic \
+    --scheduler cmstochastic \
     --model unet_resnet \
     --image_size 128 \
     --num_epochs 500 \
