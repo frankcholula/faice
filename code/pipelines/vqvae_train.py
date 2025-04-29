@@ -6,6 +6,7 @@
 @Project : code
 """
 import os
+import gc
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
@@ -146,10 +147,13 @@ def vqvae_inference(model_path, config, test_dataloader):
     fake_count = 0
 
     print(">" * 10, "Evaluate the vqvae model ...")
-    for batch in test_dataloader:
+    for batch in tqdm(test_dataloader):
         real_images = batch["images"].to(device)
         encoded = vqvae.encode(real_images)
         z = encoded.latents
+
+        del encoded
+        gc.collect()
 
         img_dir = f"{config.output_dir}/samples"
         if not os.path.exists(img_dir):
@@ -160,10 +164,18 @@ def vqvae_inference(model_path, config, test_dataloader):
         plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
         quantized_z, _, _ = vqvae.quantize(z)
+
+        del z
+        gc.collect()
+
         generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
         plot_images(generated_images, save_dir=img_dir, save_title="quantized_z", cols=9)
 
         decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
+
+        del quantized_z
+        gc.collect()
+
         generated_images = (decoded / 2 + 0.5).clamp(0, 1)
         plot_images(generated_images, save_dir=img_dir, save_title="decoded", cols=9)
 
@@ -173,12 +185,18 @@ def vqvae_inference(model_path, config, test_dataloader):
             img_name = real_image_names[i]
             save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
 
+        del real_image_names
+        gc.collect()
+
         for image in generated_images:
             save_image(
                 image,
                 os.path.join(fake_dir, f"{fake_count:03d}.jpg"),
             )
             fake_count += 1
+
+        del generated_images
+        gc.collect()
 
     _ = calculate_clean_fid(real_dir, fake_dir)
 

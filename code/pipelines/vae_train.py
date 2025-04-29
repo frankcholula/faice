@@ -163,7 +163,7 @@ def vae_inference(model_path, config, test_dataloader):
     #     # Plot images
     #     plot_images(generated_images, save_dir=img_dir, save_title="vae_decode", cols=9)
 
-    for batch in test_dataloader:
+    for batch in tqdm(test_dataloader):
         real_images = batch["images"].to(device)
         encoded = vae.encode(real_images)
         z = encoded.latent_dist.sample()
