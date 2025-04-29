@@ -18,7 +18,7 @@ from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
+num_class = 2
 
 class CustomDiTPipeline(DiffusionPipeline):
     def __init__(self, dit, scheduler):
@@ -84,9 +84,6 @@ class CustomDiTPipeline(DiffusionPipeline):
         for time in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
             t = torch.full((image.size(0),), time).to(device)
-            print('image.shape', image.shape)
-            print('t.shape', t.shape)
-            print('class_labels.shape', class_labels.shape)
             model_output = self.dit(image, t, class_labels)
 
             # 2. compute previous image: x_t -> x_t-1
@@ -220,7 +217,12 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                y = torch.arange(start=0, end=2, dtype=torch.long, device=device)
+                y = torch.randint(
+                    0,
+                    num_class,
+                    (bs,),
+                    device=device,
+                ).long()
                 evaluate(config, epoch, pipeline, class_labels=y)
             if save_model:
                 if config.push_to_hub:
@@ -241,7 +243,12 @@ def train_loop(
         pipeline = selected_pipeline(
             dit=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
-        y = torch.arange(start=0, end=2, dtype=torch.long, device=device)
+        y = torch.randint(
+            0,
+            num_class,
+            (bs,),
+            device=device,
+        ).long()
         fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=y)
 
         wandb_logger.log_fid_score(fid_score)
@@ -251,7 +258,12 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
-        y = torch.arange(start=0, end=2, dtype=torch.long, device=device)
+        y = torch.randint(
+            0,
+            num_class,
+            (bs,),
+            device=device,
+        ).long()
         inception_score = calculate_inception_score(
             config, pipeline, test_dataloader, device=accelerator.device, class_labels=y
         )
