@@ -11,8 +11,8 @@ python main.py \
     --beta_schedule linear \
     --image_size 128 \
     --num_epochs 50 \
-    --train_batch_size 32 \
-    --eval_batch_size 32 \
+    --train_batch_size 40 \
+    --eval_batch_size 40 \
     --wandb_run_name liang_dit_ddpm_linear \
     --calculate_fid \
     --calculate_is \
