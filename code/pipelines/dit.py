@@ -118,11 +118,7 @@ class CustomDiTPipeline2D(DiffusionPipeline):
     implemented for all pipelines (downloading, saving, running on a particular device, etc.).
 
     Parameters:
-        unet ([`UNet2DModel`]):
-            A `UNet2DModel` to denoise the encoded image latents.
-        scheduler ([`SchedulerMixin`]):
-            A scheduler to be used in combination with `unet` to denoise the encoded image. Can be one of
-            [`DDPMScheduler`], or [`DDIMScheduler`].
+        dit: Transformer2DModel
     """
 
     def __init__(self, dit, scheduler):
@@ -165,7 +161,7 @@ class CustomDiTPipeline2D(DiffusionPipeline):
                 returned where the first element is a list with the generated images
         """
         # Sample gaussian noise to begin loop
-        if isinstance(self.unet.config.sample_size, int):
+        if isinstance(self.dit.config.sample_size, int):
             image_shape = (
                 batch_size,
                 self.dit.config.in_channels,
@@ -340,16 +336,18 @@ def train_loop(
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    # pipeline.save_pretrained(config.output_dir)
-                    torch.save(model.state_dict(), '.model.pth')
-                    model_path = f"{config.output_dir}/dit"
-                    if not os.path.exists(model_path):
-                        os.makedirs(model_path)
-                    torch.save({
-                        'model_state_dict': model.state_dict(),
-                        'optimizer_state_dict': optimizer.state_dict(),
-                        'loss': loss,
-                    }, model_path + '/model_dit.pth')
+                    if "Transformer2D" in model_name:
+                        pipeline.save_pretrained(config.output_dir)
+                    else:
+                        torch.save(model.state_dict(), '.model.pth')
+                        model_path = f"{config.output_dir}/dit"
+                        if not os.path.exists(model_path):
+                            os.makedirs(model_path)
+                        torch.save({
+                            'model_state_dict': model.state_dict(),
+                            'optimizer_state_dict': optimizer.state_dict(),
+                            'loss': loss,
+                        }, model_path + '/model_dit.pth')
                     if save_to_wandb:
                         wandb_logger.save_model()
 
