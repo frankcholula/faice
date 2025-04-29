@@ -16,7 +16,7 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 4000 \
     --train_batch_size 16 \
-    --eval_batch_size 616 \
+    --eval_batch_size 16 \
     --wandb_run_name task4_ddim_100_test \
     --calculate_fid \
     --calculate_is \
