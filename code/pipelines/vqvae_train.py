@@ -223,7 +223,7 @@ def evaluate(config, epoch, vqvae, test_dataloader):
         for batch in tqdm(test_dataloader):
             real_images = batch["images"].to(device)
             encoded = vqvae.encode(real_images)
-            z = encoded.latent_dist.sample()
+            z = encoded.latents
 
             del encoded
             gc.collect()
