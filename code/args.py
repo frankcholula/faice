@@ -163,7 +163,11 @@ def parse_args():
         default="linear",
         help="Beta schedule",
     )
-    model_group.add_argument("--pipeline", help="Training pipeline")
+    model_group.add_argument(
+        "--pipeline",
+        choices=["ddpm", "ddim", "pndm", "consistency"],  
+        default="ddpm",                   
+        help="Training pipeline")
     model_group.add_argument(
         "--rescale_betas_zero_snr",
         action="store_true",
