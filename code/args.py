@@ -45,7 +45,7 @@ def create_model(model: str, config):
         raise ValueError(f"Model type '{model}' is not supported.")
 
 
-def get_train_loop(pipeline: str):
+def create_pipeline(pipeline: str):
     if pipeline.lower() in ["ddim", "ddpm", "pndm"]:
         return base_pipeline.train_loop
     elif pipeline.lower() == "consistency":
@@ -255,7 +255,7 @@ def get_config_and_components():
         config.prediction_type,
         config.rescale_betas_zero_snr,
     )
-    pipeline = get_train_loop(config.pipeline)
+    pipeline = create_pipeline(config.pipeline)
 
     return config, model, scheduler, pipeline
 
