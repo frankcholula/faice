@@ -10,8 +10,8 @@ python main.py \
     --pipeline vqvae \
     --image_size 128 \
     --num_epochs 1 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
+    --train_batch_size 24 \
+    --eval_batch_size 24 \
     --wandb_run_name liang_vqvae \
     --calculate_fid \
     --no_confirm \
