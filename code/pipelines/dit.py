@@ -209,7 +209,7 @@ class CustomDiTPipeline2D(DiffusionPipeline):
         return ImagePipelineOutput(images=image)
 
 
-selected_pipeline = CustomDiTPipeline
+selected_pipeline = CustomDiTPipeline2D
 
 
 def train_loop(
