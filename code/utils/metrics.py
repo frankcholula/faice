@@ -24,12 +24,14 @@ def evaluate(config, epoch, pipeline):
     # The default pipeline output type is `List[PIL.Image]`
     batch_size = 16
     # batch_size = config.eval_batch_size
-    images = pipeline(
-        batch_size=batch_size,
-        generator=torch.manual_seed(config.seed),
-        num_inference_steps=config.num_inference_steps,
-    ).images
-
+    images_kwargs = {
+        "batch_size": batch_size,
+        "generator": torch.manual_seed(config.seed),
+        "num_inference_steps": config.num_inference_steps,
+    }
+    if config.pipeline in ["ddim", "pndm"]:
+        images_kwargs["eta"] = config.eta
+    images = pipeline(**images_kwargs).images
     # Make a grid out of the images
     image_grid = make_grid(images, rows=4, cols=4)
 
@@ -92,14 +94,17 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 inception_score.update(processed_fake)
         else:
             for batch in tqdm(test_dataloader, desc="Calculating Inception Score"):
-                output = pipeline(
-                    batch_size=min(
-                        config.eval_batch_size, len(test_dataloader.dataset) - batch
+                output_kwargs = {
+                    "batch_size": min(
+                        config.eval_batch_size, len(test_dataloader.dataset)
                     ),
-                    generator=torch.manual_seed(config.seed),
-                    output_type="np",
-                    num_inference_steps=config.num_inference_steps,
-                ).images
+                    "generator": torch.manual_seed(config.seed),
+                    "output_type": "np",
+                    "num_inference_steps": config.num_inference_steps,
+                }
+                if config.pipeline in ["ddim", "pndm"]:
+                    output_kwargs["eta"] = config.eta
+                output = pipeline(**output_kwargs).imagess
                 processed_fake = preprocess_image(
                     output,
                     img_src="generated",
@@ -129,7 +134,7 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
 
     with torch.no_grad():
         for batch in tqdm(
-                test_dataloader, desc="Loading Real Images for FID Calculation..."
+            test_dataloader, desc="Loading Real Images for FID Calculation..."
         ):
             real_images = batch["images"].to(device)
             real_image_names = batch["image_names"]
@@ -146,18 +151,22 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
 
     with torch.no_grad():
         for batch in tqdm(
-                range(0, len(test_dataloader.dataset), config.eval_batch_size),
-                desc="Loading Fake Images for FID Calculation..",
+            range(0, len(test_dataloader.dataset), config.eval_batch_size),
+            desc="Loading Fake Images for FID Calculation..",
         ):
             # Generate images as numpy arrays
-            output = pipeline(
-                batch_size=min(
+            output_kwargs = {
+                "batch_size": min(
                     config.eval_batch_size, len(test_dataloader.dataset) - batch
                 ),
-                generator=torch.manual_seed(config.seed + batch),
-                output_type="np",
-                num_inference_steps=config.num_inference_steps,
-            ).images
+                "generator": torch.manual_seed(config.seed + batch),
+                "output_type": "np",
+                "num_inference_steps": config.num_inference_steps,
+            }
+
+            if config.pipeline in ["ddim", "pndm"]:
+                output_kwargs["eta"] = config.eta
+            output = pipeline(**output_kwargs).images
             processed_fake = preprocess_image(
                 output,
                 img_src="generated",

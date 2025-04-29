@@ -16,6 +16,7 @@ from utils.training import setup_accelerator
 AVAILABLE_PIPELINES = {
     "ddpm": DDPMPipeline,
     "ddim": DDIMPipeline,
+    "pndm": DDIMPipeline,
 }
 
 
@@ -81,7 +82,9 @@ def train_loop(
                     target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
                     # Predict velocity
-                    target = noise_scheduler.get_veocity(noisy_images, noise, timesteps)
+                    target = noise_scheduler.get_velocity(
+                        noisy_images, noise, timesteps
+                    )
                 pred = model(noisy_images, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(pred, target)
 

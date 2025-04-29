@@ -5,9 +5,8 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --model unet \
-    --unet_variant ddpm \
+    --unet_variant adm \
     --prediction_type v_prediction \
-    --attention_head_dim 256 \
     --upsample_type conv \
     --downsample_type conv \
     --image_size 128 \

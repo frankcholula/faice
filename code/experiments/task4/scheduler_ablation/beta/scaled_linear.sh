@@ -5,15 +5,14 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule scaled_linear \
     --model unet \
-    --unet_variant ddpm \
-    --attention_head_dim 256 \
+    --unet_variant adm \
     --upsample_type conv \
     --downsample_type conv \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name task4_ablation_baseline \
+    --wandb_run_name task4_beta_scaled_linear \
     --calculate_fid \
     --calculate_is \
     --verbose
