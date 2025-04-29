@@ -3,7 +3,7 @@
 wandb sync --clean-old-hours 1
 wandb artifact cache cleanup 0GB --remove-temp
 
-python main.py \
+DIFFUSERS_VERBOSITY=error python main.py \
     --dataset face \
     --model transformer_2d \
     --pipeline dit \
