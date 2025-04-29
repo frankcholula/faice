@@ -180,7 +180,9 @@ def parse_args():
         default="epsilon",
         help="Prediction type for sampling (epsilon or v)",
     )
-
+    model_group.add_argument(
+        "--eta", type=float, default=1.0, help="eta value for DDIM scheduler"
+    )
     logging_group.add_argument(
         "--output_dir", help="Directory to save models and results"
     )
@@ -257,7 +259,7 @@ def get_config_and_components():
         config.prediction_type,
         config.rescale_betas_zero_snr,
     )
-    pipeline = create_pipeline(config.pipeline)
+    pipeline = create_pipeline(config.pipeline, config.eta, config.num_inference_steps)
 
     return config, model, scheduler, pipeline
 
