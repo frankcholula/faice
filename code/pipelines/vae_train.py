@@ -203,6 +203,9 @@ def vae_inference(model_path, config, test_dataloader):
             )
             fake_count += 1
 
+        del generated_images
+        gc.collect()
+
     _ = calculate_clean_fid(real_dir, fake_dir)
 
 
