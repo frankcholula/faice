@@ -9,8 +9,8 @@ python main.py \
     --pipeline vae \
     --image_size 128 \
     --num_epochs 1 \
-    --train_batch_size 12 \
-    --eval_batch_size 12 \
+    --train_batch_size 10 \
+    --eval_batch_size 10 \
     --wandb_run_name liang_vae \
     --calculate_fid \
     --no_confirm \
