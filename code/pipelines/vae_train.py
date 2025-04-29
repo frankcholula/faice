@@ -212,6 +212,8 @@ def vae_inference(model_path, config, test_dataloader):
 def evaluate(config, epoch, decoded):
     generated_images = (decoded / 2 + 0.5).clamp(0, 1)
     # Make a grid out of the images
+    # Convert the image size (b, c, h, w) to (b, w, h)
+    generated_images = generated_images.permute(0, 2, 3, 1)
     generated_images = generated_images[:16]
     image_grid = make_grid(generated_images, rows=4, cols=4)
 
