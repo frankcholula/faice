@@ -6,6 +6,7 @@
 @Project : code
 """
 import os
+import gc
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
@@ -167,6 +168,9 @@ def vae_inference(model_path, config, test_dataloader):
         encoded = vae.encode(real_images)
         z = encoded.latent_dist.sample()
 
+        del encoded
+        gc.collect()
+
         img_dir = f"{config.output_dir}/samples"
         if not os.path.exists(img_dir):
             os.makedirs(img_dir)
@@ -176,6 +180,10 @@ def vae_inference(model_path, config, test_dataloader):
         plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
         decoded = vae.decode(z)[0]
+
+        del z
+        gc.collect()
+
         generated_images = (decoded / 2 + 0.5).clamp(0, 1)
         plot_images(generated_images, save_dir=img_dir, save_title="decoded", cols=9)
 
@@ -184,6 +192,9 @@ def vae_inference(model_path, config, test_dataloader):
         for i, image in enumerate(real_images):
             img_name = real_image_names[i]
             save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
+
+        del real_image_names
+        gc.collect()
 
         for image in generated_images:
             save_image(
