@@ -8,7 +8,7 @@ python main.py \
     --model vae \
     --pipeline vae \
     --image_size 128 \
-    --num_epochs 500 \
+    --num_epochs 1 \
     --train_batch_size 40 \
     --eval_batch_size 40 \
     --wandb_run_name liang_vae_batch_size_40 \

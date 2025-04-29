@@ -163,7 +163,7 @@ def vae_inference(vae, config, test_dataloader):
         real_images = batch["images"].to(device)
         encoded = vae.encode(real_images)
         z = encoded.latent_dist.sample()
-        noise = torch.randn(z.shape).to(device)
+        # noise = torch.randn(z.shape).to(device)
 
         del encoded
         del z
@@ -177,7 +177,7 @@ def vae_inference(vae, config, test_dataloader):
         # generated_images = (z / 2 + 0.5).clamp(0, 1)
         # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
-        decoded = vae.decode(noise)[0]
+        decoded = vae.decode(z)[0]
 
         del noise
         gc.collect()
