@@ -13,17 +13,11 @@ from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 
 
-def create_pipeline(config, model, noise_scheduler):
-    if config.pipeline == "ddpm":
-        pipeline = DDPMPipeline(unet=model, scheduler=noise_scheduler)
-    elif config.pipeline == "ddim" or config.pipeline == "pndm":
-        pipeline = DDIMPipeline(
-            unet=model,
-            scheduler=noise_scheduler,
-        )
-    else:
-        raise ValueError(f"Pipeline type '{config.pipeline}' is not supported.")
-    return pipeline
+AVAILABLE_PIPELINES = {
+    "ddpm": DDPMPipeline,
+    "ddim": DDIMPipeline,
+    "pndm": DDIMPipeline,
+}
 
 
 def train_loop(
@@ -115,7 +109,7 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = create_pipeline(
+            pipeline = AVAILABLE_PIPELINES[config.pipeline](
                 config, accelerator.unwrap_model(model), noise_scheduler
             )
             generate_samples = (
@@ -144,7 +138,7 @@ def train_loop(
         and config.calculate_fid
         and test_dataloader is not None
     ):
-        pipeline = create_pipeline(
+        pipeline = AVAILABLE_PIPELINES[config.pipeline](
             config, accelerator.unwrap_model(model), noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
