@@ -1,18 +1,18 @@
 # -*- coding: UTF-8 -*-
 """
-@Time : 30/04/2025 22:35
+@Time : 30/04/2025 23:06
 @Author : xiaoguangliang
-@File : test_vae.py
+@File : test_vqvae.py
 @Project : code
 """
 import os
 import torch
-from models.vae import create_vae
+from models.vqmodel import create_vqmodel
 
 from diffusers.utils.pil_utils import numpy_to_pil
 from utils.metrics import make_grid
 
-model_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
+model_path = "runs/vqvae-vqvae-ddpm-face-50/checkpoints/model_vqvae.pth"
 
 
 class config():
@@ -22,12 +22,12 @@ class config():
 
 def vae_inference():
     checkpoint = torch.load(model_path)
-    vae = create_vae(config)
-    vae = vae.to(config.device)
-    vae.load_state_dict(checkpoint['model_state_dict'])
+    vqvae = create_vqmodel(config)
+    vqvae = vqvae.to(config.device)
+    vqvae.load_state_dict(checkpoint['model_state_dict'])
 
     noise = torch.randn(16, 16, 32, 32).to(config.device)
-    decoded = vae.decode(noise)[0]
+    decoded = vqvae.decode(noise)[0]
 
     generated_images = (decoded / 2 + 0.5).clamp(0, 1)
 
@@ -41,7 +41,7 @@ def vae_inference():
     # Save the images
     test_dir = os.path.join('runs', "vae_samples")
     os.makedirs(test_dir, exist_ok=True)
-    image_grid_path = f"{test_dir}/000.png"
+    image_grid_path = f"{test_dir}/vqvae000.png"
     image_grid.save(image_grid_path)
 
 
