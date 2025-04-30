@@ -41,7 +41,7 @@ def create_transformer_2d(config):
         num_layers=6,
         patch_size=2,
         # attention_type="xformers",
-        attention_type="flash",
+        # attention_type="flash",
     )
 
     # transformer_2d.enable_xformers_memory_efficient_attention()
