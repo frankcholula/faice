@@ -18,6 +18,7 @@ from models.vae import create_vae
 selected_pipeline = DiTPipeline
 vae_path = "runs/vae-vae-ddpm-face-500-1/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+num_class=2
 
 
 def train_loop(
@@ -131,7 +132,7 @@ def train_loop(
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
                 accelerator.unwrap_model(model),
-                accelerator.unwrap_model(vae),
+                vae,
                 noise_scheduler
             )
 
@@ -144,7 +145,13 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, pipeline, class_labels=map_ids)
+                class_labels = torch.randint(
+                    0,
+                    num_class,
+                    (config.train_batch_size,),
+                    device=device,
+                ).int()
+                evaluate(config, epoch, pipeline, class_labels=class_labels)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -163,10 +170,16 @@ def train_loop(
     ):
         pipeline = selected_pipeline(
             accelerator.unwrap_model(model),
-            accelerator.unwrap_model(vae),
+            vae,
             noise_scheduler
         )
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=map_ids)
+        class_labels = torch.randint(
+            0,
+            num_class,
+            (config.train_batch_size,),
+            device=device,
+        ).int()
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -176,7 +189,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, class_labels=map_ids
+            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
