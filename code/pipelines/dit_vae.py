@@ -13,8 +13,11 @@ from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
+from models.vae import create_vae
 
 selected_pipeline = DiTPipeline
+vae_path = "runs/vae-vae-ddpm-face-500-1/checkpoints/model_vae.pth"
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
 def train_loop(
@@ -48,8 +51,13 @@ def train_loop(
 
     global_step = 0
 
-    url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
-    vae = AutoencoderKL.from_single_file(url)
+    # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
+    # vae = AutoencoderKL.from_single_file(url)
+    # vae.eval().requires_grad_(False)
+
+    vae = create_vae(config)
+    vae = vae.to(device)
+    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
 
     model.train()
@@ -73,13 +81,7 @@ def train_loop(
             map_ids = torch.tensor(image_names, dtype=torch.int)
             map_ids = map_ids.to(clean_images.device)
 
-            # label_num = 2700
-            # emb_size = 64
-            # label_emb = nn.Embedding(num_embeddings=label_num, embedding_dim=emb_size)
-            #
-            # map_ids = label_emb(map_ids)
-
-            vae.to(clean_images.device)
+            vae.to(device)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
@@ -100,9 +102,10 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(hidden_states=noisy_images,
+                noise_pred = model(noisy_images,
+                                   timestep=timesteps,
                                    class_labels=map_ids,
-                                   timestep=timesteps, return_dict=False)[0]
+                                   return_dict=False)[0]
                 loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
@@ -141,7 +144,7 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, pipeline)
+                evaluate(config, epoch, pipeline, class_labels=map_ids)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -161,7 +164,7 @@ def train_loop(
         pipeline = selected_pipeline(
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=map_ids)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -171,7 +174,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device
+            config, pipeline, test_dataloader, device=accelerator.device, class_labels=map_ids
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
