@@ -62,10 +62,10 @@ def train_loop(
     # vae.eval().requires_grad_(False)
 
     # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
-    vqmodel = create_vqmodel(config)
-    vqmodel = vqmodel.to(device)
-    vqmodel.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
-    vqmodel.eval().requires_grad_(False)
+    vqvae = create_vqmodel(config)
+    vqvae = vqvae.to(device)
+    vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
+    vqvae.eval().requires_grad_(False)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -90,16 +90,16 @@ def train_loop(
             ).long()
 
             # Encode image to latent space
-            latents = vqmodel.encode(clean_images).latents
+            latents = vqvae.encode(clean_images).latents
             # latents = latents.detach().clone()
-            latents = latents * vqmodel.config.scaling_factor
+            latents = latents * vqvae.config.scaling_factor
             # # Add noise (diffusion process)
             noise = torch.randn(latents.shape).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
 
-            with accelerator.accumulate([model, vqmodel]):
+            with accelerator.accumulate([model, vqvae]):
                 # Predict the noise residual
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
 
@@ -134,7 +134,7 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                vqvae=accelerator.unwrap_model(vqmodel),
+                vqvae=accelerator.unwrap_model(vqvae),
                 unet=accelerator.unwrap_model(model),
                 scheduler=noise_scheduler
             )
@@ -163,7 +163,9 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+            vqvae=accelerator.unwrap_model(vqvae),
+            unet=accelerator.unwrap_model(model),
+            scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
