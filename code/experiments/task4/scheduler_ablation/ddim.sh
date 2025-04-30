@@ -6,12 +6,11 @@ python main.py \
     --pipeline ddim \
     --eta 0.0 \
     --num_inference_steps 100 \
-    --beta_schedule squaredcos_cap_v2 \
+    --beta_schedule linear \
     --model unet \
     --unet_variant adm \
     --attention_head_dim 64 \
-    --prediction_type v_prediction \
-    --rescale_betas_zero_snr \
+    --prediction_type epsilon \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 4000 \
@@ -21,3 +20,4 @@ python main.py \
     --calculate_fid \
     --calculate_is \
     --verbose
+
