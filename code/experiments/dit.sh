@@ -13,8 +13,8 @@ python main.py \
     --num_epochs 1 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 160 \
-    --eval_batch_size 160 \
+    --train_batch_size 176 \
+    --eval_batch_size 176 \
     --wandb_run_name liang_transformer_2d_xformers_fast_ddpm_linear \
     --calculate_fid \
     --calculate_is \
