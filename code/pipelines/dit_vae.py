@@ -162,7 +162,9 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+            accelerator.unwrap_model(model),
+            accelerator.unwrap_model(vae),
+            noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=map_ids)
 
