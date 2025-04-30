@@ -17,7 +17,7 @@ model_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 
 class config():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    sample_size = 128
+    image_size = 128
 
 
 def vae_inference():
