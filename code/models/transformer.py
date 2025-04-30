@@ -32,7 +32,7 @@ def create_transformer_2d(config):
         sample_size=config.image_size,
         in_channels=3,
         out_channels=3,
-        # activation_fn="gelu-approximate",
+        activation_fn="gelu-approximate",
         attention_bias=True,
         attention_head_dim=32,
         norm_type="ada_norm_zero",
