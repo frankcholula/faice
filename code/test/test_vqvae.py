@@ -39,7 +39,7 @@ def vae_inference():
     image_grid = make_grid(generated_images, rows=4, cols=4)
 
     # Save the images
-    test_dir = os.path.join('runs', "vae_samples")
+    test_dir = os.path.join('runs', "vqvae_samples")
     os.makedirs(test_dir, exist_ok=True)
     image_grid_path = f"{test_dir}/vqvae000.png"
     image_grid.save(image_grid_path)
