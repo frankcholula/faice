@@ -93,7 +93,7 @@ def create_transformer_2d_xformers_vae(config):
         out_channels=16,
         activation_fn="gelu-approximate",
         attention_bias=True,
-        attention_head_dim=64,
+        attention_head_dim=72,
         norm_type="ada_norm_zero",
         num_attention_heads=8,
         num_embeds_ada_norm=1000,
