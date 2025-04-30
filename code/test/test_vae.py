@@ -31,8 +31,9 @@ def vae_inference():
 
     generated_images = (decoded / 2 + 0.5).clamp(0, 1)
 
-    to_generate_images = generated_images.cpu().permute(0, 2, 3, 1).numpy()
-    to_generate_images = numpy_to_pil(to_generate_images)
+    generated_images = generated_images.cpu().permute(0, 2, 3, 1).detach()
+    generated_images = generated_images.numpy()
+    generated_images = numpy_to_pil(generated_images)
     # generated_images = generated_images.permute(0, 3, 2, 1)
 
     image_grid = make_grid(to_generate_images, rows=4, cols=4)
