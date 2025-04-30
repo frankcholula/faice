@@ -22,7 +22,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 num_class = 2
 
 
-class CustomDiTPipeline(DiffusionPipeline):
+class CustomTransformerPipeline(DiffusionPipeline):
     def __init__(self, dit, scheduler):
         super().__init__()
         self.register_modules(dit=dit, scheduler=scheduler)
@@ -110,7 +110,7 @@ class CustomDiTPipeline(DiffusionPipeline):
         return ImagePipelineOutput(images=image)
 
 
-class CustomDiTPipeline2D(DiffusionPipeline):
+class CustomTransformer2DPipeline(DiffusionPipeline):
     r"""
     Pipeline for image generation.
 
@@ -213,7 +213,7 @@ class CustomDiTPipeline2D(DiffusionPipeline):
         return ImagePipelineOutput(images=image)
 
 
-selected_pipeline = CustomDiTPipeline2D
+selected_pipeline = CustomTransformer2DPipeline
 
 
 def train_loop(
