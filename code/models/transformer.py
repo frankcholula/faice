@@ -37,7 +37,7 @@ def create_transformer_2d(config):
         attention_head_dim=32,
         norm_type="ada_norm_zero",
         num_attention_heads=8,
-        # num_embeds_ada_norm=1000,
+        num_embeds_ada_norm=1000,
         num_layers=6,
         patch_size=2,
         attention_type="xformers",
