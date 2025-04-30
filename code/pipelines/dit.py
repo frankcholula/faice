@@ -190,8 +190,12 @@ class CustomDiTPipeline2D(DiffusionPipeline):
 
         for t in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
-            print(">"*9, 't.shape', t.shape)
-            print(">"*9, 't', t)
+            # print(">"*9, 't.shape', t.shape)
+            # print(">"*9, 't', t)
+            # Convert one number t to 1d-array
+            t = t.cpu().numpy()
+            t = np.array([t])
+            t = torch.from_numpy(t).to(device)
             model_output = self.dit(image, timestep=t, class_labels=class_labels).sample
 
             # 2. compute previous image: x_t -> x_t-1
