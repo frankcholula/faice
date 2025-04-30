@@ -42,3 +42,7 @@ def vae_inference():
     os.makedirs(test_dir, exist_ok=True)
     image_grid_path = f"{test_dir}/000.png"
     image_grid.save(image_grid_path)
+
+
+if __name__ == '__main__':
+    vae_inference()
