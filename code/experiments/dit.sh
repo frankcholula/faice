@@ -10,16 +10,16 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 1 \
+    --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 12 \
-    --eval_batch_size 12 \
-    --wandb_run_name liang_dit_ddpm_linear \
+    --train_batch_size 10 \
+    --eval_batch_size 10 \
+    --wandb_run_name liang_dit_ddpm_linear_batch_size_10_test \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
 
 #python main.py \
 #    --dataset face \
