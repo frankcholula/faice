@@ -36,7 +36,7 @@ def vae_inference():
     generated_images = numpy_to_pil(generated_images)
     # generated_images = generated_images.permute(0, 3, 2, 1)
 
-    image_grid = make_grid(to_generate_images, rows=4, cols=4)
+    image_grid = make_grid(generated_images, rows=4, cols=4)
 
     # Save the images
     test_dir = os.path.join('runs', "vae_samples")
