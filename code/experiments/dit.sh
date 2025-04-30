@@ -18,6 +18,6 @@ python main.py \
     --wandb_run_name liang_dit_ddpm_linear_batch_size_30 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
 
