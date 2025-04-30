@@ -8,13 +8,13 @@ python main.py \
     --model lant_unet \
     --pipeline ldmp \
     --scheduler ddim \
-    --beta_schedule linear \
+    --beta_schedule scaled_linear \
     --image_size 128 \
-    --num_epochs 500 \
+    --num_epochs 1 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 389 \
-    --eval_batch_size 389 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
     --wandb_run_name liang_ldmp_ddim_linear \
     --calculate_fid \
     --calculate_is \
