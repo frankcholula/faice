@@ -281,11 +281,13 @@ def numpy_to_pil(images):
     """
     if images.ndim == 3:
         images = images[None, ...]
-    images = images.round().astype("uint8")
-    if images.shape[-1] == 1:
-        # special case for grayscale (single channel) images
-        pil_images = [Image.fromarray(image.squeeze(), mode="L") for image in images]
-    else:
-        pil_images = [Image.fromarray(image) for image in images]
+    images = (images * 255).round().astype("uint8")
+    # if images.shape[-1] == 1:
+    #     # special case for grayscale (single channel) images
+    #     pil_images = [Image.fromarray(image.squeeze(), mode="L") for image in images]
+    # else:
+    #     pil_images = [Image.fromarray(image) for image in images]
+
+    pil_images = [Image.fromarray(image, "RGB") for image in images]
 
     return pil_images
