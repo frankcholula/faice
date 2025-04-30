@@ -242,7 +242,8 @@ def evaluate(config, epoch, vae, test_dataloader):
         to_generate_images = to_generate_images[:16]
         # Make a grid out of the images
         # Convert the image size (b, c, h, w) to (b, w, h)
-        to_generate_images = to_generate_images.cpu().permute(0, 2, 3, 1).numpy()
+        # to_generate_images = to_generate_images.cpu().permute(0, 2, 3, 1).numpy()
+        to_generate_images = to_generate_images.cpu().permute(0, 3, 2, 1).numpy()
         to_generate_images = numpy_to_pil(to_generate_images)
         # generated_images = generated_images.permute(0, 3, 2, 1)
 
