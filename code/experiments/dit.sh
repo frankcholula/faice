@@ -13,8 +13,8 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 72 \
-    --eval_batch_size 72 \
+    --train_batch_size 80 \
+    --eval_batch_size 80 \
     --wandb_run_name liang_dit_ddpm_linear_batch_size_30 \
     --calculate_fid \
     --calculate_is \
