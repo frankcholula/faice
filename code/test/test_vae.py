@@ -27,7 +27,7 @@ def vae_inference():
     vae.load_state_dict(checkpoint['model_state_dict'])
 
     # noise = torch.randn(16, 16, 32, 32).to(config.device)
-    latent_shape = (56, 16, 32, 32)
+    latent_shape = (16, 16, 32, 32)
     noise = torch.randint(0, 1, latent_shape, device=config.device, dtype=torch.float)
     decoded = vae.decode(noise)[0]
 
