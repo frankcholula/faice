@@ -12,8 +12,8 @@ python main.py \
     --downsample_type conv \
     --image_size 128 \
     --num_epochs 500 \
-    --train_batch_size 24 \
-    --eval_batch_size 24 \
+    --train_batch_size 48 \
+    --eval_batch_size 48 \
     --wandb_run_name task4_ablation_gblur_v2 \
     --calculate_fid \
     --calculate_is \
