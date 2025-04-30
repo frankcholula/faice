@@ -10,12 +10,12 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 1 \
+    --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 30 \
     --eval_batch_size 30 \
-    --wandb_run_name liang_dit_ddpm_linear_batch_size_10_test \
+    --wandb_run_name liang_dit_ddpm_linear_batch_size_30 \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
