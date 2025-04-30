@@ -199,6 +199,7 @@ class CustomDiTPipeline2D(DiffusionPipeline):
             model_output = self.dit(image, timestep=t, class_labels=class_labels).sample
 
             # 2. compute previous image: x_t -> x_t-1
+            t = t.cpu()
             image = self.scheduler.step(model_output, t, image, generator=generator).prev_sample
 
         image = (image / 2 + 0.5).clamp(0, 1)
