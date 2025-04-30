@@ -34,11 +34,29 @@ def create_transformer_2d(config):
         out_channels=3,
         activation_fn="gelu-approximate",
         attention_bias=True,
-        attention_head_dim=64,
+        attention_head_dim=16,
         norm_type="ada_norm_zero",
         num_attention_heads=4,
         num_embeds_ada_norm=1000,
-        num_layers=24,
+        num_layers=8,
+        patch_size=2,
+
+    )
+    return transformer_2d
+
+
+def create_transformer_2d_xl(config):
+    transformer_2d = Transformer2DModel(
+        sample_size=config.image_size,
+        in_channels=3,
+        out_channels=3,
+        activation_fn="gelu-approximate",
+        attention_bias=True,
+        attention_head_dim=72,
+        norm_type="ada_norm_zero",
+        num_attention_heads=16,
+        num_embeds_ada_norm=1000,
+        num_layers=28,
         patch_size=2,
 
     )
