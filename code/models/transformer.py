@@ -18,7 +18,7 @@ def create_dit_transformer(config):
         attention_bias=True,
         attention_head_dim=64,
         norm_type="ada_norm_zero",
-        num_attention_heads=16,
+        num_attention_heads=4,
         num_embeds_ada_norm=1000,
         num_layers=24,
         patch_size=1,
