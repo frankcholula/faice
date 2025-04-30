@@ -14,5 +14,5 @@ python main.py \
     --eval_batch_size 28 \
     --wandb_run_name liang_vqvae_batch_size_28 \
     --calculate_fid \
-    --no_confirm
-#    --no_wandb
+    --no_confirm \
+    --no_wandb

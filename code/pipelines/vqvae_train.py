@@ -12,7 +12,8 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 from torchvision.utils import save_image
-from diffusers.utils.pil_utils import numpy_to_pil
+# from diffusers.utils.pil_utils import numpy_to_pil
+from PIL import Image
 
 # Configuration
 from utils.loggers import WandBLogger
@@ -251,9 +252,9 @@ def evaluate(config, epoch, vqvae, test_dataloader):
         to_generate_images = to_generate_images[:16]
         # Make a grid out of the images
         # Convert the image size (b, c, h, w) to (b, w, h)
-        # to_generate_images = to_generate_images.cpu().permute(0, 2, 3, 1).numpy()
-        to_generate_images = to_generate_images.cpu().permute(0, 3, 2, 1).numpy()
+        to_generate_images = to_generate_images.cpu().permute(0, 2, 3, 1).numpy()
         to_generate_images = numpy_to_pil(to_generate_images)
+
         # generated_images = generated_images.permute(0, 3, 2, 1)
         image_grid = make_grid(to_generate_images, rows=4, cols=4)
 
@@ -272,3 +273,19 @@ def evaluate(config, epoch, vqvae, test_dataloader):
                     "epoch": epoch,
                 }
             )
+
+
+def numpy_to_pil(images):
+    """
+    Convert a numpy image or a batch of images to a PIL image.
+    """
+    if images.ndim == 3:
+        images = images[None, ...]
+    images = images.round().astype("uint8")
+    if images.shape[-1] == 1:
+        # special case for grayscale (single channel) images
+        pil_images = [Image.fromarray(image.squeeze(), mode="L") for image in images]
+    else:
+        pil_images = [Image.fromarray(image) for image in images]
+
+    return pil_images
