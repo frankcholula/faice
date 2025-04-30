@@ -27,7 +27,7 @@ def vae_inference():
     vae.load_state_dict(checkpoint['model_state_dict'])
 
     noise = torch.randn(16, 16, 16, 16, 16).to(config.device)
-    decoded = vae.decode(z)[0]
+    decoded = vae.decode(noise)[0]
 
     generated_images = (decoded / 2 + 0.5).clamp(0, 1)
 
