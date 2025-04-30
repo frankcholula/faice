@@ -12,8 +12,7 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 from torchvision.utils import save_image
-# from diffusers.utils.pil_utils import numpy_to_pil
-from PIL import Image
+from diffusers.utils.pil_utils import numpy_to_pil
 
 # Configuration
 from utils.loggers import WandBLogger
@@ -273,21 +272,3 @@ def evaluate(config, epoch, vqvae, test_dataloader):
                     "epoch": epoch,
                 }
             )
-
-
-def numpy_to_pil(images):
-    """
-    Convert a numpy image or a batch of images to a PIL image.
-    """
-    if images.ndim == 3:
-        images = images[None, ...]
-    images = (images * 255).round().astype("uint8")
-    # if images.shape[-1] == 1:
-    #     # special case for grayscale (single channel) images
-    #     pil_images = [Image.fromarray(image.squeeze(), mode="L") for image in images]
-    # else:
-    #     pil_images = [Image.fromarray(image) for image in images]
-
-    pil_images = [Image.fromarray(image, "RGB") for image in images]
-
-    return pil_images
