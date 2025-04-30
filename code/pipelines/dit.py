@@ -87,7 +87,7 @@ class CustomTransformerPipeline(DiffusionPipeline):
             num_class,
             (batch_size,),
             device=device,
-        ).long()
+        ).int()
 
         self.dit.eval()
         for time in self.progress_bar(self.scheduler.timesteps):
@@ -186,7 +186,7 @@ class CustomTransformer2DPipeline(DiffusionPipeline):
             num_class,
             (batch_size,),
             device=device,
-        ).long()
+        ).int()
 
         for t in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
