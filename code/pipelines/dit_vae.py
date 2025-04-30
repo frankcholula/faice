@@ -107,7 +107,15 @@ def train_loop(
                                    timestep=timesteps,
                                    class_labels=map_ids,
                                    return_dict=False)[0]
-                loss = F.mse_loss(noise_pred, noise)
+
+                if noise_scheduler.config.prediction_type == "epsilon":
+                    target = noise
+                elif noise_scheduler.config.prediction_type == "v_prediction":
+                    target = noise_scheduler.get_velocity(clean_images, noise, timesteps)
+                else:
+                    raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+
+                loss = F.mse_loss(noise_pred, target)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
@@ -132,7 +140,7 @@ def train_loop(
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
                 accelerator.unwrap_model(model),
-                vae,
+                accelerator.unwrap_model(vae),
                 noise_scheduler
             )
 
@@ -170,7 +178,7 @@ def train_loop(
     ):
         pipeline = selected_pipeline(
             accelerator.unwrap_model(model),
-            vae,
+            accelerator.unwrap_model(vae),
             noise_scheduler
         )
         class_labels = torch.randint(
