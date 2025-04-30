@@ -34,11 +34,11 @@ def create_transformer_2d(config):
         out_channels=3,
         activation_fn="gelu-approximate",
         attention_bias=True,
-        attention_head_dim=16,
+        attention_head_dim=32,
         norm_type="ada_norm_zero",
-        num_attention_heads=4,
+        num_attention_heads=8,
         num_embeds_ada_norm=1000,
-        num_layers=8,
+        num_layers=16,
         patch_size=2,
 
     )
