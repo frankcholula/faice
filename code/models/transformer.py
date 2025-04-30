@@ -40,9 +40,7 @@ def create_transformer_2d(config):
         num_embeds_ada_norm=1000,
         num_layers=4,
         patch_size=2,
-        use_linear_projection=True,
-        use_memory_efficient_attention=True,
-
+        attention_type="xformers",
     )
     return transformer_2d
 
