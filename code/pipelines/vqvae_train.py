@@ -68,12 +68,14 @@ def train_loop(
             with accelerator.accumulate(model):
                 encoded = model.encode(clean_images)
                 z = encoded.latents
-                quantized_z, vq_loss, _ = model.quantize(z)
-                decoded = model.decode(quantized_z, force_not_quantize=True)[0]
+                # quantized_z, vq_loss, _ = model.quantize(z)
+                # decoded = model.decode(z, force_not_quantize=True)[0]
+                decoded, commit_loss = model.decode(z, return_dict=False)
 
                 # Calculate loss
                 rec_loss = F.mse_loss(clean_images, decoded)
-                loss = rec_loss + vq_loss * 0.0025
+                # loss = rec_loss + commit_loss * 0.0025
+                loss = rec_loss + commit_loss * 0.1
 
                 accelerator.backward(loss)
 
