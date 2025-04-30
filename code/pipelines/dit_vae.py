@@ -102,7 +102,7 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_images,
+                noise_pred = model(latents,
                                    timestep=timesteps,
                                    class_labels=map_ids,
                                    return_dict=False)[0]
