@@ -107,6 +107,27 @@ def create_transformer_2d_xformers_vae(config):
     return transformer_2d
 
 
+def create_transformer_2d_xformers_fast(config):
+    transformer_2d = Transformer2DModel(
+        sample_size=config.image_size,
+        in_channels=3,
+        out_channels=3,
+        activation_fn="gelu-approximate",
+        attention_bias=True,
+        attention_head_dim=32,
+        norm_type="ada_norm_zero",
+        num_attention_heads=4,
+        num_embeds_ada_norm=1000,
+        num_layers=6,
+        patch_size=2,
+        attention_type="xformers",
+    )
+
+    transformer_2d.enable_xformers_memory_efficient_attention()
+
+    return transformer_2d
+
+
 def create_transformer_2d_xl(config):
     transformer_2d = Transformer2DModel(
         sample_size=config.image_size,
