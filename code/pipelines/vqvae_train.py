@@ -68,17 +68,12 @@ def train_loop(
             with accelerator.accumulate(model):
                 encoded = model.encode(clean_images)
                 z = encoded.latents
-                quantized_z, commitment_cost, _ = model.quantize(z)
+                quantized_z, vq_loss, _ = model.quantize(z)
                 decoded = model.decode(quantized_z, force_not_quantize=True)[0]
 
                 # Calculate loss
-                # rec_loss = F.mse_loss(clean_images, decoded)
-                # quant_loss = loss
-                # loss = rec_loss + quant_loss * 0.0025
-
-                rec_loss = F.mse_loss(clean_images, decoded, reduction="sum") / config.train_batch_size
-                codebook_loss = F.mse_loss(quantized_z, z.detach())
-                loss = rec_loss + (commitment_cost * 0.0025 + codebook_loss) * 0.1
+                rec_loss = F.mse_loss(clean_images, decoded)
+                loss = rec_loss + vq_loss * 0.0025
 
                 accelerator.backward(loss)
 
@@ -162,10 +157,8 @@ def vqvae_inference(vqvae, config, test_dataloader):
         real_images = batch["images"].to(device)
         encoded = vqvae.encode(real_images)
         z = encoded.latents
-        noise = torch.randn(z.shape).to(device)
 
         del encoded
-        del z
         gc.collect()
 
         img_dir = f"{config.output_dir}/samples"
@@ -176,9 +169,9 @@ def vqvae_inference(vqvae, config, test_dataloader):
         # generated_images = (z / 2 + 0.5).clamp(0, 1)
         # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
-        quantized_z, _, _ = vqvae.quantize(noise)
+        quantized_z, _, _ = vqvae.quantize(z)
 
-        del noise
+        del z
         gc.collect()
 
         # generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
@@ -225,15 +218,13 @@ def evaluate(config, epoch, vqvae, test_dataloader):
             real_images = batch["images"].to(device)
             encoded = vqvae.encode(real_images)
             z = encoded.latents
-            noise = torch.randn(z.shape).to(device)
 
             del encoded
-            del z
             gc.collect()
 
-            quantized_z, _, _ = vqvae.quantize(noise)
+            quantized_z, _, _ = vqvae.quantize(z)
 
-            del noise
+            del z
             gc.collect()
 
             decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
@@ -255,6 +246,7 @@ def evaluate(config, epoch, vqvae, test_dataloader):
             if to_generate_images.shape[0] >= 16:
                 break
 
+        to_generate_images = to_generate_images[:16]
         # Make a grid out of the images
         # Convert the image size (b, c, h, w) to (b, w, h)
         to_generate_images = to_generate_images.cpu().permute(0, 2, 3, 1).numpy()

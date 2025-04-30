@@ -163,10 +163,9 @@ def vae_inference(vae, config, test_dataloader):
         real_images = batch["images"].to(device)
         encoded = vae.encode(real_images)
         z = encoded.latent_dist.sample()
-        noise = torch.randn(z.shape).to(device)
+        # noise = torch.randn(z.shape).to(device)
 
         del encoded
-        del z
         gc.collect()
 
         img_dir = f"{config.output_dir}/samples"
@@ -177,9 +176,9 @@ def vae_inference(vae, config, test_dataloader):
         # generated_images = (z / 2 + 0.5).clamp(0, 1)
         # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
-        decoded = vae.decode(noise)[0]
+        decoded = vae.decode(z)[0]
 
-        del noise
+        del z
         gc.collect()
 
         generated_images = (decoded / 2 + 0.5).clamp(0, 1)
@@ -218,15 +217,13 @@ def evaluate(config, epoch, vae, test_dataloader):
             real_images = batch["images"].to(device)
             encoded = vae.encode(real_images)
             z = encoded.latent_dist.sample()
-            noise = torch.randn(z.shape).to(device)
 
             del encoded
-            del z
             gc.collect()
 
-            decoded = vae.decode(noise)[0]
+            decoded = vae.decode(z)[0]
 
-            del noise
+            del z
             gc.collect()
 
             generated_images = (decoded / 2 + 0.5).clamp(0, 1)
@@ -242,6 +239,7 @@ def evaluate(config, epoch, vae, test_dataloader):
             to_generate_images = torch.cat(to_generate_images, dim=0)
             if to_generate_images.shape[0] >= 16:
                 break
+        to_generate_images = to_generate_images[:16]
         # Make a grid out of the images
         # Convert the image size (b, c, h, w) to (b, w, h)
         to_generate_images = to_generate_images.cpu().permute(0, 2, 3, 1).numpy()
