@@ -29,7 +29,7 @@ def vae_inference():
     # noise = torch.randn(16, 16, 32, 32).to(config.device)
     # noise = torch.randn(16, 16, 32, 32).to(config.device)
     latent_shape = (16, 16, 32, 32)
-    noise = torch.randint(-1, 1, latent_shape, device=config.device, dtype=torch.float)
+    noise = torch.randint(0, 1, latent_shape, device=config.device, dtype=torch.float)
     decoded = vae.decode(noise)[0]
 
     generated_images = (decoded / 2 + 0.5).clamp(0, 1)
