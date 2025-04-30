@@ -7,8 +7,8 @@ python main.py \
     --dataset face \
     --model dit_transformer \
     --pipeline dit_vae \
-    --scheduler ddpm \
-    --beta_schedule linear \
+    --scheduler ddim \
+    --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 20 \
     --num_train_timesteps 1000 \

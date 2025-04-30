@@ -16,7 +16,7 @@ from utils.training import setup_accelerator
 from models.vae import create_vae
 
 selected_pipeline = DiTPipeline
-vae_path = "runs/vae-vae-ddpm-face-500-1/checkpoints/model_vae.pth"
+vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class=2
 
@@ -115,7 +115,8 @@ def train_loop(
                 else:
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
-                loss = F.mse_loss(noise_pred, target)
+                # loss = F.mse_loss(noise_pred, target)
+                loss = F.l1_loss(noise_pred, target)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
