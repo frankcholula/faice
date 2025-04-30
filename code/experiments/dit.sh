@@ -13,9 +13,9 @@ python main.py \
     --num_epochs 1 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 128 \
-    --eval_batch_size 128 \
-    --wandb_run_name liang_dit_ddpm_linear_batch_size_128 \
+    --train_batch_size 192 \
+    --eval_batch_size 192 \
+    --wandb_run_name liang_transformer_2d_xformers_fast_ddpm_linear \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
