@@ -6,6 +6,7 @@ python main.py \
     --beta_schedule linear \
     --model unet \
     --unet_variant adm \
+    --attention_head_dim 64 \
     --gblur \
     --upsample_type conv \
     --downsample_type conv \

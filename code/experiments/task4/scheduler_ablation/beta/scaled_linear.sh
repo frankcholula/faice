@@ -6,8 +6,7 @@ python main.py \
     --beta_schedule scaled_linear \
     --model unet \
     --unet_variant adm \
-    --upsample_type conv \
-    --downsample_type conv \
+    --attention_head_dim 64 \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 64 \
