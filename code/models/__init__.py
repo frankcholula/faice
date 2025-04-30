@@ -1,6 +1,7 @@
 from .unet import create_unet, create_lant_unet
 from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
-from .transformer import create_dit_transformer, create_transformer_2d
+from .transformer import create_dit_transformer, create_transformer_2d, create_transformer_2d_vae, \
+    create_transformer_2d_xformers, create_transformer_2d_xformers_vae
 from .vae import create_vae
 from .vqmodel import create_vqmodel
 from .dit_model.dit import create_dit_model
@@ -12,6 +13,9 @@ __model_factory = {
     "unet_resnet768": create_unet_resnet768,
     "dit_transformer": create_dit_transformer,
     "transformer_2d": create_transformer_2d,
+    "transformer_2d_vae": create_transformer_2d_vae,
+    "transformer_2d_xformers": create_transformer_2d_xformers,
+    "transformer_2d_xformers_vae": create_transformer_2d_xformers_vae,
     "dit_model": create_dit_model,
     "vae": create_vae,
     "vqvae": create_vqmodel,
