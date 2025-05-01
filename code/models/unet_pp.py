@@ -9,7 +9,7 @@ import segmentation_models_pytorch as smp
 
 
 def unet_pp(
-        classes=5,
+        classes=2,
         in_channels=3,
 ):
     """U-Net++

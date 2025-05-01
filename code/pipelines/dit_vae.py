@@ -120,8 +120,8 @@ def train_loop(
                 else:
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
-                loss = F.mse_loss(noise_pred, target)
-                # loss = F.l1_loss(noise_pred, target)
+                # loss = F.mse_loss(noise_pred, target)
+                loss = F.l1_loss(noise_pred, target)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
