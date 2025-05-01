@@ -124,7 +124,6 @@ def create_latent_unet_xl(config):
             672,
             896,
             1280,
-            1536
         ),
         down_block_types=(
             "DownBlock2D",
@@ -132,10 +131,8 @@ def create_latent_unet_xl(config):
             "AttnDownBlock2D",
             "AttnDownBlock2D",
             "AttnDownBlock2D",
-            "AttnDownBlock2D",
         ),
         up_block_types=(
-            "AttnUpBlock2D",
             "AttnUpBlock2D",
             "AttnUpBlock2D",
             "AttnUpBlock2D",
