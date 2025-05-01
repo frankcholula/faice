@@ -168,6 +168,7 @@ def vqvae_inference(vqvae, config, test_dataloader, wandb_logger):
 
         encoded = vqvae.encode(real_images_norm)
         z = encoded.latents
+        noise = torch.randn_like(z).to(device)
 
         del encoded
         gc.collect()
@@ -181,7 +182,6 @@ def vqvae_inference(vqvae, config, test_dataloader, wandb_logger):
         # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
         quantized_z, _, _ = vqvae.quantize(z)
-        noise = torch.randn_like(quantized_z).to(device)
 
         del z
         gc.collect()
@@ -301,5 +301,3 @@ def evaluate(config, epoch, vqvae, test_dataloader):
                     "epoch": epoch,
                 }
             )
-
-
