@@ -202,17 +202,10 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                if "Transformer2D" in model_name:
-                    noise_pred = model(noisy_images,
-                                       timestep=timesteps,
-                                       class_labels=map_ids).sample
-                    loss = F.mse_loss(noise_pred, noise)
-                else:
-                    noise_pred = model(noisy_images,
-                                       timesteps,
-                                       map_ids)
-                    # loss = F.mse_loss(noise_pred, noise)
-                    loss = F.l1_loss(noise_pred, noise)
+                noise_pred = model(noisy_images,
+                                   timestep=timesteps,
+                                   class_labels=map_ids).sample
+                loss = F.mse_loss(noise_pred, noise)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
@@ -254,18 +247,7 @@ def train_loop(
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    if "Transformer2D" in model_name:
-                        pipeline.save_pretrained(config.output_dir)
-                    else:
-                        torch.save(model.state_dict(), '.model.pth')
-                        model_path = f"{config.output_dir}/dit"
-                        if not os.path.exists(model_path):
-                            os.makedirs(model_path)
-                        torch.save({
-                            'model_state_dict': model.state_dict(),
-                            'optimizer_state_dict': optimizer.state_dict(),
-                            'loss': loss,
-                        }, model_path + '/model_dit.pth')
+                    pipeline.save_pretrained(config.output_dir)
                     if save_to_wandb:
                         wandb_logger.save_model()
 
