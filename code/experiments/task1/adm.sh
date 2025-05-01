@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This is after all the optimizations for ADM. 
+# This is after all the optimizations for ADM.
+# This should also be the baseline for task 4.
 
 python main.py \
     --dataset face \
