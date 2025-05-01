@@ -143,7 +143,8 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                vqvae=accelerator.unwrap_model(vqvae),
+                # vqvae=accelerator.unwrap_model(vqvae),
+                vqvae=accelerator.unwrap_model(vae),
                 unet=accelerator.unwrap_model(model),
                 scheduler=noise_scheduler
             )
@@ -172,7 +173,8 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            vqvae=accelerator.unwrap_model(vqvae),
+            # vqvae=accelerator.unwrap_model(vqvae),
+            vqvae=accelerator.unwrap_model(vae),
             unet=accelerator.unwrap_model(model),
             scheduler=noise_scheduler
         )
