@@ -4,6 +4,8 @@ python main.py \
     --dataset face \
     --scheduler ddim \
     --pipeline ddim \
+    --eta 0.0 \
+    --num_inference_steps 100 \
     --beta_schedule linear \
     --model unet \
     --unet_variant adm \
@@ -14,7 +16,29 @@ python main.py \
     --num_train_timesteps 4000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name task4_ablation_vprediction \
+    --wandb_run_name task4_ddim_vprediction \
     --calculate_fid \
     --calculate_is \
     --verbose
+
+python main.py \
+    --dataset face \
+    --scheduler pndm \
+    --pipeline pndm \
+    --num_inference_steps 50 \
+    --beta_schedule linear \
+    --model unet \
+    --unet_variant adm \
+    --attention_head_dim 64 \
+    --prediction_type v_prediction \
+    --image_size 128 \
+    --num_epochs 500 \
+    --num_train_timesteps 4000 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
+    --wandb_run_name task4_pndm_50 \
+    --calculate_fid \
+    --calculate_is \
+    --verbose
+
+
