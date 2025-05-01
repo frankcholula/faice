@@ -108,7 +108,7 @@ def train_loop(
             # # (this is the forward diffusion process)
             noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
 
-            with accelerator.accumulate([model, vqvae]):
+            with accelerator.accumulate(model):
                 # Predict the noise residual
                 noise_pred = model(noisy_latents, timesteps, return_dict=False)[0]
 
