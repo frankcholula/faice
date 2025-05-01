@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # This changes the up/downsamle to using resnet.
-# The rest is the same as the ddpm_base.sh file.
-# Run this fifth.
 
 python main.py \
     --dataset face \
