@@ -116,25 +116,6 @@ def train_loop(
 
                     # loss = F.mse_loss(denoised, clean_images)
 
-                    # noise_scheduler.set_timesteps(1)
-                    # timesteps = noise_scheduler.timesteps
-                    # noise_scheduler.set_begin_index()
-                    # sample = noisy_images
-                    # for i, t in enumerate(timesteps):
-                    #     if noise_scheduler.step_index and noise_scheduler.step_index >= noise_scheduler.config.num_train_timesteps:
-                    #         noise_scheduler._step_index = 0
-                    #     scaled_sample = noise_scheduler.scale_model_input(sample, t)
-                    #     model_output = model(scaled_sample, init_timesteps, return_dict=False)[0]
-                    #
-                    #     sample = noise_scheduler.step(model_output, t, sample,
-                    #                                   generator=torch.manual_seed(0))[0]
-                    #
-                    # loss = F.mse_loss(sample, clean_images)
-
-                    # After inference, reset the parameters of scheduler
-                    # noise_scheduler = CMStochasticIterativeScheduler(
-                    #     num_train_timesteps=config.num_train_timesteps
-                    # )
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
