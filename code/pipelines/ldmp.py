@@ -64,19 +64,19 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    vqvae = create_vqmodel(config)
-    vqvae = vqvae.to(device)
-    vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
-    vqvae.eval().requires_grad_(False)
+    # vqvae = create_vqmodel(config)
+    # vqvae = vqvae.to(device)
+    # vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
+    # vqvae.eval().requires_grad_(False)
 
     # vae = create_vae(config)
     # vae = vae.to(device)
     # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     # vae.eval().requires_grad_(False)
 
-    # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
-    # vqvae = vqvae.to(device)
-    # vqvae.eval().requires_grad_(False)
+    vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
+    vqvae = vqvae.to(device)
+    vqvae.eval().requires_grad_(False)
 
     # Now you train the model
     for epoch in range(config.num_epochs):

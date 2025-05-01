@@ -1,4 +1,4 @@
-from .unet import create_unet, create_lant_unet, create_unet_for_ldm
+from .unet import create_unet, create_latent_unet, create_unet_for_ldm, create_latent_unet_xl
 from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
 from .transformer import create_dit_transformer, create_transformer_2d, create_transformer_2d_vae, \
     create_transformer_2d_xformers, create_transformer_2d_xformers_vae, create_transformer_2d_xformers_fast
@@ -11,6 +11,8 @@ __model_factory = {
     "unet_resnet1024": create_unet_resnet1024,
     "unet_resnet768": create_unet_resnet768,
     "unet_for_ldm": create_unet_for_ldm,
+    "latent_unet": create_latent_unet,
+    "latent_unet_xl": create_latent_unet_xl,
     "dit_transformer": create_dit_transformer,
     "transformer_2d": create_transformer_2d,
     "transformer_2d_vae": create_transformer_2d_vae,
@@ -20,7 +22,6 @@ __model_factory = {
     "vae": create_vae,
     "vae_xl": create_vae_xl,
     "vqvae": create_vqmodel,
-    "lant_unet": create_lant_unet,
 }
 
 

@@ -5,7 +5,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 #python main.py \
 #    --dataset face \
-#    --model lant_unet \
+#    --model latent_unet \
 #    --pipeline ldmp \
 #    --scheduler ddim \
 #    --beta_schedule scaled_linear \
@@ -39,20 +39,39 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --no_confirm
 #    --no_wandb
 
+#python main.py \
+#    --dataset face \
+#    --model latent_unet \
+#    --pipeline ldmp \
+#    --scheduler ddim \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 100 \
+#    --eval_batch_size 100 \
+#    --wandb_run_name liang_ldmp_ddim_scaled_linear_vqvae32_bs100 \
+#    --calculate_fid \
+#    --calculate_is \
+#    --no_confirm
+#    --no_wandb
+
+
 python main.py \
     --dataset face \
-    --model lant_unet \
+    --model latent_unet_xl \
     --pipeline ldmp \
     --scheduler ddim \
     --beta_schedule scaled_linear \
     --image_size 128 \
-    --num_epochs 500 \
+    --num_epochs 1 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 100 \
-    --eval_batch_size 100 \
-    --wandb_run_name liang_ldmp_ddim_scaled_linear_vqvae32_bs100 \
+    --train_batch_size 32 \
+    --eval_batch_size 32 \
+    --wandb_run_name liang_latent_unet_xl_ldmp_ddim_scaled_linear_pretrain_vqvae_bs100 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm
-#    --no_wandb
+    --no_confirm \
+    --no_wandb
