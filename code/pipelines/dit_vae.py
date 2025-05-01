@@ -63,6 +63,7 @@ def train_loop(
 
     vae = AutoencoderKL.from_pretrained("facebook/DiT-XL-2-256", subfolder="vae")
     vae = vae.to(device)
+    vae.config.sample_size = 218
     vae.eval().requires_grad_(False)
 
     model.train()
