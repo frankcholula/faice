@@ -42,7 +42,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model transformer_2d_vae \
+    --model transformer_2d_xformers_vae \
     --pipeline dit_vae \
     --scheduler ddim \
     --beta_schedule linear \
@@ -52,7 +52,7 @@ python main.py \
     --num_inference_steps 1000 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
-    --wandb_run_name liang_transformer_2d_vae_ddim_linear_pretrain_vae \
+    --wandb_run_name liang_transformer_2d_xformers_vae_ddim_linear_pretrain_vae \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
