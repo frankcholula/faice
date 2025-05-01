@@ -22,7 +22,8 @@ from models.vqmodel import create_vqmodel
 
 selected_pipeline = LDMPipeline
 
-vqmodel_path = "runs/vqvae-vqvae-ddpm-face-400/checkpoints/model_vqvae.pth"
+# vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500/checkpoints/model_vqvae.pth"
+vqmodel_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
@@ -90,9 +91,11 @@ def train_loop(
             ).long()
 
             # Encode image to latent space
-            latents = vqvae.encode(clean_images).latents
+            # latents = vqvae.encode(clean_images).latents
             # latents = latents.detach().clone()
-            latents = latents * vqvae.config.scaling_factor
+            # latents = latents * vqvae.config.scaling_factor
+            latents = vae.encode(clean_images).latent_dist.sample()
+            latents = latents * noise_scheduler.init_noise_sigma
             # # Add noise (diffusion process)
             noise = torch.randn(latents.shape).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
