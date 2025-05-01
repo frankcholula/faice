@@ -60,7 +60,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model create_transformer_2d_vae \
+    --model transformer_2d_vae \
     --pipeline dit_vae \
     --scheduler ddim \
     --beta_schedule linear \
