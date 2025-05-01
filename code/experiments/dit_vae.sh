@@ -27,7 +27,7 @@ python main.py \
     --model transformer_2d_xformers_vae \
     --pipeline dit_vae \
     --scheduler ddim \
-    --beta_schedule scaled_linear \
+    --beta_schedule linear \
     --image_size 128 \
     --num_epochs 300 \
     --num_train_timesteps 1000 \
