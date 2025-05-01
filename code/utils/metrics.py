@@ -237,11 +237,11 @@ def get_full_repo_name(model_id: str, organization: str = None, token: str = Non
         return f"{organization}/{model_id}"
 
 
-def calculate_clean_fid(real_images_dir, fake_images_dir):
+def calculate_clean_fid(real_images_dir, fake_images_dir, msg="Clean FID score"):
     score = fid.compute_fid(real_images_dir, fake_images_dir)
     fid_score = round(score, 5)
 
-    print(f"Clean FID score: {fid_score}")
+    print(f"{msg}: {fid_score}")
     return fid_score
 
 

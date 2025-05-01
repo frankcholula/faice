@@ -6,7 +6,6 @@
 @Project : code
 """
 import os
-import gc
 import wandb
 import torch
 import torch.nn.functional as F
@@ -158,81 +157,63 @@ def vqvae_inference(vqvae, config, test_dataloader, wandb_logger):
     fake_count = 0
 
     print(">" * 10, "Evaluate the vqvae model ...")
-    for i, batch in tqdm(enumerate(test_dataloader)):
-        real_images = batch["images"].to(device)
+    with torch.no_grad():
+        for i, batch in tqdm(enumerate(test_dataloader)):
+            real_images = batch["images"].to(device)
 
-        # Normalize the test dataset
-        transform = transforms.Normalize([0.5], [0.5])
-        real_images_norm = transform(real_images)
+            # Normalize the test dataset
+            transform = transforms.Normalize([0.5], [0.5])
+            real_images_norm = transform(real_images)
 
-        encoded = vqvae.encode(real_images_norm)
-        z = encoded.latents
-        noise = torch.randn_like(z).to(device)
+            encoded = vqvae.encode(real_images_norm)
+            z = encoded.latents
+            noise = torch.randn_like(z).to(device)
 
-        del encoded
-        gc.collect()
+            img_dir = f"{config.output_dir}/samples"
+            if not os.path.exists(img_dir):
+                os.makedirs(img_dir)
 
-        img_dir = f"{config.output_dir}/samples"
-        if not os.path.exists(img_dir):
-            os.makedirs(img_dir)
+            # Plot images
+            # generated_images = (z / 2 + 0.5).clamp(0, 1)
+            # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
 
-        # Plot images
-        # generated_images = (z / 2 + 0.5).clamp(0, 1)
-        # plot_images(generated_images, save_dir=img_dir, save_title="z", cols=9)
+            quantized_z, _, _ = vqvae.quantize(z)
 
-        quantized_z, _, _ = vqvae.quantize(z)
+            # generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
+            # plot_images(generated_images, save_dir=img_dir, save_title="quantized_z", cols=9)
 
-        del z
-        gc.collect()
+            decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
+            decoded_fake = vqvae.decode(noise)[0]
 
-        # generated_images = (quantized_z / 2 + 0.5).clamp(0, 1)
-        # plot_images(generated_images, save_dir=img_dir, save_title="quantized_z", cols=9)
+            generated_images = (decoded / 2 + 0.5).clamp(0, 1)
+            # plot_images(generated_images, save_dir=img_dir, save_title="decoded", cols=9)
+            generated_images_fake = (decoded_fake / 2 + 0.5).clamp(0, 1)
 
-        decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
-        decoded_fake = vqvae.decode(noise)[0]
+            # Calculate FID
+            real_image_names = batch["image_names"]
+            for i, image in enumerate(real_images):
+                img_name = real_image_names[i]
+                save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
 
-        del quantized_z
-        gc.collect()
+            for image in generated_images_fake:
+                save_image(
+                    image,
+                    os.path.join(fake_dir, f"{fake_count:03d}.jpg"),
+                )
+                fake_count += 1
 
-        generated_images = (decoded / 2 + 0.5).clamp(0, 1)
-        # plot_images(generated_images, save_dir=img_dir, save_title="decoded", cols=9)
-        generated_images_fake = (decoded_fake / 2 + 0.5).clamp(0, 1)
+            for image in generated_images:
+                save_image(
+                    image,
+                    os.path.join(reconstruction_dir, f"{fake_count:03d}.jpg"),
+                )
+                fake_count += 1
 
-        del decoded
-        gc.collect()
-
-        # Calculate FID
-        real_image_names = batch["image_names"]
-        for i, image in enumerate(real_images):
-            img_name = real_image_names[i]
-            save_image(image, os.path.join(real_dir, f"{img_name}.jpg"))
-
-        del real_image_names
-        gc.collect()
-
-        for image in generated_images_fake:
-            save_image(
-                image,
-                os.path.join(fake_dir, f"{fake_count:03d}.jpg"),
-            )
-            fake_count += 1
-
-        for image in generated_images:
-            save_image(
-                image,
-                os.path.join(reconstruction_dir, f"{fake_count:03d}.jpg"),
-            )
-            fake_count += 1
-
-        del generated_images
-        del generated_images_fake
-        gc.collect()
-
-    fid_score = calculate_clean_fid(real_dir, fake_dir)
-    print("Clean FID score for reconstruction:")
-    fid_score_rec = calculate_clean_fid(real_dir, reconstruction_dir)
-    wandb_logger.log_fid_score(fid_score)
-    wandb_logger.log_fid_score_rec(fid_score_rec)
+        fid_score = calculate_clean_fid(real_dir, fake_dir)
+        print("Clean FID score for reconstruction:")
+        fid_score_rec = calculate_clean_fid(real_dir, reconstruction_dir)
+        wandb_logger.log_fid_score(fid_score)
+        wandb_logger.log_fid_score_rec(fid_score_rec)
 
 
 def evaluate(config, epoch, vqvae, test_dataloader):
@@ -249,28 +230,13 @@ def evaluate(config, epoch, vqvae, test_dataloader):
             encoded = vqvae.encode(real_images_norm)
             z = encoded.latents
 
-            del encoded
-            gc.collect()
-
             quantized_z, _, _ = vqvae.quantize(z)
-
-            del z
-            gc.collect()
 
             decoded = vqvae.decode(quantized_z, force_not_quantize=True)[0]
 
-            del quantized_z
-            gc.collect()
-
             generated_images = (decoded / 2 + 0.5).clamp(0, 1)
 
-            del decoded
-            gc.collect()
-
             to_generate_images.append(generated_images)
-
-            del generated_images
-            gc.collect()
 
             to_generate_images = torch.cat(to_generate_images, dim=0)
             if to_generate_images.shape[0] >= 16:
