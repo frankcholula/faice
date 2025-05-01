@@ -16,6 +16,7 @@ def create_vae(config):
         layers_per_block=2,  # how many ResNet layers to use per UNet block
         latent_channels=16,
         block_out_channels=(128, 256, 512),
+        scaling_factor=1,
         down_block_types=(
             "DownEncoderBlock2D",
             "DownEncoderBlock2D",
