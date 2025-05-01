@@ -46,13 +46,13 @@ python main.py \
     --scheduler ddim \
     --beta_schedule scaled_linear \
     --image_size 128 \
-    --num_epochs 1 \
+    --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 96 \
-    --eval_batch_size 96 \
-    --wandb_run_name liang_ldmp_ddim_scaled_linear_vqvae32_bs96 \
+    --train_batch_size 100 \
+    --eval_batch_size 100 \
+    --wandb_run_name liang_ldmp_ddim_scaled_linear_vqvae32_bs100 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
