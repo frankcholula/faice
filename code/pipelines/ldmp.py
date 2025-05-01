@@ -23,8 +23,8 @@ from models.vae import create_vae
 
 selected_pipeline = LDMPipeline
 
-# vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500/checkpoints/model_vqvae.pth"
-vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
+vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-32/checkpoints/model_vqvae.pth"
+# vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
@@ -64,20 +64,20 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
-    # vqvae = create_vqmodel(config)
-    # vqvae = vqvae.to(device)
-    # vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
-    # vqvae.eval().requires_grad_(False)
+    vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
+    vqvae = create_vqmodel(config)
+    vqvae = vqvae.to(device)
+    vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
+    vqvae.eval().requires_grad_(False)
 
     # vae = create_vae(config)
     # vae = vae.to(device)
     # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     # vae.eval().requires_grad_(False)
 
-    vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
-    vqvae = vqvae.to(device)
-    vqvae.eval().requires_grad_(False)
+    # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
+    # vqvae = vqvae.to(device)
+    # vqvae.eval().requires_grad_(False)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
