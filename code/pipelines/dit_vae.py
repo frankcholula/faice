@@ -57,14 +57,14 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    # vae = create_vae(config)
-    # vae = vae.to(device)
-    # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
-    # vae.eval().requires_grad_(False)
-
-    vae = AutoencoderKL.from_pretrained("facebook/DiT-XL-2-256", subfolder="vae")
+    vae = create_vae(config)
     vae = vae.to(device)
+    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
+
+    # vae = AutoencoderKL.from_pretrained("facebook/DiT-XL-2-256", subfolder="vae")
+    # vae = vae.to(device)
+    # vae.eval().requires_grad_(False)
 
     model.train()
     # Now you train the model
