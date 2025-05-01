@@ -21,7 +21,7 @@ def create_vqmodel(config):
         num_vq_embeddings=8192,  # Codebook size
         # vq_embed_dim=256,  # Latent dimension
         # vq_embed_dim=32,
-        vq_embed_dim=3,
+        # vq_embed_dim=3,
         # scaling_factor=1,
         # the number of output channels for each UNet block
         down_block_types=(
