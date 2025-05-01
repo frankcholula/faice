@@ -28,12 +28,12 @@ python main.py \
     --scheduler ddpm \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 1 \
+    --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 96 \
     --eval_batch_size 96 \
-    --wandb_run_name liang_transformer_2d_xformers_fast_ddpm_linear_layers24 \
+    --wandb_run_name liang_transformer_2d_xformers_fast_ddpm_linear_layers12 \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
