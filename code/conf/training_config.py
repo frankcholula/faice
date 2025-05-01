@@ -21,7 +21,7 @@ class BaseConfig:
     # dataset params need to be set by subclass
     dataset: str = None
     dataset_name: str = None
-    image_size: int = 128
+    image_size: int = 256
 
     # training params
     train_batch_size: int = 16

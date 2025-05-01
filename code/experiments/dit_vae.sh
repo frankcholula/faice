@@ -40,9 +40,27 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --no_confirm \
 #    --no_wandb
 
+#python main.py \
+#    --dataset face \
+#    --model transformer_2d_xformers_vae \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --beta_schedule linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 16 \
+#    --eval_batch_size 16 \
+#    --wandb_run_name liang_transformer_2d_xformers_vae_ddim_linear_pretrain_vae \
+#    --calculate_fid \
+#    --calculate_is \
+#    --no_confirm \
+#    --no_wandb
+
 python main.py \
     --dataset face \
-    --model transformer_2d_xformers_vae \
+    --model create_transformer_2d_vae \
     --pipeline dit_vae \
     --scheduler ddim \
     --beta_schedule linear \
@@ -50,9 +68,9 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
-    --wandb_run_name liang_transformer_2d_xformers_vae_ddim_linear_pretrain_vae \
+    --train_batch_size 8 \
+    --eval_batch_size 8 \
+    --wandb_run_name liang_create_transformer_2d_vae_ddim_linear_pretrain_vae \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
