@@ -50,7 +50,7 @@ def create_transformer_2d_vae(config):
     transformer_2d = Transformer2DModel(
         sample_size=int(config.image_size / 4),
         in_channels=4,
-        out_channels=8,
+        out_channels=4,
         activation_fn="gelu-approximate",
         attention_bias=True,
         attention_head_dim=72,
