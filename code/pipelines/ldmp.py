@@ -19,11 +19,12 @@ from utils.metrics import evaluate, calculate_fid_score, calculate_inception_sco
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vqmodel import create_vqmodel
+from models.vae import create_vae
 
 selected_pipeline = LDMPipeline
 
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500/checkpoints/model_vqvae.pth"
-vqmodel_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
+vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
@@ -63,10 +64,15 @@ def train_loop(
     # vae.eval().requires_grad_(False)
 
     # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
-    vqvae = create_vqmodel(config)
-    vqvae = vqvae.to(device)
-    vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
-    vqvae.eval().requires_grad_(False)
+    # vqvae = create_vqmodel(config)
+    # vqvae = vqvae.to(device)
+    # vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
+    # vqvae.eval().requires_grad_(False)
+
+    vae = create_vae(config)
+    vae = vae.to(device)
+    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+    vae.eval().requires_grad_(False)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
