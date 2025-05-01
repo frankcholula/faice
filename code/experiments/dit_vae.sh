@@ -50,8 +50,8 @@ python main.py \
     --num_epochs 300 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --train_batch_size 60 \
+    --eval_batch_size 60 \
     --wandb_run_name liang_transformer_2d_vae_ddim_linear_pretrain_vae \
     --calculate_fid \
     --calculate_is \
