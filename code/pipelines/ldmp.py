@@ -64,7 +64,6 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae.sh")
     vqvae = create_vqmodel(config)
     vqvae = vqvae.to(device)
     vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
