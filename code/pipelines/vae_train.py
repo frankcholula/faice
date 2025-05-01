@@ -207,7 +207,7 @@ def vae_inference(vae, config, test_dataloader, wandb_logger):
                 )
                 fake_count += 1
 
-        fid_score = calculate_clean_fid(real_dir, fake_dir)
+        fid_score = calculate_clean_fid(real_dir, fake_dir, msg="Clean FID score for sampling")
         fid_score_rec = calculate_clean_fid(real_dir, reconstruction_dir,
                                             msg="Clean FID score for reconstruction")
         wandb_logger.log_fid_score(fid_score)

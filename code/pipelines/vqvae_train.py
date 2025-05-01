@@ -209,9 +209,9 @@ def vqvae_inference(vqvae, config, test_dataloader, wandb_logger):
                 )
                 fake_count += 1
 
-        fid_score = calculate_clean_fid(real_dir, fake_dir)
-        print("Clean FID score for reconstruction:")
-        fid_score_rec = calculate_clean_fid(real_dir, reconstruction_dir)
+        fid_score = calculate_clean_fid(real_dir, fake_dir, msg="Clean FID score for sampling")
+        fid_score_rec = calculate_clean_fid(real_dir, reconstruction_dir,
+                                            msg="Clean FID score for reconstruction")
         wandb_logger.log_fid_score(fid_score)
         wandb_logger.log_fid_score_rec(fid_score_rec)
 
