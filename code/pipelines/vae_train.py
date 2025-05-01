@@ -13,6 +13,7 @@ from tqdm.auto import tqdm
 from torchvision.utils import save_image
 import wandb
 from diffusers.utils.pil_utils import numpy_to_pil
+from torchvision import transforms
 
 # Configuration
 from utils.loggers import WandBLogger
@@ -161,7 +162,12 @@ def vae_inference(vae, config, test_dataloader):
 
     for batch in tqdm(test_dataloader):
         real_images = batch["images"].to(device)
-        encoded = vae.encode(real_images)
+
+        # Normalize the test dataset
+        transform = transforms.Normalize([0.5], [0.5])
+        real_images_norm = transform(real_images)
+
+        encoded = vae.encode(real_images_norm)
         z = encoded.latent_dist.sample()
         # noise = torch.randn(z.shape).to(device)
 
@@ -215,7 +221,12 @@ def evaluate(config, epoch, vae, test_dataloader):
         to_generate_images = []
         for batch in tqdm(test_dataloader):
             real_images = batch["images"].to(device)
-            encoded = vae.encode(real_images)
+
+            # Normalize the test dataset
+            transform = transforms.Normalize([0.5], [0.5])
+            real_images_norm = transform(real_images)
+
+            encoded = vae.encode(real_images_norm)
             z = encoded.latent_dist.sample()
 
             del encoded

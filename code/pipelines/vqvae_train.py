@@ -13,6 +13,7 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 from torchvision.utils import save_image
 from diffusers.utils.pil_utils import numpy_to_pil
+from torchvision import transforms
 
 # Configuration
 from utils.loggers import WandBLogger
@@ -157,7 +158,12 @@ def vqvae_inference(vqvae, config, test_dataloader):
     print(">" * 10, "Evaluate the vqvae model ...")
     for batch in tqdm(test_dataloader):
         real_images = batch["images"].to(device)
-        encoded = vqvae.encode(real_images)
+
+        # Normalize the test dataset
+        transform = transforms.Normalize([0.5], [0.5])
+        real_images_norm = transform(real_images)
+
+        encoded = vqvae.encode(real_images_norm)
         z = encoded.latents
 
         del encoded
@@ -218,7 +224,12 @@ def evaluate(config, epoch, vqvae, test_dataloader):
         to_generate_images = []
         for batch in tqdm(test_dataloader):
             real_images = batch["images"].to(device)
-            encoded = vqvae.encode(real_images)
+
+            # Normalize the test dataset
+            transform = transforms.Normalize([0.5], [0.5])
+            real_images_norm = transform(real_images)
+
+            encoded = vqvae.encode(real_images_norm)
             z = encoded.latents
 
             del encoded
