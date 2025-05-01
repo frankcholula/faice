@@ -22,9 +22,9 @@ python main.py \
     --pipeline vae \
     --image_size 128 \
     --num_epochs 1 \
-    --train_batch_size 110 \
-    --eval_batch_size 110 \
-    --wandb_run_name liang_vae_xl_batch_size_110 \
+    --train_batch_size 112 \
+    --eval_batch_size 112 \
+    --wandb_run_name liang_vae_xl_latent_channels4_batch_size_120 \
     --calculate_fid \
     --no_confirm \
     --no_wandb
