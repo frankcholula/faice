@@ -18,7 +18,7 @@ from models.vae import create_vae
 selected_pipeline = DiTPipeline
 vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-num_class=2
+num_class = 2
 
 
 def train_loop(
@@ -56,9 +56,13 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    vae = create_vae(config)
+    # vae = create_vae(config)
+    # vae = vae.to(device)
+    # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+    # vae.eval().requires_grad_(False)
+
+    vae = AutoencoderKL.from_pretrained("facebook/DiT-XL-2-256", subfolder="vae")
     vae = vae.to(device)
-    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
 
     model.train()

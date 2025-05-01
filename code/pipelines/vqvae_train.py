@@ -135,12 +135,12 @@ def train_loop(
             and test_dataloader is not None
     ):
         # model_path = f"{config.output_dir}/checkpoints/model_vqvae.pth"
-        vqvae_inference(model, config, test_dataloader)
+        vqvae_inference(model, config, test_dataloader, wandb_logger)
 
     wandb_logger.finish()
 
 
-def vqvae_inference(vqvae, config, test_dataloader):
+def vqvae_inference(vqvae, config, test_dataloader, wandb_logger):
     # checkpoint = torch.load(model_path, map_location=device)
     # vqvae = create_vqmodel(config)
     # vqvae = vqvae.to(device)
@@ -215,7 +215,8 @@ def vqvae_inference(vqvae, config, test_dataloader):
         del generated_images
         gc.collect()
 
-    _ = calculate_clean_fid(real_dir, fake_dir)
+    fid_score = calculate_clean_fid(real_dir, fake_dir)
+    wandb_logger.log_fid_score(fid_score)
 
 
 def evaluate(config, epoch, vqvae, test_dataloader):
