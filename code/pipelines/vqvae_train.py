@@ -14,13 +14,14 @@ from tqdm.auto import tqdm
 from torchvision.utils import save_image
 from diffusers.utils.pil_utils import numpy_to_pil
 from torchvision import transforms
+from torchmetrics.image.inception import InceptionScore
 
 # Configuration
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vqmodel import create_vqmodel
 from utils.plot import plot_images
-from utils.metrics import calculate_clean_fid, make_grid
+from utils.metrics import calculate_clean_fid, make_grid, calculate_inception_score_vae
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -160,7 +161,6 @@ def vqvae_inference(vqvae, config, test_dataloader, wandb_logger):
     print(">" * 10, "Evaluate the vqvae model ...")
     for i, batch in tqdm(enumerate(test_dataloader)):
         real_images = batch["images"].to(device)
-        bs = real_images.shape[0]
 
         # Normalize the test dataset
         transform = transforms.Normalize([0.5], [0.5])

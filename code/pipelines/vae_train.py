@@ -20,7 +20,7 @@ from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vae import create_vae
 from utils.plot import plot_images
-from utils.metrics import calculate_clean_fid, make_grid
+from utils.metrics import calculate_clean_fid, make_grid, calculate_inception_score_vae
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -164,7 +164,6 @@ def vae_inference(vae, config, test_dataloader, wandb_logger):
 
     for i, batch in tqdm(enumerate(test_dataloader)):
         real_images = batch["images"].to(device)
-        bs = real_images.shape[0]
 
         # Normalize the test dataset
         transform = transforms.Normalize([0.5], [0.5])
@@ -292,3 +291,5 @@ def evaluate(config, epoch, vae, test_dataloader):
                     "epoch": epoch,
                 }
             )
+
+

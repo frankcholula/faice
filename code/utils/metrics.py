@@ -243,3 +243,16 @@ def calculate_clean_fid(real_images_dir, fake_images_dir):
 
     print(f"Clean FID score: {fid_score}")
     return fid_score
+
+
+def calculate_inception_score_vae(real_images, fake_images):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    inception_score = InceptionScore(
+        feature="logits_unbiased", splits=10, normalize=True
+    ).to(device)
+
+    inception_score.update(real_images)
+    inception_score.update(fake_images)
+    inception_mean, inception_std = inception_score.compute()
+    print(f"Inception Score: {inception_mean:.2f} ± {inception_std:.2f}")
+    return inception_mean, inception_std
