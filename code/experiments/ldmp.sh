@@ -10,12 +10,12 @@ python main.py \
     --scheduler ddim \
     --beta_schedule scaled_linear \
     --image_size 128 \
-    --num_epochs 500 \
+    --num_epochs 1 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 96 \
     --eval_batch_size 96 \
-    --wandb_run_name liang_ldmp_ddim_linear_vae \
+    --wandb_run_name liang_ldmp_ddim_linear_pretrain_vqvae \
     --calculate_fid \
     --calculate_is \
     --no_confirm \

@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import LDMPipeline
+from diffusers import LDMPipeline, VQModel
 
 # Configuration
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
@@ -26,6 +26,8 @@ selected_pipeline = LDMPipeline
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500/checkpoints/model_vqvae.pth"
 vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+# url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
 
 
 def train_loop(
@@ -59,7 +61,6 @@ def train_loop(
 
     global_step = 0
 
-    # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
@@ -69,10 +70,14 @@ def train_loop(
     # vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
     # vqvae.eval().requires_grad_(False)
 
-    vae = create_vae(config)
-    vae = vae.to(device)
-    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
-    vae.eval().requires_grad_(False)
+    # vae = create_vae(config)
+    # vae = vae.to(device)
+    # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+    # vae.eval().requires_grad_(False)
+
+    vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
+    vqvae = vqvae.to(device)
+    vqvae.eval().requires_grad_(False)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -97,10 +102,12 @@ def train_loop(
             ).long()
 
             # Encode image to latent space
-            # latents = vqvae.encode(clean_images).latents
-            # latents = latents.detach().clone()
-            # latents = latents * vqvae.config.scaling_factor
-            latents = vae.encode(clean_images).latent_dist.sample()
+            latents = vqvae.encode(clean_images).latents
+            latents = latents.detach().clone()
+            latents = latents * vqvae.config.scaling_factor
+
+            # latents = vae.encode(clean_images).latent_dist.sample()
+
             latents = latents * noise_scheduler.init_noise_sigma
             # # Add noise (diffusion process)
             noise = torch.randn(latents.shape).to(clean_images.device)
@@ -143,8 +150,8 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                # vqvae=accelerator.unwrap_model(vqvae),
-                vqvae=accelerator.unwrap_model(vae),
+                vqvae=accelerator.unwrap_model(vqvae),
+                # vqvae=accelerator.unwrap_model(vae),
                 unet=accelerator.unwrap_model(model),
                 scheduler=noise_scheduler
             )
@@ -173,8 +180,8 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            # vqvae=accelerator.unwrap_model(vqvae),
-            vqvae=accelerator.unwrap_model(vae),
+            vqvae=accelerator.unwrap_model(vqvae),
+            # vqvae=accelerator.unwrap_model(vae),
             unet=accelerator.unwrap_model(model),
             scheduler=noise_scheduler
         )
