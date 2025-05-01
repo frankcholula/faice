@@ -68,6 +68,16 @@ class WandBLogger:
 
         wandb.run.summary["fid_score"] = fid_score
 
+    def log_fid_score_rec(self, fid_score):
+        if (
+            not self.config.use_wandb
+            or not self.accelerator.is_main_process
+            or fid_score is None
+        ):
+            return
+
+        wandb.run.summary["fid_score_reconstruction"] = fid_score
+
     def log_inception_score(self, inception_score):
         if (
             not self.config.use_wandb
