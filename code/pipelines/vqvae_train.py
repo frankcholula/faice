@@ -14,7 +14,6 @@ from tqdm.auto import tqdm
 from torchvision.utils import save_image
 from diffusers.utils.pil_utils import numpy_to_pil
 from torchvision import transforms
-from torchmetrics.image.inception import InceptionScore
 
 # Configuration
 from utils.loggers import WandBLogger
