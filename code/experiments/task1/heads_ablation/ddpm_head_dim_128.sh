@@ -14,7 +14,7 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 24 \
     --eval_batch_size 24 \
-    --wandb_run_name task1_ddpm_heads_2_ablation \
+    --wandb_run_name heads_2 \
     --calculate_fid \
     --calculate_is \
     --verbose
