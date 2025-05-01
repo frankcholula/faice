@@ -116,7 +116,7 @@ def create_transformer_2d_xformers_fast(config):
         attention_bias=True,
         attention_head_dim=64,
         norm_type="ada_norm_zero",
-        num_attention_heads=16,
+        num_attention_heads=14,
         num_embeds_ada_norm=1000,
         num_layers=12,
         patch_size=4,
