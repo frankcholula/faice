@@ -4,7 +4,7 @@ python main.py \
     --dataset face \
     --scheduler ddim \
     --pipeline ddim \
-    --beta_schedule linear \
+    --beta_schedule squaredcos_cap_v2 \
     --model unet \
     --unet_variant adm \
     --attention_head_dim 64 \
