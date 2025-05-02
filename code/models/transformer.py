@@ -89,9 +89,10 @@ def create_transformer_2d_xformers(config):
 
 def create_transformer_2d_xformers_vae(config):
     transformer_2d = Transformer2DModel(
-        sample_size=int(config.image_size / 4),
-        in_channels=16,
-        out_channels=16,
+        # sample_size=int(config.image_size / 4),
+        sample_size=int(config.image_size / 8),
+        in_channels=4,
+        out_channels=4,
         activation_fn="gelu-approximate",
         attention_bias=True,
         attention_head_dim=72,
