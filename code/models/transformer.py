@@ -12,8 +12,8 @@ def create_dit_transformer(config):
     dit_transformer_2d = DiTTransformer2DModel(
         sample_size=int(config.image_size / 4),
         # sample_size=config.image_size,
-        in_channels=16,
-        out_channels=16,
+        in_channels=4,
+        out_channels=4,
         activation_fn="gelu-approximate",
         attention_bias=True,
         attention_head_dim=64,
