@@ -137,7 +137,7 @@ python main.py \
     --scheduler ddim \
     --beta_schedule linear \
     --image_size 128 \
-    --num_epochs 1 \
+    --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 82 \
@@ -145,7 +145,7 @@ python main.py \
     --wandb_run_name liang_dit_transformer_ddim_linear_vae4_bs82 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
 
 
