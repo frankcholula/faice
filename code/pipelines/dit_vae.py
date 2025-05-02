@@ -100,6 +100,7 @@ def train_loop(
             # Encode image to latent space
             latents = vae.encode(clean_images).latent_dist.sample()
             latents = latents * vae.config.scaling_factor
+            latents = latents * noise_scheduler.init_noise_sigma
             # # Add noise (diffusion process)
             noise = torch.randn_like(latents).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
