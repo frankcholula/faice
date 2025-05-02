@@ -116,7 +116,7 @@ python main.py \
     --dataset face \
     --model dit_transformer \
     --pipeline dit_vae \
-    --scheduler ddim \
+    --scheduler dpmsolvermultistep \
     --beta_schedule linear \
     --image_size 128 \
     --num_epochs 1 \
