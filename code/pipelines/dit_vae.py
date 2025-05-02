@@ -69,7 +69,7 @@ def train_loop(
     pipe = DiTPipeline.from_pretrained("facebook/DiT-XL-2-256", torch_dtype=torch.float16)
     noise_scheduler = noise_scheduler.from_config(pipe.scheduler.config)
 
-    scheduler_name = noise_scheduler.__name__
+    scheduler_name = noise_scheduler.__class__.__name__
     print('>'*9, 'scheduler_name', scheduler_name)
 
     model.train()
