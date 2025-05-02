@@ -21,7 +21,7 @@ from models.vae import create_vae
 from pipelines.dit import name_to_label
 
 # vae_path = "runs/vae-vae-ddpm-face-500-16/checkpoints/model_vae.pth"
-vae_path = "runs/vae-vae-ddpm-face-500-4/checkpoints/model_vae.pth"
+vae_path = "runs/vae_xl-vae-ddpm-face-500-4/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
 
