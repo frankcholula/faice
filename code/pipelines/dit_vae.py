@@ -199,10 +199,9 @@ def train_loop(
             image_labels = np.array(image_labels)
             # Convert the name in image_names to int number
             image_labels = image_labels.astype(int)
-            class_labels = torch.tensor(image_labels, dtype=torch.int)
-            class_labels = class_labels.to(device)
-
-            class_labels = torch.tensor(class_labels, device=device).reshape(-1)
+            class_labels = torch.tensor(image_labels, dtype=torch.int, device=device).reshape(-1)
+            # class_labels = class_labels.to(device)
+            # class_labels = torch.tensor(class_labels, device=device).reshape(-1)
             class_null = torch.tensor([1000] * bs, device=device)
             class_labels_input = torch.cat([class_labels, class_null], 0)
 
@@ -273,8 +272,8 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                vae=accelerator.unwrap_model(vae),
-                dit=accelerator.unwrap_model(model),
+                accelerator.unwrap_model(model),
+                accelerator.unwrap_model(vae),
                 scheduler=noise_scheduler
             )
 
@@ -311,8 +310,8 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            vae=accelerator.unwrap_model(vae),
-            dit=accelerator.unwrap_model(model),
+            accelerator.unwrap_model(model),
+            accelerator.unwrap_model(vae),
             scheduler=noise_scheduler
         )
         class_labels = torch.randint(
