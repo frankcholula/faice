@@ -114,12 +114,12 @@ def create_transformer_2d_xformers_fast(config):
         out_channels=3,
         activation_fn="gelu-approximate",
         attention_bias=True,
-        attention_head_dim=64,
+        attention_head_dim=36,
         norm_type="ada_norm_zero",
-        num_attention_heads=12,
+        num_attention_heads=8,
         num_embeds_ada_norm=1000,
-        num_layers=12,
-        patch_size=4,
+        num_layers=28,
+        patch_size=2,
         attention_type="xformers",
     )
 
