@@ -2,7 +2,7 @@ import argparse
 import inspect
 import sys
 from pipelines import ddpm, consistency, ldmp, vae_train, vqvae_train, dit, dit_vae
-from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
+from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler, DPMSolverMultistepScheduler
 from diffusers.schedulers import CMStochasticIterativeScheduler
 # from models.unet import create_unet
 # from models.unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
@@ -29,6 +29,10 @@ def create_scheduler(
     elif scheduler.lower() == "cmstochastic":
         return CMStochasticIterativeScheduler(
             num_train_timesteps=num_train_timesteps
+        )
+    elif scheduler.lower() == "dpmsolvermultistep":
+        return DPMSolverMultistepScheduler(
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
         )
     elif scheduler.lower() not in ["ddpm", "ddim", "pndm", "cmstochastic"]:
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")
