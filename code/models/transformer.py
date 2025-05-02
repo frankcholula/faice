@@ -40,7 +40,7 @@ def create_transformer_2d(config):
         num_embeds_ada_norm=1000,
         num_layers=24,
         patch_size=2,
-        # attention_type="flash",
+        attention_type="flash",
     )
 
     return transformer_2d
