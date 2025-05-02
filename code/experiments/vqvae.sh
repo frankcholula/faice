@@ -12,7 +12,7 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 112 \
     --eval_batch_size 112 \
-    --wandb_run_name liang_vqvae_latent_loss_weight_0.1_channels3_batch_size_112 \
+    --wandb_run_name liang_vqvae_latent_loss_weight_0.25_channels3_batch_size_112 \
     --calculate_fid \
     --no_confirm
 #    --no_wandb

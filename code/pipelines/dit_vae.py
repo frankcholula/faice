@@ -217,7 +217,6 @@ def train_loop(
 
             # Encode image to latent space
             latents = vae.encode(clean_images).latent_dist.sample()
-            latents = latents.detach().clone()
             latents = latents * vae.config.scaling_factor
             latents = latents * noise_scheduler.init_noise_sigma
 

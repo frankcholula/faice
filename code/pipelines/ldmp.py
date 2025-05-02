@@ -104,7 +104,7 @@ def train_loop(
 
             # Encode image to latent space
             latents = vqvae.encode(clean_images).latents
-            latents = latents.detach().clone()
+            # latents = latents.detach().clone()
             latents = latents * vqvae.config.scaling_factor
 
             # latents = vae.encode(clean_images).latent_dist.sample()
