@@ -21,7 +21,8 @@ def create_dit_transformer(config):
         num_attention_heads=4,
         num_embeds_ada_norm=1000,
         num_layers=24,
-        patch_size=1,
+        patch_size=2,
+        attention_type="flash",
 
     )
     return dit_transformer_2d
@@ -40,7 +41,7 @@ def create_transformer_2d(config):
         num_embeds_ada_norm=1000,
         num_layers=24,
         patch_size=2,
-        attention_type="flash",
+        # attention_type="flash",
     )
 
     return transformer_2d
