@@ -119,9 +119,9 @@ class CustomTransformerVAEPipeline(DiffusionPipeline):
             latents = self.scheduler.step(noise_prediction, t, latents, **extra_kwargs).prev_sample
 
         # adjust latents with inverse of vae scale
-        latents = latents / self.vqvae.config.scaling_factor
+        latents = latents / self.vae.config.scaling_factor
         # decode the image latents with the VAE
-        image = self.vqvae.decode(latents).sample
+        image = self.vae.decode(latents).sample
 
         image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()
