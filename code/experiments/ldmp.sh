@@ -70,7 +70,7 @@ python main.py \
     --num_inference_steps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_latent_unet_xl_ldmp_ddim_scaled_linear_pretrain_vqvae_bs64 \
+    --wandb_run_name liang_latent_unet_xl_no_resnet_ldmp_ddim_scaled_linear_pretrain_vqvae_bs64 \
     --calculate_fid \
     --calculate_is \
     --no_confirm
