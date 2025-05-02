@@ -122,8 +122,8 @@ python main.py \
     --num_epochs 50 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 164 \
-    --eval_batch_size 164 \
+    --train_batch_size 82 \
+    --eval_batch_size 82 \
     --wandb_run_name liang_dit_transformer_ddim_linear_vae16 \
     --calculate_fid \
     --calculate_is \

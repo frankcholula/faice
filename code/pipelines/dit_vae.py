@@ -232,9 +232,6 @@ def train_loop(
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
             timesteps = torch.cat([timesteps, timesteps], dim=0)
-            print("timesteps.shape: ", timesteps.shape)
-            print("latent_model_input.shape: ", latent_model_input.shape)
-            print("class_labels_input.shape: ", class_labels_input.shape)
             noisy_latent = noise_scheduler.add_noise(latent_model_input, noise, timesteps)
 
             with accelerator.accumulate(model):
