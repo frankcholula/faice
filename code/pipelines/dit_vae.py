@@ -17,7 +17,7 @@ from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
-from models.vae import create_vae
+from models.vae import create_vae, create_vae_xl
 from pipelines.dit import name_to_label
 
 # vae_path = "runs/vae-vae-ddpm-face-500-16/checkpoints/model_vae.pth"
@@ -177,7 +177,8 @@ def train_loop(
     # vae = vae.to(device)
     # vae.eval().requires_grad_(False)
 
-    vae = create_vae(config)
+    # vae = create_vae(config)
+    vae = create_vae_xl(config)
     vae = vae.to(device)
     vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
