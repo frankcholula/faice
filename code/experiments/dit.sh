@@ -36,8 +36,8 @@ python main.py \
     --wandb_run_name liang_transformer_2d_xformers_fast_ddpm_linear_layers16 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
 
 #python main.py \
 #    --dataset face \
