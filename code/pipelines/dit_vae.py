@@ -69,9 +69,6 @@ def train_loop(
     pipe = DiTPipeline.from_pretrained("facebook/DiT-XL-2-256", torch_dtype=torch.float16)
     noise_scheduler = noise_scheduler.from_config(pipe.scheduler.config)
 
-    scheduler_name = noise_scheduler.__class__.__name__
-    print('>'*9, 'scheduler_name', scheduler_name)
-
     model.train()
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -151,35 +148,36 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = selected_pipeline(
-                accelerator.unwrap_model(model),
-                accelerator.unwrap_model(vae),
-                noise_scheduler
-            )
+            with torch.no_grad():
+                pipeline = selected_pipeline(
+                    accelerator.unwrap_model(model),
+                    accelerator.unwrap_model(vae),
+                    noise_scheduler
+                )
 
-            generate_samples = (
-                                       epoch + 1
-                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
-            save_model = (
-                                 epoch + 1
-                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
-            save_to_wandb = epoch == config.num_epochs - 1
+                generate_samples = (
+                                           epoch + 1
+                                   ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                save_model = (
+                                     epoch + 1
+                             ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                save_to_wandb = epoch == config.num_epochs - 1
 
-            if generate_samples:
-                class_labels = torch.randint(
-                    0,
-                    num_class,
-                    (config.train_batch_size,),
-                    device=device,
-                ).int()
-                evaluate(config, epoch, pipeline, class_labels=class_labels)
-            if save_model:
-                if config.push_to_hub:
-                    repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
-                else:
-                    pipeline.save_pretrained(config.output_dir)
-                    if save_to_wandb:
-                        wandb_logger.save_model()
+                if generate_samples:
+                    class_labels = torch.randint(
+                        0,
+                        num_class,
+                        (config.train_batch_size,),
+                        device=device,
+                    ).int()
+                    evaluate(config, epoch, pipeline, class_labels=class_labels)
+                if save_model:
+                    if config.push_to_hub:
+                        repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
+                    else:
+                        pipeline.save_pretrained(config.output_dir)
+                        if save_to_wandb:
+                            wandb_logger.save_model()
 
             progress_bar.close()
 
