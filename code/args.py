@@ -32,7 +32,7 @@ def create_scheduler(
         )
     elif scheduler.lower() == "dpmsolvermultistep":
         return DPMSolverMultistepScheduler(
-            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule, solver_order=3
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule, solver_order=2
         )
     elif scheduler.lower() not in ["ddpm", "ddim", "pndm", "cmstochastic"]:
         raise ValueError(f"Scheduler type '{scheduler}' is not supported.")

@@ -134,7 +134,7 @@ class CustomTransformerVAEPipeline(DiffusionPipeline):
         return ImagePipelineOutput(images=image)
 
 
-selected_pipeline = CustomTransformerVAEPipeline
+selected_pipeline = DiTPipeline
 
 
 def train_loop(
@@ -199,8 +199,12 @@ def train_loop(
             image_labels = np.array(image_labels)
             # Convert the name in image_names to int number
             image_labels = image_labels.astype(int)
-            map_ids = torch.tensor(image_labels, dtype=torch.int)
-            map_ids = map_ids.to(device)
+            class_labels = torch.tensor(image_labels, dtype=torch.int)
+            class_labels = class_labels.to(device)
+
+            class_labels = torch.tensor(class_labels, device=device).reshape(-1)
+            class_null = torch.tensor([1000] * bs, device=device)
+            class_labels_input = torch.cat([class_labels, class_null], 0)
 
             vae.to(device)
 
@@ -217,17 +221,23 @@ def train_loop(
             latents = latents.detach().clone()
             latents = latents * vae.config.scaling_factor
             latents = latents * noise_scheduler.init_noise_sigma
+
+            latent_model_input = torch.cat([latents] * 2)
+
+            half = latent_model_input[: len(latent_model_input) // 2]
+            latent_model_input = torch.cat([half, half], dim=0)
+
             # # Add noise (diffusion process)
-            noise = torch.randn_like(latents).to(clean_images.device)
+            noise = torch.randn_like(latent_model_input).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
-            noisy_images = noise_scheduler.add_noise(latents, noise, timesteps)
+            noisy_latent = noise_scheduler.add_noise(latent_model_input, noise, timesteps)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_images,
+                noise_pred = model(noisy_latent,
                                    timestep=timesteps,
-                                   class_labels=map_ids,
+                                   class_labels=class_labels_input,
                                    return_dict=False)[0]
 
                 if noise_scheduler.config.prediction_type == "epsilon":
@@ -237,8 +247,8 @@ def train_loop(
                 else:
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
-                # loss = F.mse_loss(noise_pred, target)
-                loss = F.l1_loss(noise_pred, target)
+                loss = F.mse_loss(noise_pred, target)
+                # loss = F.l1_loss(noise_pred, target)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
