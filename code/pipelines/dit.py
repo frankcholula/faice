@@ -101,8 +101,6 @@ class CustomTransformer2DPipeline(DiffusionPipeline):
 
         for t in self.progress_bar(self.scheduler.timesteps):
             # 1. predict noise model_output
-            # print(">"*9, 't.shape', t.shape)
-            # print(">"*9, 't', t)
             # Convert one number t to 1d-array
             t = t.cpu().numpy()
             t = np.array([t])
