@@ -15,6 +15,10 @@ python main.py \
     --num_train_timesteps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
+    --loss_type l1 \
+    --use_lpips True \
+    --lpips_model vgg \
+    --lpips_loss_weight 0.2 \
     --wandb_run_name task6_test \
     --calculate_fid \
     --calculate_is \
