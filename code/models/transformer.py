@@ -77,7 +77,7 @@ def create_transformer_2d_xformers(config):
         norm_type="ada_norm_zero",
         num_attention_heads=4,
         num_embeds_ada_norm=1000,
-        num_layers=12,
+        num_layers=4,
         patch_size=2,
         attention_type="xformers",
     )
