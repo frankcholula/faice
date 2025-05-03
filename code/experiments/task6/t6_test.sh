@@ -16,7 +16,7 @@ python main.py \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --loss_type l1 \
-    --use_lpips True \
+    --use_lpips \
     --lpips_net vgg \
     --lpips_weight 0.2 \
     --wandb_run_name task6_test \
