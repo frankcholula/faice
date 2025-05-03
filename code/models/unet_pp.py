@@ -22,4 +22,5 @@ def unet_pp(
     return smp.UnetPlusPlus(
         classes=classes,
         in_channels=in_channels,
+        encoder_depth=5
     )
