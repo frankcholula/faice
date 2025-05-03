@@ -21,7 +21,7 @@ def create_dit_transformer(config):
         norm_type="ada_norm_zero",
         num_attention_heads=16,
         num_embeds_ada_norm=1000,
-        num_layers=28,
+        num_layers=14,
         patch_size=2,
 
     )
