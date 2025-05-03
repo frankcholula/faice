@@ -264,7 +264,7 @@ def train_loop(
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                update_ema(ema, model.module)
+                update_ema(ema, model)
 
             progress_bar.update(1)
             logs = {
