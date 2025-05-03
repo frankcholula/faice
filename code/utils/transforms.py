@@ -9,8 +9,8 @@ def build_transforms(config):
     transform_train = [
         T.Resize((config.image_size, config.image_size)),
         T.ToTensor(),
-        # T.Normalize([0.5], [0.5]),
-        T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+        T.Normalize([0.5], [0.5]),
+        # T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
     ]
 
     transform_test = [
