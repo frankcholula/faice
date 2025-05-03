@@ -80,7 +80,8 @@ def train_loop(
                 kl_loss = encoded.latent_dist.kl().mean()
 
                 # loss_weight = 0.002
-                loss_weight = 0.25
+                loss_weight = 0.1
+                # loss_weight = 0.25
                 # loss_weight = 0.5
                 # loss_weight = 1
                 loss = rec_loss + kl_loss * loss_weight
