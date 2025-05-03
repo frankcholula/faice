@@ -6,6 +6,8 @@ import numpy as np
 from torch import nn
 from typing import List, Optional, Tuple, Union
 import inspect
+from collections import OrderedDict
+from copy import deepcopy
 
 # Hugging Face
 from diffusers import DiffusionPipeline, DiTPipeline, AutoencoderKL, DDIMScheduler, Transformer2DModel
@@ -183,7 +185,13 @@ def train_loop(
     vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
 
-    model.train()
+    ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
+    requires_grad(ema, False)
+    # Prepare models for training:
+    update_ema(ema, model.module, decay=0)  # Ensure EMA is initialized with synced weights
+    model.train()  # important! This enables embedding dropout for classifier-free guidance
+    ema.eval()  # EMA model should always be in eval mode
+
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
@@ -256,6 +264,7 @@ def train_loop(
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
+                update_ema(ema, model.module)
 
             progress_bar.update(1)
             logs = {
@@ -273,7 +282,8 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                accelerator.unwrap_model(model),
+                # accelerator.unwrap_model(model),
+                accelerator.unwrap_model(ema),
                 accelerator.unwrap_model(vae),
                 scheduler=noise_scheduler
             )
@@ -298,11 +308,21 @@ def train_loop(
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    pipeline.save_pretrained(config.output_dir)
+                    # pipeline.save_pretrained(config.output_dir)
+                    checkpoint = {
+                        "model": model.state_dict(),
+                        "ema_model": ema.state_dict(),
+                        "optimizer": optimizer.state_dict(),
+                    }
+                    model_path = f"{config.output_dir}/checkpoints/model_dit.pth"
+                    torch.save(checkpoint, model_path)
                     if save_to_wandb:
                         wandb_logger.save_model()
 
             progress_bar.close()
+
+    model.eval()  # important! This disables randomized embedding dropout
+    # do any sampling/FID calculation/etc. with ema (or model) in eval mode ...
 
     # Now we evaluate the model on the test set
     if (
@@ -311,7 +331,8 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            accelerator.unwrap_model(model),
+            # accelerator.unwrap_model(model),
+            accelerator.unwrap_model(ema),
             accelerator.unwrap_model(vae),
             scheduler=noise_scheduler
         )
@@ -335,3 +356,24 @@ def train_loop(
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
+
+
+@torch.no_grad()
+def update_ema(ema_model, model, decay=0.9999):
+    """
+    Step the EMA model towards the current model.
+    """
+    ema_params = OrderedDict(ema_model.named_parameters())
+    model_params = OrderedDict(model.named_parameters())
+
+    for name, param in model_params.items():
+        # TODO: Consider applying only to params that require_grad to avoid small numerical changes of pos_embed
+        ema_params[name].mul_(decay).add_(param.data, alpha=1 - decay)
+
+
+def requires_grad(model, flag=True):
+    """
+    Set requires_grad flag for all parameters in a model.
+    """
+    for p in model.parameters():
+        p.requires_grad = flag
