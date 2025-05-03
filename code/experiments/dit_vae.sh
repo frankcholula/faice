@@ -124,7 +124,7 @@ python main.py \
     --num_inference_steps 1000 \
     --train_batch_size 156 \
     --eval_batch_size 156 \
-    --wandb_run_name liang_dit_transformer_ddim_scaled_linear_vae4_bs_82 \
+    --wandb_run_name liang_dit_transformer_default_ddim_scaled_linear_vae4_bs_82 \
     --calculate_fid \
     --calculate_is \
     --no_confirm \

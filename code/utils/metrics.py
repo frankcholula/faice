@@ -25,7 +25,7 @@ def pipeline_inference(config, pipeline, batch_size, output_type="pil", generato
     if "DiT" in pipeline_name:
         images = pipeline(
             class_labels,
-            guidance_scale=7.5,
+            guidance_scale=4.0,
             generator=generator,
             num_inference_steps=config.num_inference_steps,
             output_type=output_type
