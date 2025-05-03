@@ -117,14 +117,14 @@ python main.py \
     --model dit_transformer \
     --pipeline dit_vae \
     --scheduler ddim \
-    --beta_schedule linear \
+    --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 156 \
     --eval_batch_size 156 \
-    --wandb_run_name liang_dit_transformer_ddim_linear_vae16_bs_82 \
+    --wandb_run_name liang_dit_transformer_ddim_scaled_linear_vae4_bs_82 \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
