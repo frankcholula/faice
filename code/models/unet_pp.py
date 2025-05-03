@@ -8,10 +8,7 @@
 import segmentation_models_pytorch as smp
 
 
-def unet_pp(
-        classes=2,
-        in_channels=3,
-):
+def unet_pp(config):
     """U-Net++
 
     Args:
@@ -19,6 +16,8 @@ def unet_pp(
         encoder_weights (_type_): _description_
         classes (_type_): _description_
     """
+    classes = 2,
+    in_channels = 3,
     return smp.UnetPlusPlus(
         classes=classes,
         in_channels=in_channels,
