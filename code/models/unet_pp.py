@@ -16,10 +16,8 @@ def unet_pp(config):
         encoder_weights (_type_): _description_
         classes (_type_): _description_
     """
-    classes = 2
-    in_channels = 3
     return smp.UnetPlusPlus(
-        classes=classes,
-        in_channels=in_channels,
+        classes=2,
+        in_channels=3,
         encoder_depth=5
     )
