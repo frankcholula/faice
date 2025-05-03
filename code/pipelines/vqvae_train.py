@@ -77,8 +77,8 @@ def train_loop(
 
                 # loss_weight = 0.0025
                 # loss_weight = 0.1
-                loss_weight = 0.25
-                # loss_weight = 0.5
+                # loss_weight = 0.25
+                loss_weight = 0.5
                 loss = rec_loss + commit_loss * loss_weight
 
                 accelerator.backward(loss)
