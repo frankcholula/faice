@@ -107,6 +107,32 @@ def parse_args():
     training_group.add_argument(
         "--calculate_is", action="store_true", help="Calculate Inception score"
     )
+    training_group.add_argument(
+        "--loss_type",
+        choices=["mse", "l1"],
+        default="mse",
+        help="Type of loss function to use (mse, l1, lpips)",
+    )
+
+    training_group.add_argument(
+        "--use_lpips",
+        action="store_true",
+        default=False,
+        help="Whether to use LPIPS regularization for more realistic images",
+    )
+
+    training_group.add_argument(
+        "--lpips_net", type=str, choices=["alex", "vgg", "squeeze"], default="alex",
+        help="Base network for LPIPS"
+    )
+
+    training_group.add_argument(
+        "--lpips_weight",
+        type=float,
+        default=0.1,
+        help="Weight for LPIPS regularization (if enabled)",
+    )
+    
 
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument(
@@ -234,6 +260,9 @@ def get_config_and_components():
     print(f"Random Horizontal Flip? : {config.RHFlip}")
     print(f"Prediction_type: {config.prediction_type}")
     print(f"Rescale_betas_zero_snr?: {config.rescale_betas_zero_snr}")
+    print(f"Loss type: {config.loss_type}")
+    print(f"Use LPIPS: {config.use_lpips}")
+    print(f"LPIPS weight: {config.lpips_weight}")
 
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:
