@@ -211,13 +211,6 @@ def train_loop(
             # Convert the name in image_names to int number
             image_labels = image_labels.astype(int)
             class_labels = torch.tensor(image_labels, dtype=torch.int, device=device).reshape(-1)
-            # class_labels = class_labels.to(device)
-            # class_labels = torch.tensor(class_labels, device=device).reshape(-1)
-            # if selected_pipeline.guidance_scale > 1:
-            #     class_null = torch.tensor([1000] * bs, device=device)
-            #     class_labels_input = torch.cat([class_labels, class_null], 0)
-            # else:
-            #     class_labels_input = class_labels
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
@@ -232,21 +225,11 @@ def train_loop(
             latents = latents * vae.config.scaling_factor
             latents = latents * noise_scheduler.init_noise_sigma
 
-            # if selected_pipeline.guidance_scale > 1:
-            #     latent_model_input = torch.cat([latents] * 2)
-            #     half = latent_model_input[: len(latent_model_input) // 2]
-            #     latent_model_input = torch.cat([half, half], dim=0)
-            # else:
-            #     latent_model_input = latents
 
             # # Add noise (diffusion process)
             noise = torch.randn_like(latents).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
-            # if selected_pipeline.guidance_scale > 1:
-            #     timesteps = torch.cat([timesteps, timesteps], dim=0)
-            # else:
-            #     timesteps = timesteps
 
             noisy_latent = noise_scheduler.add_noise(latents, noise, timesteps)
 
