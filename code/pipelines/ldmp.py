@@ -25,7 +25,8 @@ selected_pipeline = LDMPipeline
 
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-32/checkpoints/model_vqvae.pth"
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3/checkpoints/model_vqvae.pth"
-vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.1/checkpoints/model_vqvae.pth"
+# vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.1/checkpoints/model_vqvae.pth"
+vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.25/checkpoints/model_vqvae.pth"
 # vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
