@@ -33,11 +33,11 @@ python main.py \
     --num_inference_steps 1000 \
     --train_batch_size 84 \
     --eval_batch_size 84 \
-    --wandb_run_name liang_transformer_2d_xformers_fast_ddpm_linear_layers16 \
+    --wandb_run_name liang_transformer_2d_xformers_fast_ddpm_linear_layers12 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm
-#    --no_wandb
+    --no_confirm \
+    --no_wandb
 
 #python main.py \
 #    --dataset face \

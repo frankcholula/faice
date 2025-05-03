@@ -1,6 +1,7 @@
 # Deep learning framework
 import os
 from typing import List, Optional, Tuple, Union
+from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
@@ -17,6 +18,7 @@ from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
+from utils.model_tools import name_to_label, update_ema, requires_grad
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
@@ -156,8 +158,13 @@ def train_loop(
 
     global_step = 0
 
-    model.train()
-    model_name = model.__class__.__name__
+    ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
+    requires_grad(ema, False)
+    # Prepare models for training:
+    update_ema(ema, model, decay=0)  # Ensure EMA is initialized with synced weights
+    model.train()  # important! This enables embedding dropout for classifier-free guidance
+    ema.eval()  # EMA model should always be in eval mode
+
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
@@ -227,8 +234,9 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                accelerator.unwrap_model(model),
-                noise_scheduler
+                # accelerator.unwrap_model(model),
+                dit=accelerator.unwrap_model(ema),
+                scheduler=noise_scheduler
             )
 
             generate_samples = (
@@ -251,6 +259,9 @@ def train_loop(
 
             progress_bar.close()
 
+    model.eval()  # important! This disables randomized embedding dropout
+    # do any sampling/FID calculation/etc. with ema (or model) in eval mode ...
+
     # Now we evaluate the model on the test set
     if (
             accelerator.is_main_process
@@ -258,7 +269,9 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            dit=accelerator.unwrap_model(model), scheduler=noise_scheduler
+            # dit=accelerator.unwrap_model(model),
+            dit=accelerator.unwrap_model(ema),
+            scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
@@ -276,9 +289,4 @@ def train_loop(
     wandb_logger.finish()
 
 
-def name_to_label(name):
-    train_label_path = 'datasets/celeba_hq_split/celebaAHQ_train.xlsx'
-    label_data = pd.read_excel(train_label_path)
-    label_dict = dict(zip(label_data['image'], label_data['label']))
-    name = int(name)
-    return label_dict[name]
+
