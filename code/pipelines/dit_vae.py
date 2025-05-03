@@ -315,10 +315,10 @@ def train_loop(
                         "ema_model": ema.state_dict(),
                         "optimizer": optimizer.state_dict(),
                     }
-                    model_path = f"{config.output_dir}/checkpoints/model_dit.pth"
+                    model_path = f"{config.output_dir}/checkpoints"
                     if not os.path.exists(model_path):
                         os.makedirs(model_path)
-                    torch.save(checkpoint, model_path)
+                    torch.save(checkpoint, model_path + '/model_dit.pth')
                     if save_to_wandb:
                         wandb_logger.save_model()
 
