@@ -75,8 +75,8 @@ python main.py \
     --wandb_run_name liang_DiT_L_8_vae_channels_4_ddim_scaled_linear_bs152 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
 
 
 
