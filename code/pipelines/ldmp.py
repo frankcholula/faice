@@ -76,7 +76,7 @@ def train_loop(
     vqvae = vqvae_b_3(config)
     vqvae = vqvae.to(device)
     vqvae = vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
-    vqvae = vqvae.eval().requires_grad_(False)
+    vqvae.eval().requires_grad_(False)
 
     # vae = vae_l_4(config)
     # vae = vae.to(device)
