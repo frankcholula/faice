@@ -76,89 +76,89 @@ class DiT(object):
 
 def DiT_XL_2(config, **kwargs):
     return DiT(config, depth=28, hidden_size=1152, patch_size=2, num_heads=16, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_XL_4(config, **kwargs):
     return DiT(config, depth=28, hidden_size=1152, patch_size=4, num_heads=16, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_XL_8(config, **kwargs):
     return DiT(config, depth=28, hidden_size=1152, patch_size=8, num_heads=16, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_L_2(config, **kwargs):
     return DiT(config, depth=24, hidden_size=1024, patch_size=2, num_heads=16, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_L_4(config, **kwargs):
     return DiT(config, depth=24, hidden_size=1024, patch_size=4, num_heads=16, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_L_8(config, **kwargs):
     return DiT(config, depth=24, hidden_size=1024, patch_size=8, num_heads=16, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_B_2(config, **kwargs):
     return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_B_4(config, **kwargs):
     return DiT(config, depth=12, hidden_size=768, patch_size=4, num_heads=12, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_B_8(config, **kwargs):
     return DiT(config, depth=12, hidden_size=768, patch_size=8, num_heads=12, compress_rate=1,
-               channels=3, **kwargs)
+               channels=3, **kwargs).create_dit()
 
 
 def DiT_XL_2_vae_layers4(config, **kwargs):
     return DiT(config, depth=28, hidden_size=1152, patch_size=2, num_heads=16, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
 
 
 def DiT_XL_4_vae_layers4(config, **kwargs):
     return DiT(config, depth=28, hidden_size=1152, patch_size=4, num_heads=16, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
 
 
 def DiT_XL_8_vae_layers4(config, **kwargs):
     return DiT(config, depth=28, hidden_size=1152, patch_size=8, num_heads=16, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
 
 
 def DiT_L_2_vae_layers4(config, **kwargs):
     return DiT(config, depth=24, hidden_size=1024, patch_size=2, num_heads=16, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
 
 
 def DiT_L_4_vae_layers4(config, **kwargs):
     return DiT(config, depth=24, hidden_size=1024, patch_size=4, num_heads=16, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
 
 
 def DiT_L_8_vae_layers4(config, **kwargs):
     return DiT(config, depth=24, hidden_size=1024, patch_size=8, num_heads=16, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
 
 
 def DiT_B_2_vae_layers4(config, **kwargs):
     return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
 
 
 def DiT_B_4_vae_layers4(config, **kwargs):
     return DiT(config, depth=12, hidden_size=768, patch_size=4, num_heads=12, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
 
 
 def DiT_B_8_vae_layers4(config, **kwargs):
     return DiT(config, depth=12, hidden_size=768, patch_size=8, num_heads=12, compress_rate=8,
-               channels=4, **kwargs)
+               channels=4, **kwargs).create_dit()
