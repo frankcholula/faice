@@ -43,7 +43,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model DiT_B_2_vae_layers4 \
+    --model DiT_B_2_vae_channels_4\
     --pipeline dit_vae \
     --scheduler ddim \
     --beta_schedule scaled_linear \
@@ -53,7 +53,7 @@ python main.py \
     --num_inference_steps 1000 \
     --train_batch_size 152 \
     --eval_batch_size 152 \
-    --wandb_run_name liang_DiT_B_2_vae_layers4_ddim_scaled_linear_bs152 \
+    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_scaled_linear_bs152 \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
