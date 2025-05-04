@@ -51,9 +51,9 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 136 \
-    --eval_batch_size 136 \
-    --wandb_run_name liang_DiT_B_2_vae_layers4_ddim_scaled_linear_bs136 \
+    --train_batch_size 152 \
+    --eval_batch_size 152 \
+    --wandb_run_name liang_DiT_B_2_vae_layers4_ddim_scaled_linear_bs152 \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
