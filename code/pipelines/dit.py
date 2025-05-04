@@ -235,8 +235,8 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                # accelerator.unwrap_model(model),
-                dit=accelerator.unwrap_model(ema),
+                accelerator.unwrap_model(model),
+                # dit=accelerator.unwrap_model(ema),
                 scheduler=noise_scheduler
             )
 
@@ -254,7 +254,16 @@ def train_loop(
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    pipeline.save_pretrained(config.output_dir)
+                    # pipeline.save_pretrained(config.output_dir)
+                    checkpoint = {
+                        "model": model.state_dict(),
+                        "ema_model": ema.state_dict(),
+                        "optimizer": optimizer.state_dict(),
+                    }
+                    model_path = f"{config.output_dir}/checkpoints"
+                    if not os.path.exists(model_path):
+                        os.makedirs(model_path)
+                    torch.save(checkpoint, model_path + '/model_dit.pth')
                     if save_to_wandb:
                         wandb_logger.save_model()
 
@@ -270,8 +279,8 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            # dit=accelerator.unwrap_model(model),
-            dit=accelerator.unwrap_model(ema),
+            dit=accelerator.unwrap_model(model),
+            # dit=accelerator.unwrap_model(ema),
             scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
