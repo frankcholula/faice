@@ -1,6 +1,7 @@
 from .unet import b_unet_block_6, b_unet_block_8, b_unet_block_6_head_dim_64, b_unet_block_8_head_dim_64, \
     b_unet_block_8_head_dim_64_layer_4, l_unet_block_4, l_unet_block_4_head_dim_64, \
     l_unet_block_4_head_dim_64_layer_4, l_unet_block_5, l_unet_block_5_head_dim_64, \
+    l_unet_block_5_head_dim_64_layer_3, \
     l_unet_block_5_head_dim_64_layer_4, l_unet_block_6, l_unet_block_6_head_dim_64, \
     l_unet_block_6_head_dim_64_layer_4
 from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
@@ -28,6 +29,7 @@ __model_factory = {
     "l_unet_block_4_head_dim_64_layer_4": l_unet_block_4_head_dim_64_layer_4,
     "l_unet_block_5": l_unet_block_5,
     "l_unet_block_5_head_dim_64": l_unet_block_5_head_dim_64,
+    "l_unet_block_5_head_dim_64_layer_3": l_unet_block_5_head_dim_64_layer_3,
     "l_unet_block_5_head_dim_64_layer_4": l_unet_block_5_head_dim_64_layer_4,
     "l_unet_block_6": l_unet_block_6,
     "l_unet_block_6_head_dim_64": l_unet_block_6_head_dim_64,
