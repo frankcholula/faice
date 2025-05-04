@@ -18,8 +18,8 @@ from diffusers import LDMPipeline, VQModel
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
-from models.vqmodel import create_vqmodel
-from models.vae import create_vae
+from models.vqmodel import vqvae_channel_3, vqvae_channel_16, vqvae_channel_32, vqvae_channel_64
+from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
 
 selected_pipeline = LDMPipeline
 
@@ -73,12 +73,12 @@ def train_loop(
     # vqvae = vqvae.to(device)
     # vqvae.eval().requires_grad_(False)
 
-    vqvae = create_vqmodel(config)
+    vqvae = vqvae_channel_3(config)
     vqvae = vqvae.to(device)
     vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
     vqvae.eval().requires_grad_(False)
 
-    # vae = create_vae(config)
+    # vae = vae_l_4(config)
     # vae = vae.to(device)
     # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     # vae.eval().requires_grad_(False)

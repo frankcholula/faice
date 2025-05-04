@@ -32,7 +32,7 @@ def base_vae(config, latent_channels=4):
     return vae
 
 
-def base_vae_xl(config, latent_channels=4):
+def base_vae_l(config, latent_channels=4):
     vae = AutoencoderKL(
         sample_size=config.image_size,  # the target image resolution
         in_channels=3,  # the number of input channels, 3 for RGB images
@@ -67,8 +67,8 @@ def vae_b_16(config):
 
 
 def vae_l_4(config):
-    return base_vae_xl(config, latent_channels=4)
+    return base_vae_l(config, latent_channels=4)
 
 
 def vae_l_16(config):
-    return base_vae_xl(config, latent_channels=16)
+    return base_vae_l(config, latent_channels=16)
