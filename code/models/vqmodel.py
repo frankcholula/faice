@@ -17,11 +17,13 @@ def create_vqmodel(config):
         block_out_channels=(128, 256, 512),
         # latent_channels=256,
         # latent_channels=32,
-        latent_channels=3,
+        # latent_channels=3,
+        latent_channels=16,
         num_vq_embeddings=8192,  # Codebook size
         # vq_embed_dim=256,  # Latent dimension
         # vq_embed_dim=32,
         # vq_embed_dim=3,
+        vq_embed_dim=16,
         # scaling_factor=1,
         # the number of output channels for each UNet block
         down_block_types=(
