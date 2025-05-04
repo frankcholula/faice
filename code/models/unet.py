@@ -53,9 +53,9 @@ class BaseUNet(object):
             down_block_types = down_block_types
             up_block_types = up_block_types
         elif self.block_num == 8:
-            block_out_channels = block_out_channels + [1024, 1024]
-            down_block_types = ["DownBlock2D", "DownBlock2D"] + down_block_types
-            up_block_types = up_block_types + ["UpBlock2D", "UpBlock2D"]
+            block_out_channels = block_out_channels + [1024] * 2
+            down_block_types = ["DownBlock2D"] * 2 + down_block_types
+            up_block_types = up_block_types + ["UpBlock2D"] * 2
         blocks = {"block_out_channels": tuple(block_out_channels),
                   "down_block_types": tuple(down_block_types),
                   "up_block_types": tuple(up_block_types)}
@@ -81,8 +81,8 @@ class BaseUNet(object):
             up_block_types = ['AttnUpBlock2D'] + up_block_types
         elif self.block_num == 6:
             block_out_channels = block_out_channels + [1120, 1344]
-            down_block_types = down_block_types + ['AttnDownBlock2D', 'AttnDownBlock2D']
-            up_block_types = ['AttnDownBlock2D', 'AttnDownBlock2D'] + up_block_types
+            down_block_types = down_block_types + ['AttnDownBlock2D'] * 2
+            up_block_types = ['AttnUpBlock2D'] * 2 + up_block_types
         blocks = {"block_out_channels": tuple(block_out_channels),
                   "down_block_types": tuple(down_block_types),
                   "up_block_types": tuple(up_block_types)}
@@ -294,4 +294,6 @@ if __name__ == "__main__":
 
     conf = Config()
     model = BaseUNet(conf).b_unet()
-    print(model)
+    # print(model)
+
+    print(**BaseUNet(conf).multi_attention_block())
