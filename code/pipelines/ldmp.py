@@ -169,7 +169,8 @@ def train_loop(
                          ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, pipeline)
+                with torch.no_grad():
+                    evaluate(config, epoch, pipeline)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -190,7 +191,8 @@ def train_loop(
             unet=accelerator.unwrap_model(model),
             scheduler=noise_scheduler
         )
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        with torch.no_grad():
+            fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -199,8 +201,9 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
-        inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device
-        )
+        with torch.no_grad():
+            inception_score = calculate_inception_score(
+                config, pipeline, test_dataloader, device=accelerator.device
+            )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
