@@ -17,7 +17,7 @@ def base_vqvae(config, latent_channels=3):
         block_out_channels=(128, 256, 512),
         latent_channels=latent_channels,
         num_vq_embeddings=8192,  # Codebook size
-        scaling_factor=1,
+        # scaling_factor=1,
         # the number of output channels for each UNet block
         down_block_types=(
             "DownEncoderBlock2D",  # a regular ResNet downsampling block

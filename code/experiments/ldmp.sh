@@ -135,14 +135,14 @@ python main.py \
     --model l_unet_block_5_head_dim_64 \
     --pipeline ldmp \
     --scheduler ddim \
-    --beta_schedule linear \
+    --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_l_unet_block_5_head_dim_64_ldmp_ddim_linear_vqvae3_loss_weight0.1_bs64 \
+    --wandb_run_name liang_l_unet_block_5_head_dim_64_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.1_bs64 \
     --calculate_fid \
     --calculate_is \
     --no_confirm
