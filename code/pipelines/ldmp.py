@@ -194,7 +194,7 @@ def train_loop(
         with torch.no_grad():
             fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
-        wandb_logger.log_fid_score(fid_score)
+            wandb_logger.log_fid_score(fid_score)
 
     if (
             accelerator.is_main_process
@@ -205,5 +205,5 @@ def train_loop(
             inception_score = calculate_inception_score(
                 config, pipeline, test_dataloader, device=accelerator.device
             )
-        wandb_logger.log_inception_score(inception_score)
+            wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
