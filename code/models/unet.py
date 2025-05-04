@@ -1,5 +1,4 @@
 from diffusers import UNet2DModel
-from diffusers.models.unets.unet_2d_blocks import KAttentionBlock
 
 
 class BaseUNet(UNet2DModel):
@@ -129,6 +128,9 @@ class ADMUNet(UNet2DModel):
                 "UpBlock2D",  # 64 -> 128
             ),
         )
+
+
+
 
 
 ARCHITECTURES = {
