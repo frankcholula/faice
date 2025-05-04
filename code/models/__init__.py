@@ -2,7 +2,14 @@ from .unet import create_unet, create_latent_unet, create_unet_for_ldm, create_l
 from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
 from .transformer import DiT_XL_2, DiT_XL_4, DiT_XL_8, DiT_L_2, DiT_L_4, DiT_L_8, DiT_B_2, DiT_B_4, DiT_B_8, \
     DiT_XL_2_vae_layers4, DiT_XL_4_vae_layers4, DiT_XL_8_vae_layers4, DiT_L_2_vae_layers4, \
-    DiT_L_4_vae_layers4, DiT_L_8_vae_layers4, DiT_B_2_vae_layers4, DiT_B_4_vae_layers4, DiT_B_8_vae_layers4
+    DiT_L_4_vae_layers4, DiT_L_8_vae_layers4, DiT_B_2_vae_layers4, DiT_B_4_vae_layers4, DiT_B_8_vae_layers4, \
+    DiT_XL_2_transformer_2d, DiT_XL_4_transformer_2d, DiT_XL_8_transformer_2d, DiT_L_2_transformer_2d, \
+    DiT_L_4_transformer_2d, DiT_L_8_transformer_2d, DiT_B_2_transformer_2d, DiT_B_4_transformer_2d, \
+    DiT_B_8_transformer_2d, DiT_XL_2_vae_layers4_transformer_2d, DiT_XL_4_vae_layers4_transformer_2d, \
+    DiT_XL_8_vae_layers4_transformer_2d, DiT_L_2_vae_layers4_transformer_2d, \
+    DiT_L_4_vae_layers4_transformer_2d, DiT_L_8_vae_layers4_transformer_2d, \
+    DiT_B_2_vae_layers4_transformer_2d, DiT_B_4_vae_layers4_transformer_2d, \
+    DiT_B_8_vae_layers4_transformer_2d
 from .vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
 from .vqmodel import vqvae_channel_3, vqvae_channel_16, vqvae_channel_32, vqvae_channel_64
 
@@ -32,6 +39,24 @@ __model_factory = {
     "DiT_B_2_vae_layers4": DiT_B_2_vae_layers4,
     "DiT_B_4_vae_layers4": DiT_B_4_vae_layers4,
     "DiT_B_8_vae_layers4": DiT_B_8_vae_layers4,
+    "DiT_XL_2_transformer_2d": DiT_XL_2_transformer_2d,
+    "DiT_XL_4_transformer_2d": DiT_XL_4_transformer_2d,
+    "DiT_XL_8_transformer_2d": DiT_XL_8_transformer_2d,
+    "DiT_L_2_transformer_2d": DiT_L_2_transformer_2d,
+    "DiT_L_4_transformer_2d": DiT_L_4_transformer_2d,
+    "DiT_L_8_transformer_2d": DiT_L_8_transformer_2d,
+    "DiT_B_2_transformer_2d": DiT_B_2_transformer_2d,
+    "DiT_B_4_transformer_2d": DiT_B_4_transformer_2d,
+    "DiT_B_8_transformer_2d": DiT_B_8_transformer_2d,
+    "DiT_XL_2_vae_layers4_transformer_2d": DiT_XL_2_vae_layers4_transformer_2d,
+    "DiT_XL_4_vae_layers4_transformer_2d": DiT_XL_4_vae_layers4_transformer_2d,
+    "DiT_XL_8_vae_layers4_transformer_2d": DiT_XL_8_vae_layers4_transformer_2d,
+    "DiT_L_2_vae_layers4_transformer_2d": DiT_L_2_vae_layers4_transformer_2d,
+    "DiT_L_4_vae_layers4_transformer_2d": DiT_L_4_vae_layers4_transformer_2d,
+    "DiT_L_8_vae_layers4_transformer_2d": DiT_L_8_vae_layers4_transformer_2d,
+    "DiT_B_2_vae_layers4_transformer_2d": DiT_B_2_vae_layers4_transformer_2d,
+    "DiT_B_4_vae_layers4_transformer_2d": DiT_B_4_vae_layers4_transformer_2d,
+    "DiT_B_8_vae_layers4_transformer_2d": DiT_B_8_vae_layers4_transformer_2d,
     "vae_b_4": vae_b_4,
     "vae_b_16": vae_b_16,
     "vae_l_4": vae_l_4,

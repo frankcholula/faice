@@ -22,23 +22,6 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --no_confirm \
 #    --no_wandb
 
-python main.py \
-    --dataset face \
-    --model DiT_B_2_vae_layers4 \
-    --pipeline dit_vae \
-    --scheduler ddim \
-    --beta_schedule scaled_linear \
-    --image_size 128 \
-    --num_epochs 500 \
-    --num_train_timesteps 1000 \
-    --num_inference_steps 1000 \
-    --train_batch_size 128 \
-    --eval_batch_size 128 \
-    --wandb_run_name liang_DiT_B_2_vae_layers4_ddim_scaled_linear_bs128 \
-    --calculate_fid \
-    --calculate_is \
-    --no_confirm \
-    --no_wandb
 
 #python main.py \
 #    --dataset face \
@@ -57,5 +40,24 @@ python main.py \
 #    --calculate_is \
 #    --no_confirm \
 #    --no_wandb
+
+python main.py \
+    --dataset face \
+    --model DiT_B_2_vae_layers4 \
+    --pipeline dit_vae \
+    --scheduler ddim \
+    --beta_schedule scaled_linear \
+    --image_size 128 \
+    --num_epochs 500 \
+    --num_train_timesteps 1000 \
+    --num_inference_steps 1000 \
+    --train_batch_size 128 \
+    --eval_batch_size 128 \
+    --wandb_run_name liang_DiT_B_2_vae_layers4_ddim_scaled_linear_bs128 \
+    --calculate_fid \
+    --calculate_is \
+    --no_confirm \
+    --no_wandb
+
 
 
