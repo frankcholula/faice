@@ -43,7 +43,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model DiT_B_2 \
+    --model DiT_B_8 \
     --pipeline dit \
     --scheduler ddpm \
     --beta_schedule linear \
@@ -51,9 +51,9 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
-    --wandb_run_name liang_DiT_B_2_ddpm_linear_bs128 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
+    --wandb_run_name liang_DiT_B_8_ddpm_linear_bs16 \
     --calculate_fid \
     --calculate_is \
     --no_confirm \
