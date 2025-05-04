@@ -76,7 +76,8 @@ def train_loop(
                 rec_loss = F.mse_loss(clean_images, decoded)
 
                 # loss_weight = 0.0025
-                loss_weight = 0.1
+                # loss_weight = 0.1
+                loss_weight = 0.15
                 # loss_weight = 0.25
                 # loss_weight = 0.5
                 loss = rec_loss + commit_loss * loss_weight
