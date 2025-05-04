@@ -73,10 +73,10 @@ def train_loop(
     # vqvae = vqvae.to(device)
     # vqvae.eval().requires_grad_(False)
 
-    vqvae = vqvae_b_3(config)
-    vqvae = vqvae.to(device)
-    vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
-    vqvae.eval().requires_grad_(False)
+    vq_vae = vqvae_b_3(config)
+    vq_vae = vq_vae.to(device)
+    vq_vae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
+    vq_vae.eval().requires_grad_(False)
 
     # vae = vae_l_4(config)
     # vae = vae.to(device)
@@ -106,9 +106,9 @@ def train_loop(
             ).long()
 
             # Encode image to latent space
-            latents = vqvae.encode(clean_images).latents
+            latents = vq_vae.encode(clean_images).latents
             latents = latents.detach().clone()
-            latents = latents * vqvae.config.scaling_factor
+            latents = latents * vq_vae.config.scaling_factor
 
             # latents = vae.encode(clean_images).latent_dist.sample()
 
@@ -155,7 +155,7 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                vqvae=accelerator.unwrap_model(vqvae),
+                vqvae=accelerator.unwrap_model(vq_vae),
                 # vqvae=accelerator.unwrap_model(vae),
                 unet=accelerator.unwrap_model(model),
                 scheduler=noise_scheduler
@@ -185,7 +185,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            vqvae=accelerator.unwrap_model(vqvae),
+            vqvae=accelerator.unwrap_model(vq_vae),
             # vqvae=accelerator.unwrap_model(vae),
             unet=accelerator.unwrap_model(model),
             scheduler=noise_scheduler
