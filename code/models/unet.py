@@ -1,5 +1,6 @@
 from diffusers import UNet2DModel
 
+_compress_rate = 4
 
 class BaseUNet(object):
     def __init__(self, config, compress_rate=1, attention_head_dim=8, layers_per_block=2, block_num=6):
@@ -90,63 +91,68 @@ class BaseUNet(object):
 
 
 def unet_b_block_6(config):
-    return BaseUNet(config).unet_b()
+    return BaseUNet(config, compress_rate=_compress_rate).unet_b()
 
 
 def unet_b_block_8(config):
-    return BaseUNet(config, block_num=8).unet_b()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=8).unet_b()
 
 
 def unet_b_block_6_head_dim_64(config):
-    return BaseUNet(config, block_num=6, attention_head_dim=64).unet_b()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=6, attention_head_dim=64).unet_b()
 
 
 def unet_b_block_8_head_dim_64(config):
-    return BaseUNet(config, block_num=8, attention_head_dim=64).unet_b()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=8, attention_head_dim=64).unet_b()
 
 
 def unet_b_block_8_head_dim_64_layer_4(config):
-    return BaseUNet(config, block_num=8, attention_head_dim=64, layers_per_block=4).unet_b()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=8, attention_head_dim=64,
+                    layers_per_block=4).unet_b()
 
 
 def unet_l_block_4(config):
-    return BaseUNet(config, block_num=4).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=4).unet_l()
 
 
 def unet_l_block_4_head_dim_64(config):
-    return BaseUNet(config, block_num=4, attention_head_dim=64).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=4, attention_head_dim=64).unet_l()
 
 
 def unet_l_block_4_head_dim_64_layer_4(config):
-    return BaseUNet(config, block_num=4, attention_head_dim=64, layers_per_block=4).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=4, attention_head_dim=64,
+                    layers_per_block=4).unet_l()
 
 
 def unet_l_block_5(config):
-    return BaseUNet(config, block_num=5).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=5).unet_l()
 
 
 def unet_l_block_5_head_dim_64(config):
-    return BaseUNet(config, block_num=5, attention_head_dim=64).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=5, attention_head_dim=64).unet_l()
 
 
 def unet_l_block_5_head_dim_64_layer_3(config):
-    return BaseUNet(config, block_num=5, attention_head_dim=64, layers_per_block=3).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=5, attention_head_dim=64,
+                    layers_per_block=3).unet_l()
 
 
 def unet_l_block_5_head_dim_64_layer_4(config):
-    return BaseUNet(config, block_num=5, attention_head_dim=64, layers_per_block=4).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=5, attention_head_dim=64,
+                    layers_per_block=4).unet_l()
 
 
 def unet_l_block_6(config):
-    return BaseUNet(config, block_num=6).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=6).unet_l()
 
 
 def unet_l_block_6_head_dim_64(config):
-    return BaseUNet(config, block_num=6, attention_head_dim=64).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=6, attention_head_dim=64).unet_l()
 
 
 def unet_l_block_6_head_dim_64_layer_4(config):
-    return BaseUNet(config, block_num=6, attention_head_dim=64, layers_per_block=4).unet_l()
+    return BaseUNet(config, compress_rate=_compress_rate, block_num=6, attention_head_dim=64,
+                    layers_per_block=4).unet_l()
 
 
 if __name__ == "__main__":

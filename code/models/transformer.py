@@ -156,6 +156,7 @@ def DiT_B_8_vae_channels_4(config, **kwargs):
                channels=4, **kwargs).create_dit()
 
 
+# Set the attention type
 attention_type_transformer_2d = 'xformers'
 
 
