@@ -32,15 +32,7 @@ class DiT(object):
             num_embeds_ada_norm=1000,
             num_layers=self.num_layers,
             patch_size=self.patch_size,
-            attention_type=self.attention_type
         )
-
-        if self.attention_type == 'flash':
-            dit.enable_flash_attention()
-        elif self.attention_type == 'xformers':
-            dit.enable_xformers_memory_efficient_attention()
-        else:
-            pass
 
         return dit
 
