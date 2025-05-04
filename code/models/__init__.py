@@ -11,7 +11,7 @@ from .transformer import DiT_XL_2, DiT_XL_4, DiT_XL_8, DiT_L_2, DiT_L_4, DiT_L_8
     DiT_B_2_vae_layers4_transformer_2d, DiT_B_4_vae_layers4_transformer_2d, \
     DiT_B_8_vae_layers4_transformer_2d
 from .vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
-from .vqmodel import vqvae_channel_3, vqvae_channel_16, vqvae_channel_32, vqvae_channel_64
+from .vqmodel import vqvae_b_3, vqvae_b_16, vqvae_b_32, vqvae_b_64
 
 __model_factory = {
     "unet": create_unet,
