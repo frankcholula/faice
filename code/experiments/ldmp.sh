@@ -127,8 +127,8 @@ python main.py \
     --wandb_run_name liang_l_unet_block_5_head_dim_64_layer_3_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.1_bs64 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
 
 #python main.py \
 #    --dataset face \
