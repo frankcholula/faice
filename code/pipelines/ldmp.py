@@ -75,8 +75,8 @@ def train_loop(
 
     vqvae = vqvae_b_3(config)
     vqvae = vqvae.to(device)
-    vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
-    vqvae.eval().requires_grad_(False)
+    vqvae = vqvae.load_state_dict(torch.load(vqmodel_path, map_location=device)['model_state_dict'])
+    vqvae = vqvae.eval().requires_grad_(False)
 
     # vae = vae_l_4(config)
     # vae = vae.to(device)
@@ -169,8 +169,7 @@ def train_loop(
                          ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
 
             if generate_samples:
-                with torch.no_grad():
-                    evaluate(config, epoch, pipeline)
+                evaluate(config, epoch, pipeline)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -191,19 +190,17 @@ def train_loop(
             unet=accelerator.unwrap_model(model),
             scheduler=noise_scheduler
         )
-        with torch.no_grad():
-            fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
-            wandb_logger.log_fid_score(fid_score)
+        wandb_logger.log_fid_score(fid_score)
 
     if (
             accelerator.is_main_process
             and config.calculate_is
             and test_dataloader is not None
     ):
-        with torch.no_grad():
-            inception_score = calculate_inception_score(
-                config, pipeline, test_dataloader, device=accelerator.device
-            )
-            wandb_logger.log_inception_score(inception_score)
+        inception_score = calculate_inception_score(
+            config, pipeline, test_dataloader, device=accelerator.device
+        )
+        wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
