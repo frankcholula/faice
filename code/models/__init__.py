@@ -61,10 +61,10 @@ __model_factory = {
     "vae_b_16": vae_b_16,
     "vae_l_4": vae_l_4,
     "vae_l_16": vae_l_16,
-    "vqvae_channel_3": vqvae_channel_3,
-    "vqvae_channel_16": vqvae_channel_16,
-    "vqvae_channel_32": vqvae_channel_32,
-    "vqvae_channel_64": vqvae_channel_64,
+    "vqvae_channel_3": vqvae_b_3,
+    "vqvae_channel_16": vqvae_b_16,
+    "vqvae_channel_32": vqvae_b_32,
+    "vqvae_channel_64": vqvae_b_64,
 }
 
 
