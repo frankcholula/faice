@@ -122,8 +122,8 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --train_batch_size 32 \
+    --eval_batch_size 32 \
     --wandb_run_name liang_l_unet_block_6_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.1_bs64 \
     --calculate_fid \
     --calculate_is \
