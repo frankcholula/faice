@@ -17,7 +17,7 @@ from diffusers.utils.pil_utils import numpy_to_pil
 # Configuration
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
-from models.vae import create_vae
+from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
 from utils.plot import plot_images
 from utils.metrics import calculate_clean_fid, make_grid, calculate_inception_score_vae
 
@@ -150,7 +150,7 @@ def train_loop(
 
 def vae_inference(vae, config, test_dataloader, wandb_logger):
     # checkpoint = torch.load(model_path)
-    # vae = create_vae(config)
+    # vae = vae_b_4(config)
     # vae = vae.to(device)
     # vae.load_state_dict(checkpoint['model_state_dict'])
 

@@ -17,7 +17,7 @@ from torchvision import transforms
 # Configuration
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
-from models.vqmodel import create_vqmodel
+from models.vqmodel import vqvae_b_3, vqvae_b_16, vqvae_b_32, vqvae_b_64
 from utils.plot import plot_images
 from utils.metrics import calculate_clean_fid, make_grid, calculate_inception_score_vae
 
@@ -145,7 +145,7 @@ def train_loop(
 
 def vqvae_inference(vqvae, config, test_dataloader, wandb_logger):
     # checkpoint = torch.load(model_path, map_location=device)
-    # vqvae = create_vqmodel(config)
+    # vqvae = vqvae_b_3(config)
     # vqvae = vqvae.to(device)
     # vqvae.load_state_dict(checkpoint['model_state_dict'])
 

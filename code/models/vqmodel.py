@@ -34,19 +34,19 @@ def base_vqvae(config, latent_channels=3):
     return vqvae
 
 
-def vqvae_channel_3(config):
+def vqvae_b_3(config):
     return base_vqvae(config, latent_channels=3)
 
 
-def vqvae_channel_16(config):
+def vqvae_b_16(config):
     return base_vqvae(config, latent_channels=16)
 
 
-def vqvae_channel_32(config):
+def vqvae_b_32(config):
     return base_vqvae(config, latent_channels=32)
 
 
-def vqvae_channel_64(config):
+def vqvae_b_64(config):
     return base_vqvae(config, latent_channels=64)
 
 
