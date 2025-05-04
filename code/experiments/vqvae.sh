@@ -6,7 +6,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model vqvae \
+    --model vqvae_channel_16 \
     --pipeline vqvae \
     --image_size 128 \
     --num_epochs 500 \
@@ -19,7 +19,7 @@ python main.py \
 
 #python main.py \
 #    --dataset face \
-#    --model vqvae \
+#    --model vqvae_channel_3 \
 #    --pipeline vqvae \
 #    --image_size 128 \
 #    --num_epochs 500 \

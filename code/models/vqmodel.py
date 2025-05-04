@@ -8,22 +8,15 @@
 from diffusers import VQModel
 
 
-def create_vqmodel(config):
+def base_vqvae(config, latent_channels=3):
     vqvae = VQModel(
         sample_size=config.image_size,  # the target image resolution
         in_channels=3,  # RGB images
         out_channels=3,
         layers_per_block=2,  # how many ResNet layers to use per UNet block
         block_out_channels=(128, 256, 512),
-        # latent_channels=256,
-        # latent_channels=32,
-        # latent_channels=3,
-        latent_channels=16,
+        latent_channels=latent_channels,
         num_vq_embeddings=8192,  # Codebook size
-        # vq_embed_dim=256,  # Latent dimension
-        # vq_embed_dim=32,
-        # vq_embed_dim=3,
-        vq_embed_dim=16,
         # scaling_factor=1,
         # the number of output channels for each UNet block
         down_block_types=(
@@ -39,6 +32,22 @@ def create_vqmodel(config):
     )
 
     return vqvae
+
+
+def vqvae_channel_3(config):
+    return base_vqvae(config, latent_channels=3)
+
+
+def vqvae_channel_16(config):
+    return base_vqvae(config, latent_channels=16)
+
+
+def vqvae_channel_32(config):
+    return base_vqvae(config, latent_channels=32)
+
+
+def vqvae_channel_64(config):
+    return base_vqvae(config, latent_channels=64)
 
 
 if __name__ == '__main__':

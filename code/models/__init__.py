@@ -3,8 +3,8 @@ from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_u
 from .transformer import DiT_XL_2, DiT_XL_4, DiT_XL_8, DiT_L_2, DiT_L_4, DiT_L_8, DiT_B_2, DiT_B_4, DiT_B_8, \
     DiT_XL_2_vae_layers4, DiT_XL_4_vae_layers4, DiT_XL_8_vae_layers4, DiT_L_2_vae_layers4, \
     DiT_L_4_vae_layers4, DiT_L_8_vae_layers4, DiT_B_2_vae_layers4, DiT_B_4_vae_layers4, DiT_B_8_vae_layers4
-from .vae import create_vae, create_vae_xl
-from .vqmodel import create_vqmodel
+from .vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
+from .vqmodel import vqvae_channel_3, vqvae_channel_16, vqvae_channel_32, vqvae_channel_64
 
 __model_factory = {
     "unet": create_unet,
@@ -32,9 +32,14 @@ __model_factory = {
     "DiT_B_2_vae_layers4": DiT_B_2_vae_layers4,
     "DiT_B_4_vae_layers4": DiT_B_4_vae_layers4,
     "DiT_B_8_vae_layers4": DiT_B_8_vae_layers4,
-    "vae": create_vae,
-    "vae_xl": create_vae_xl,
-    "vqvae": create_vqmodel,
+    "vae_b_4": vae_b_4,
+    "vae_b_16": vae_b_16,
+    "vae_l_4": vae_l_4,
+    "vae_l_16": vae_l_16,
+    "vqvae_channel_3": vqvae_channel_3,
+    "vqvae_channel_16": vqvae_channel_16,
+    "vqvae_channel_32": vqvae_channel_32,
+    "vqvae_channel_64": vqvae_channel_64,
 }
 
 
