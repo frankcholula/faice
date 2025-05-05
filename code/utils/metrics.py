@@ -1,6 +1,6 @@
 import os
-import wandb
 import torch
+import wandb
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
 from torchvision.utils import save_image
@@ -23,7 +23,6 @@ def evaluate(config, epoch, pipeline):
     # Sample some images from random noise (this is the backward diffusion process).
     # The default pipeline output type is `List[PIL.Image]`
     batch_size = 16
-    # batch_size = config.eval_batch_size
     images_kwargs = {
         "batch_size": batch_size,
         "generator": torch.manual_seed(config.seed),
@@ -31,6 +30,16 @@ def evaluate(config, epoch, pipeline):
     }
     if config.pipeline in ["ddim", "pndm"]:
         images_kwargs["eta"] = config.eta
+    if config.pipeline in ["cond"]:
+        class_labels = torch.zeros(batch_size, dtype=torch.long, device=config.device)
+        encoder_hidden_states = torch.zeros(
+            batch_size,
+            1,
+            pipeline.unet.config.cross_attention_dim,
+            device=config.device,
+        )
+        images_kwargs["class_labels"] = class_labels
+        images_kwargs["encoder_hidden_states"] = encoder_hidden_states
     images = pipeline(**images_kwargs).images
     # Make a grid out of the images
     image_grid = make_grid(images, rows=4, cols=4)
