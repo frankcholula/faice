@@ -90,47 +90,8 @@ def main():
         num_training_steps=(len(train_dataloader) * config.num_epochs),
     )
 
-    # Sanity check with a sample image
     with torch.no_grad():
-        try:
-            # Determine device
-            print(f"Using model: {model.__class__.__name__}")
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-            # Move model to the device first
-            model.to(device)
-
-            sample_batch = next(iter(train_dataloader))
-            sample_image = sample_batch["images"].to(device)
-            sample_labels = sample_batch["labels"].to(device)
-
-            if len(sample_image.shape) == 3:  # Add batch dimension if missing
-                sample_image = sample_image.unsqueeze(0)
-
-            # Create timestep tensor on the same device
-            timestep = torch.tensor([0], device=device)
-
-            # Just check if the model runs
-            if isinstance(model, ClassConditionedUNet):
-                encoder_hidden_states = torch.zeros(
-                    sample_image.shape[0],
-                    1,
-                    model.config.cross_attention_dim,
-                    device=device,
-                )
-                _ = model(
-                    sample_image,
-                    timestep=timestep,
-                    encoder_hidden_states=encoder_hidden_states,
-                    class_labels=sample_labels,
-                )
-
-            else:
-                _ = model(sample_image, timestep=timestep)
-            print(f"Model sanity check passed on {device}!")
-        except Exception as e:
-            print(f"Model sanity check failed!")
-            raise e
+        perform_model_sanity_check(model, train_dataloader)
 
     train_args = (
         config,
@@ -150,6 +111,48 @@ def main():
         print(f"Generated {len(sample_images)} sample images")
     except Exception as e:
         print(f"Error retrieving sample images: {e}")
+
+
+def perform_model_sanity_check(model, train_dataloader):
+    try:
+        # Determine device
+        print(f"Using model: {model.__class__.__name__}")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        # Move model to the device first
+        model.to(device)
+
+        sample_batch = next(iter(train_dataloader))
+        sample_image = sample_batch["images"].to(device)
+        sample_labels = sample_batch["labels"].to(device)
+
+        if len(sample_image.shape) == 3:  # Add batch dimension if missing
+            sample_image = sample_image.unsqueeze(0)
+
+            # Create timestep tensor on the same device
+        timestep = torch.tensor([0], device=device)
+
+        # Just check if the model runs
+        if isinstance(model, ClassConditionedUNet):
+            encoder_hidden_states = torch.zeros(
+                sample_image.shape[0],
+                1,
+                model.config.cross_attention_dim,
+                device=device,
+            )
+            _ = model(
+                sample_image,
+                timestep=timestep,
+                encoder_hidden_states=encoder_hidden_states,
+                class_labels=sample_labels,
+            )
+
+        else:
+            _ = model(sample_image, timestep=timestep)
+        print(f"Model sanity check passed on {device}!")
+    except Exception as e:
+        print(f"Model sanity check failed!")
+        raise e
 
 
 if __name__ == "__main__":
