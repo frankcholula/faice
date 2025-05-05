@@ -131,7 +131,7 @@ class ADMUNet(UNet2DModel):
 
 
 class ClassConditionedUNet(UNet2DConditionModel):
-    """ For simplicity's sake and a quick proof of concept, we can just use the standard DDPM model and add class embeddings to it."""
+    """For simplicity's sake and a quick proof of concept, we can just use the standard DDPM model and add class embeddings to it."""
 
     def __init__(self, config):
         super().__init__(
@@ -159,7 +159,7 @@ class ClassConditionedUNet(UNet2DConditionModel):
             attention_head_dim=64,
             num_class_embeds=2,  # 2 classes for male and female.
             class_embed_type=None,  # keeping this simple since we just have 0 and 1
-            mid_block_type = "UNetMidBlock2D", # disable cross attention
+            mid_block_type="UNetMidBlock2D",  # disable cross attention
         )
 
 
