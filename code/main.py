@@ -10,6 +10,7 @@ from models.unet import ClassConditionedUNet
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
 from utils.transforms import build_transforms
+from datasets import load_dataset
 
 
 def setup_dataset(config):
@@ -61,7 +62,6 @@ def setup_dataset(config):
         )
 
     elif isinstance(config, ButterflyConfig):
-        from datasets import load_dataset
 
         dataset = load_dataset(config.dataset_name, split="train")
 
