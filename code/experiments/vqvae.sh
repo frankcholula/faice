@@ -23,9 +23,9 @@ python main.py \
     --pipeline vqvae \
     --image_size 128 \
     --num_epochs 500 \
-    --train_batch_size 112 \
-    --eval_batch_size 112 \
-    --wandb_run_name liang_vqvae_latent_loss_weight_0.05_channels3_batch_size_112 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
+    --wandb_run_name liang_vqvae_latent_loss_weight_0.5_channels3_batch_size_64 \
     --calculate_fid \
     --no_confirm
 #    --no_wandb
