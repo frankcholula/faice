@@ -111,7 +111,7 @@ def parse_args():
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument(
         "--unet_variant",
-        choices=["base", "ddpm", "adm"],
+        choices=["base", "ddpm", "adm", "cond"],
         default="base",
         help="Which UNet variant to use when --model==unet",
     )
