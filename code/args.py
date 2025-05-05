@@ -46,7 +46,7 @@ def create_model(model: str, config):
 
 
 def create_pipeline(pipeline: str):
-    if pipeline.lower() in ["ddim", "ddpm", "pndm"]:
+    if pipeline.lower() in ["ddim", "ddpm", "pndm", "cond"]:
         return base_pipeline.train_loop
     elif pipeline.lower() == "consistency":
         return consistency.train_loop
