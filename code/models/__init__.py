@@ -7,7 +7,7 @@ from .unet import unet_b_block_6, unet_b_block_8, unet_b_block_6_head_dim_64, un
 from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
 from .transformer import DiT_XL_2, DiT_XL_4, DiT_XL_8, DiT_L_2, DiT_L_4, DiT_L_8, DiT_B_2, DiT_B_4, DiT_B_8, \
     DiT_XL_2_vae_channels_4, DiT_XL_4_vae_channels_4, DiT_XL_8_vae_channels_4, DiT_L_2_vae_channels_4, \
-    DiT_L_4_vae_channels_4, DiT_L_8_vae_channels_4, DiT_B_2_vae_channels_4, DiT_B_4_vae_channels_4, DiT_B_8_vae_channels_4, \
+    DiT_L_4_vae_channels_4, DiT_L_8_vae_channels_4, DiT_B_2_vae_channels_4, DiT_B_2_vae_channels_16, DiT_B_4_vae_channels_4, DiT_B_8_vae_channels_4, \
     DiT_XL_2_transformer_2d, DiT_XL_4_transformer_2d, DiT_XL_8_transformer_2d, DiT_L_2_transformer_2d, \
     DiT_L_4_transformer_2d, DiT_L_8_transformer_2d, DiT_B_2_transformer_2d, DiT_B_4_transformer_2d, \
     DiT_B_8_transformer_2d, DiT_XL_2_vae_channels_4_transformer_2d, DiT_XL_4_vae_channels_4_transformer_2d, \
@@ -53,6 +53,7 @@ __model_factory = {
     "DiT_L_4_vae_channels_4": DiT_L_4_vae_channels_4,
     "DiT_L_8_vae_channels_4": DiT_L_8_vae_channels_4,
     "DiT_B_2_vae_channels_4": DiT_B_2_vae_channels_4,
+    "DiT_B_2_vae_channels_16": DiT_B_2_vae_channels_16,
     "DiT_B_4_vae_channels_4": DiT_B_4_vae_channels_4,
     "DiT_B_8_vae_channels_4": DiT_B_8_vae_channels_4,
     "DiT_XL_2_transformer_2d": DiT_XL_2_transformer_2d,
