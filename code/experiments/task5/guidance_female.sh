@@ -7,7 +7,7 @@ python main.py \
     --beta_schedule linear \
     --model unet \
     --unet_variant cond \
-    --conditioning_on female \
+    --condition_on female \
     --attention_head_dim 64 \
     --image_size 128 \
     --num_epochs 500 \
