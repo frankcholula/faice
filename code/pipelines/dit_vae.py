@@ -293,8 +293,7 @@ def train_loop(
                     (config.train_batch_size,),
                     device=device,
                 ).int()
-                with torch.no_grad():
-                    evaluate(config, epoch, pipeline, class_labels=class_labels)
+                evaluate(config, epoch, pipeline, class_labels=class_labels)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -335,21 +334,19 @@ def train_loop(
             (config.train_batch_size,),
             device=device,
         ).int()
-        with torch.no_grad():
-            fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
 
-            wandb_logger.log_fid_score(fid_score)
+        wandb_logger.log_fid_score(fid_score)
 
     if (
             accelerator.is_main_process
             and config.calculate_is
             and test_dataloader is not None
     ):
-        with torch.no_grad():
-            inception_score = calculate_inception_score(
-                config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
-            )
-            wandb_logger.log_inception_score(inception_score)
+        inception_score = calculate_inception_score(
+            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
+        )
+        wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
 
 
