@@ -122,7 +122,6 @@ def main():
                     sample_image,
                     timestep=timestep,
                     encoder_hidden_states=encoder_hidden_states,
-                    class_labels=sample_labels,
                 )
 
             else:
