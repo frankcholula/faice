@@ -31,7 +31,10 @@ def evaluate(config, epoch, pipeline):
     if config.pipeline in ["ddim", "pndm"]:
         images_kwargs["eta"] = config.eta
     if config.pipeline in ["cond"]:
-        class_labels = torch.zeros(batch_size, dtype=torch.long, device=pipeline.unet.device)
+        label_id = 1 if config.condition_on == "male" else 0
+        class_labels = torch.full(
+            (batch_size,), label_id, dtype=torch.long, device=pipeline.unet.device
+        )
         encoder_hidden_states = torch.zeros(
             batch_size,
             1,
@@ -114,8 +117,10 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 if config.pipeline in ["ddim", "pndm"]:
                     output_kwargs["eta"] = config.eta
                 if config.pipeline in ["cond"]:
-                    class_labels = torch.zeros(
-                        output_kwargs["batch_size"],
+                    label_id = 1 if config.condition_on == "male" else 0
+                    class_labels = torch.full(
+                        (output_kwargs["batch_size"],),
+                        label_id,
                         dtype=torch.long,
                         device=device,
                     )
@@ -190,8 +195,10 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
             if config.pipeline in ["ddim", "pndm"]:
                 output_kwargs["eta"] = config.eta
             if config.pipeline in ["cond"]:
-                class_labels = torch.zeros(
-                    output_kwargs["batch_size"],
+                label_id = 1 if config.condition_on == "male" else 0
+                class_labels = torch.full(
+                    (output_kwargs["batch_size"],),
+                    label_id,
                     dtype=torch.long,
                     device=device,
                 )
