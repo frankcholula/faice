@@ -11,8 +11,8 @@ python main.py \
     --image_size 128 \
     --num_epochs 1 \
     --num_train_timesteps 1000 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
+    --train_batch_size 24 \
+    --eval_batch_size 24 \
     --loss_type mse \
     --use_lpips \
     --lpips_net alex \
