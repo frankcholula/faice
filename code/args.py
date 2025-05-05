@@ -164,7 +164,7 @@ def parse_args():
     )
     model_group.add_argument(
         "--pipeline",
-        choices=["ddpm", "ddim", "pndm", "consistency"],  
+        choices=["ddpm", "ddim", "pndm", "consistency", "cond"],  
         default="ddpm",                   
         help="Training pipeline")
     model_group.add_argument(
