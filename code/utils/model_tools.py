@@ -5,6 +5,8 @@
 @File : model_tools.py
 @Project : code
 """
+from collections import OrderedDict
+
 import torch
 import pandas as pd
 
@@ -22,15 +24,15 @@ def update_ema(ema_model, model, decay=0.9999):
     """
     Step the EMA model towards the current model.
     """
-    # ema_params = OrderedDict(ema_model.named_parameters())
-    # model_params = OrderedDict(model.named_parameters())
-    #
-    # for name, param in model_params.items():
-    #     # TO-DO: Consider applying only to params that require_grad to avoid small numerical changes of pos_embed
-    #     ema_params[name].mul_(decay).add_(param.data, alpha=1 - decay)
+    ema_params = OrderedDict(ema_model.parameters())
+    model_params = OrderedDict(model.parameters())
 
-    for ema_param, model_param in zip(ema_model.parameters(), model.parameters()):
-        ema_param.copy_(decay * ema_param + (1 - decay) * model_param)
+    for name, param in model_params.items():
+        # TO-DO: Consider applying only to params that require_grad to avoid small numerical changes of pos_embed
+        ema_params[name].mul_(decay).add_(param.data, alpha=1 - decay)
+
+    # for ema_param, model_param in zip(ema_model.parameters(), model.parameters()):
+    #     ema_param.copy_(decay * ema_param + (1 - decay) * model_param)
 
 
 def requires_grad(model, flag=True):

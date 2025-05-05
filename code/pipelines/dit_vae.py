@@ -7,7 +7,6 @@ import numpy as np
 from torch import nn
 from typing import List, Optional, Tuple, Union
 import inspect
-from collections import OrderedDict
 from copy import deepcopy
 
 # Hugging Face
@@ -273,8 +272,8 @@ def train_loop(
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
             pipeline = selected_pipeline(
-                accelerator.unwrap_model(model),
-                # accelerator.unwrap_model(ema),
+                # accelerator.unwrap_model(model),
+                accelerator.unwrap_model(ema),
                 accelerator.unwrap_model(vae),
                 scheduler=noise_scheduler
             )
@@ -325,8 +324,8 @@ def train_loop(
             and test_dataloader is not None
     ):
         pipeline = selected_pipeline(
-            accelerator.unwrap_model(model),
-            # accelerator.unwrap_model(ema),
+            # accelerator.unwrap_model(model),
+            accelerator.unwrap_model(ema),
             accelerator.unwrap_model(vae),
             scheduler=noise_scheduler
         )
