@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 
 # Hugging Face
 from diffusers import DDPMPipeline, DDIMPipeline
-from code.pipelines.ccddpm_pipeline import CCDDPMPipeline
+from pipelines.ccddpm_pipeline import CCDDPMPipeline
 
 
 # Configuration
