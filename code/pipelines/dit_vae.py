@@ -22,9 +22,9 @@ from utils.training import setup_accelerator
 from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
 from utils.model_tools import name_to_label, update_ema, requires_grad
 
-vae_path = "runs/vae-vae-ddpm-face-500-16/checkpoints/model_vae.pth"
+# vae_path = "runs/vae-vae-ddpm-face-500-16/checkpoints/model_vae.pth"
 # vae_path = "runs/vae_xl-vae-ddpm-face-500-4/checkpoints/model_vae.pth"
-# vae_path = "runs/vae_xl-vae-ddpm-face-500-4-0.1/checkpoints/model_vae.pth"
+vae_path = "runs/vae_xl-vae-ddpm-face-500-4-0.1/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
 
@@ -180,8 +180,8 @@ def train_loop(
     # vae = vae.to(device)
     # vae.eval().requires_grad_(False)
 
-    # vae = vae_l_4(config)
-    vae = vae_b_16(config)
+    vae = vae_l_4(config)
+    # vae = vae_b_16(config)
     vae = vae.to(device)
     vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
