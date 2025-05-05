@@ -2,6 +2,7 @@ import os
 import glob
 
 import torch
+import csv
 
 from PIL import Image
 from args import get_config_and_components
@@ -21,6 +22,17 @@ def setup_dataset(config):
                 self.root_dir = root_dir
                 self.transform = transform
                 self.image_paths = glob.glob(os.path.join(root_dir, "*.jpg"))
+                self.labels_path = os.path.join(root_dir, "labels.csv")
+                self.labels_map = self._load_labels()
+
+            def _load_labels(self):
+                labels_map = {}
+                with open(self.labels_path, newline="") as f:
+                    reader = csv.reader(f)
+                    header = next(reader, None)  # skip header
+                    for img, label in reader:
+                        labels_map[img] = int(label)
+                return labels_map
 
             def __len__(self):
                 return len(self.image_paths)
@@ -29,9 +41,10 @@ def setup_dataset(config):
                 img_path = self.image_paths[idx]
                 image = Image.open(img_path).convert("RGB")
                 image_name = os.path.splitext(os.path.basename(img_path))[0]
+                label = self.labels_map.get(image_name, None)
                 if self.transform:
                     image = self.transform(image)
-                return {"images": image, "image_names": image_name}
+                return {"images": image, "image_names": image_name, "labels": label}
 
         train_dataset = CelebaAHQDataset(
             root_dir=config.train_dir, transform=transform_train
@@ -39,7 +52,9 @@ def setup_dataset(config):
         train_dataloader = DataLoader(
             train_dataset, batch_size=config.train_batch_size, shuffle=True
         )
-        test_dataset = CelebaAHQDataset(root_dir=config.test_dir, transform=transform_test)
+        test_dataset = CelebaAHQDataset(
+            root_dir=config.test_dir, transform=transform_test
+        )
         test_dataloader = DataLoader(
             test_dataset, batch_size=config.eval_batch_size, shuffle=False
         )
@@ -50,7 +65,9 @@ def setup_dataset(config):
         dataset = load_dataset(config.dataset_name, split="train")
 
         def transform(examples):
-            images = [transform_train(image.convert("RGB")) for image in examples["image"]]
+            images = [
+                transform_train(image.convert("RGB")) for image in examples["image"]
+            ]
             return {"images": images}
 
         dataset.set_transform(transform)
