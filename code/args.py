@@ -46,7 +46,7 @@ def create_model(model: str, config):
 
 
 def create_pipeline(pipeline: str):
-    if pipeline.lower() in ["ddim", "ddpm", "pndm"]:
+    if pipeline.lower() in ["ddim", "ddpm", "pndm", "cond"]:
         return base_pipeline.train_loop
     elif pipeline.lower() == "consistency":
         return consistency.train_loop
@@ -111,7 +111,7 @@ def parse_args():
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument(
         "--unet_variant",
-        choices=["base", "ddpm", "adm"],
+        choices=["base", "ddpm", "adm", "cond"],
         default="base",
         help="Which UNet variant to use when --model==unet",
     )
@@ -164,9 +164,17 @@ def parse_args():
     )
     model_group.add_argument(
         "--pipeline",
-        choices=["ddpm", "ddim", "pndm", "consistency"],  
-        default="ddpm",                   
-        help="Training pipeline")
+        choices=["ddpm", "ddim", "pndm", "consistency", "cond"],
+        default="ddpm",
+        help="Training pipeline",
+    )
+
+    model_group.add_argument(
+        "--condition_on",
+        choices=["male", "female"],
+        default="male",
+        help="Condition on male or female on inference (if cond pipeline is selected)",
+    )
     model_group.add_argument(
         "--rescale_betas_zero_snr",
         action="store_true",

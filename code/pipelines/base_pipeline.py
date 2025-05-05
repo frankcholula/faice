@@ -5,6 +5,8 @@ from tqdm.auto import tqdm
 
 # Hugging Face
 from diffusers import DDPMPipeline, DDIMPipeline
+from pipelines.ccddpm_pipeline import CCDDPMPipeline
+
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -17,6 +19,7 @@ AVAILABLE_PIPELINES = {
     "ddpm": DDPMPipeline,
     "ddim": DDIMPipeline,
     "pndm": DDIMPipeline,
+    "cond": CCDDPMPipeline,
 }
 
 
@@ -85,7 +88,27 @@ def train_loop(
                     target = noise_scheduler.get_velocity(
                         clean_images, noise, timesteps
                     )
-                pred = model(noisy_images, timesteps, return_dict=False)[0]
+                # Predict the target (noise or velocity)
+                if config.pipeline == "cond":
+                    # Extract class labels for conditioning
+                    class_labels = batch["labels"]
+                    # the encoder_hidden_states are really just a placeholder since we're only using labels.
+                    encoder_hidden_states = torch.zeros(
+                        bs,
+                        1,  # random sequence length
+                        model.config.cross_attention_dim,
+                        device=clean_images.device,
+                    )
+                    pred = model(
+                        noisy_images,
+                        timesteps,
+                        class_labels=class_labels,
+                        encoder_hidden_states=encoder_hidden_states,
+                        return_dict=False,
+                    )[0]
+
+                else:
+                    pred = model(noisy_images, timesteps, return_dict=False)[0]
                 loss = F.mse_loss(pred, target)
 
                 accelerator.backward(loss)
