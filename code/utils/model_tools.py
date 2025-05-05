@@ -24,8 +24,10 @@ def update_ema(ema_model, model, decay=0.9999):
     """
     Step the EMA model towards the current model.
     """
-    ema_params = OrderedDict(ema_model.parameters())
-    model_params = OrderedDict(model.parameters())
+    # ema_params = OrderedDict(ema_model.parameters())
+    # model_params = OrderedDict(model.parameters())
+    ema_params = ema_model.parameters()
+    model_params = model.parameters()
 
     for name, param in model_params.items():
         # TO-DO: Consider applying only to params that require_grad to avoid small numerical changes of pos_embed

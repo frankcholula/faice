@@ -94,8 +94,8 @@ python main.py \
     --wandb_run_name liang_EMA_DiT_B_2_vae_channels_4_ddim_scaled_linear_bs64_vae0.1 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm
-#    --no_wandb
+    --no_confirm \
+    --no_wandb
 
 
 
