@@ -122,12 +122,14 @@ def main():
                     sample_image,
                     timestep=timestep,
                     encoder_hidden_states=encoder_hidden_states,
+                    class_labels=sample_labels,
                 )
 
             else:
                 _ = model(sample_image, timestep=timestep)
             print(f"Model sanity check passed on {device}!")
         except Exception as e:
+            print(f"Model sanity check failed!")
             raise e
 
     train_args = (
