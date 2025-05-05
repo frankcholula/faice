@@ -5,7 +5,7 @@ from tqdm.auto import tqdm
 
 # Hugging Face
 from diffusers import DDPMPipeline, DDIMPipeline
-from pipelines.cc_pipeline import CCDDPMPipeline
+from code.pipelines.ccddpm_pipeline import CCDDPMPipeline
 
 
 # Configuration
@@ -88,7 +88,8 @@ def train_loop(
                     target = noise_scheduler.get_velocity(
                         clean_images, noise, timesteps
                     )
-                if config.unet_variant == "cond":
+                # Predict the target (noise or velocity)
+                if config.pipeline == "cond":
                     # Extract class labels for conditioning
                     class_labels = batch["labels"]
                     # the encoder_hidden_states are really just a placeholder since we're only using labels.

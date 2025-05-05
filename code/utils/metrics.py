@@ -113,7 +113,21 @@ def calculate_inception_score(config, pipeline, test_dataloader, device=None):
                 }
                 if config.pipeline in ["ddim", "pndm"]:
                     output_kwargs["eta"] = config.eta
-                output = pipeline(**output_kwargs).imagess
+                if config.pipeline in ["cond"]:
+                    class_labels = torch.zeros(
+                        output_kwargs["batch_size"],
+                        dtype=torch.long,
+                        device=device,
+                    )
+                    encoder_hidden_states = torch.zeros(
+                        output_kwargs["batch_size"],
+                        1,
+                        pipeline.unet.config.cross_attention_dim,
+                        device=device,
+                    )
+                    output_kwargs["class_labels"] = class_labels
+                    output_kwargs["encoder_hidden_states"] = encoder_hidden_states
+                output = pipeline(**output_kwargs).images
                 processed_fake = preprocess_image(
                     output,
                     img_src="generated",
@@ -175,6 +189,20 @@ def calculate_fid_score(config, pipeline, test_dataloader, device=None, save=Tru
 
             if config.pipeline in ["ddim", "pndm"]:
                 output_kwargs["eta"] = config.eta
+            if config.pipeline in ["cond"]:
+                class_labels = torch.zeros(
+                    output_kwargs["batch_size"],
+                    dtype=torch.long,
+                    device=device,
+                )
+                encoder_hidden_states = torch.zeros(
+                    output_kwargs["batch_size"],
+                    1,
+                    pipeline.unet.config.cross_attention_dim,
+                    device=device,
+                )
+                output_kwargs["class_labels"] = class_labels
+                output_kwargs["encoder_hidden_states"] = encoder_hidden_states
             output = pipeline(**output_kwargs).images
             processed_fake = preprocess_image(
                 output,

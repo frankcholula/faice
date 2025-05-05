@@ -1,13 +1,18 @@
 from typing import List, Optional, Union, Tuple
 import torch
-from diffusers import DDPMPipeline, ImagePipelineOutput
+from diffusers import DDPMPipeline, ImagePipelineOutput, UNet2DConditionModel
 from diffusers.utils import randn_tensor
 
 
 class CCDDPMPipeline(DDPMPipeline):
     def __init__(self, unet, scheduler):
+        if not isinstance(unet, UNet2DConditionModel):
+            raise ValueError(
+                "CCDDPMPipeline requires a UNet2DConditionModel for class conditioning."
+            )
         super().__init__(unet, scheduler)
 
+    # overwrite the __call__method to accept class labels and encoder hidden states.
     @torch.no_grad()
     def __call__(
         self,
