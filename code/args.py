@@ -173,7 +173,7 @@ def parse_args():
         "--condition_on",
         choices=["male", "female"],
         default="male",
-        help="Condition on male or female (If cond pipeline)",
+        help="Condition on male or female on inference (if cond pipeline is selected)",
     )
     model_group.add_argument(
         "--rescale_betas_zero_snr",
