@@ -14,7 +14,7 @@ python main.py \
     --num_train_timesteps 1000 \
     --train_batch_size 24 \
     --eval_batch_size 24 \
-    --wandb_run_name task5_baseline \
+    --wandb_run_name task5_male \
     --calculate_fid \
     --calculate_is \
     --verbose
