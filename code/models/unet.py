@@ -65,20 +65,20 @@ class DDPMUNet(UNet2DModel):
             )
         else:
             down_block_types = (
-                "DownBlock2D",  # 128 -> 64
-                "DownBlock2D",  # 64 -> 32
-                "DownBlock2D",  # 32 -> 16
+                "ResnetDownsampleBlock2D",  # 128 -> 64
+                "ResnetDownsampleBlock2D",  # 64 -> 32
+                "ResnetDownsampleBlock2D",  # 32 -> 16
                 "AttnDownBlock2D",  # 16 -> 8
-                "DownBlock2D",  # 8 -> 4
-                "DownBlock2D",  # 4 -> 2
+                "ResnetDownsampleBlock2D",  # 8 -> 4
+                "ResnetDownsampleBlock2D",  # 4 -> 2
             )
             up_block_types = (
-                "UpBlock2D",  # 2 -> 4
-                "UpBlock2D",  # 4 -> 8
+                "ResnetUpsampleBlock2D",  # 2 -> 4
+                "ResnetUpsampleBlock2D",  # 4 -> 8
                 "AttnUpBlock2D",  # 8 -> 16
-                "UpBlock2D",  # 16 -> 32
-                "UpBlock2D",  # 32 -> 64
-                "UpBlock2D",  # 64 -> 128
+                "ResnetUpsampleBlock2D",  # 16 -> 32
+                "ResnetUpsampleBlock2D",  # 32 -> 64
+                "ResnetUpsampleBlock2D",  # 64 -> 128
             )
         super().__init__(
             sample_size=config.image_size,
@@ -112,20 +112,20 @@ class ADMUNet(UNet2DModel):
             resnet_time_scale_shift="scale_shift",  # This is the AdaGN portion.
             block_out_channels=(128, 128, 256, 256, 512, 512),
             down_block_types=(
-                "ResnetDownsampleBlock2D",  # 128 -> 64
+                "DownBlock2D",  # 128 -> 64
                 "AttnDownBlock2D",  # 64 -> 32  (2 attention heads)
                 "AttnDownBlock2D",  # 32 -> 16 (4 attention heads)
                 "AttnDownBlock2D",  # 16 -> 8 (8 attention heads)
-                "ResnetDownsampleBlock2D",  # 8 -> 4
-                "ResnetDownsampleBlock2D",  # 4 -> 2
+                "DownBlock2D",  # 8 -> 4
+                "DownBlock2D",  # 4 -> 2
             ),
             up_block_types=(
-                "ResnetUpsampleBlock2D",  # 2 -> 4
+                "UpBlock2D",  # 2 -> 4
                 "AttnUpBlock2D",  # 4 -> 8 (8 attention heads)
                 "AttnUpBlock2D",  # 8 -> 16 (4 attention heads)
                 "AttnUpBlock2D",  # 16 -> 32 (2 attention heads)
-                "ResnetUpsampleBlock2D",  # 32 -> 64
-                "ResnetUpsampleBlock2D",  # 64 -> 128
+                "UpBlock2D",  # 32 -> 64
+                "UpBlock2D",  # 64 -> 128
             ),
         )
 
