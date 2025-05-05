@@ -31,12 +31,12 @@ def evaluate(config, epoch, pipeline):
     if config.pipeline in ["ddim", "pndm"]:
         images_kwargs["eta"] = config.eta
     if config.pipeline in ["cond"]:
-        class_labels = torch.zeros(batch_size, dtype=torch.long, device=config.device)
+        class_labels = torch.zeros(batch_size, dtype=torch.long, device=pipeline.unet.device)
         encoder_hidden_states = torch.zeros(
             batch_size,
             1,
             pipeline.unet.config.cross_attention_dim,
-            device=config.device,
+            device=pipeline.unet.device,
         )
         images_kwargs["class_labels"] = class_labels
         images_kwargs["encoder_hidden_states"] = encoder_hidden_states
