@@ -164,9 +164,17 @@ def parse_args():
     )
     model_group.add_argument(
         "--pipeline",
-        choices=["ddpm", "ddim", "pndm", "consistency", "cond"],  
-        default="ddpm",                   
-        help="Training pipeline")
+        choices=["ddpm", "ddim", "pndm", "consistency", "cond"],
+        default="ddpm",
+        help="Training pipeline",
+    )
+
+    model_group.add_argument(
+        "--condition_on",
+        choices=["male", "female"],
+        default="male",
+        help="Condition on male or female (If cond pipeline)",
+    )
     model_group.add_argument(
         "--rescale_betas_zero_snr",
         action="store_true",
