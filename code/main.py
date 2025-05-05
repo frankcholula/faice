@@ -6,6 +6,7 @@ import csv
 
 from PIL import Image
 from args import get_config_and_components
+from models.unet import ClassConditionedUNet
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
 from utils.transforms import build_transforms
@@ -93,6 +94,7 @@ def main():
     with torch.no_grad():
         try:
             # Determine device
+            print(f"Using model: {model}...")
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
             # Move model to the device first
@@ -108,7 +110,18 @@ def main():
             timestep = torch.tensor([0], device=device)
 
             # Just check if the model runs
-            _ = model(sample_image, timestep=timestep)
+            if isinstance(model, ClassConditionedUNet):
+                encoder_hidden_states = torch.zeros(
+                    sample_image.shape[0],
+                    1,
+                    model.config.cross_attention_dim,
+                    device=device,
+                )
+                _ = model(
+                    sample_image, timestep=timestep, encoder_hidden_states=encoder_hidden_states
+                )
+            else:
+                _ = model(sample_image, timestep=timestep)
             print(f"Model sanity check passed on {device}!")
         except Exception as e:
             print(f"Model sanity check error (but continuing): {e}")
