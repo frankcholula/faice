@@ -9,7 +9,7 @@ python main.py \
     --unet_variant cond \
     --attention_head_dim 64 \
     --image_size 128 \
-    --num_epochs 1 \
+    --num_epochs 5 \
     --num_train_timesteps 1000 \
     --train_batch_size 24 \
     --eval_batch_size 24 \
