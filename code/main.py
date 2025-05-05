@@ -116,8 +116,10 @@ def main():
 def perform_model_sanity_check(model, train_dataloader):
     try:
         # Determine device
-        print(f"Using model: {model.__class__.__name__}")
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        print(f"Using model: {model.__class__.__name__}")
+        print(f"Using device: {device}")
 
         # Move model to the device first
         model.to(device)
@@ -125,6 +127,8 @@ def perform_model_sanity_check(model, train_dataloader):
         sample_batch = next(iter(train_dataloader))
         sample_image = sample_batch["images"].to(device)
         sample_labels = sample_batch["labels"].to(device)
+        print(f"Sample image shape: {sample_image.shape}")
+        print(f"Sample label shape: {sample_labels.shape}")
 
         if len(sample_image.shape) == 3:  # Add batch dimension if missing
             sample_image = sample_image.unsqueeze(0)
