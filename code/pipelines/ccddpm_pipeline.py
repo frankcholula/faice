@@ -1,7 +1,7 @@
 from typing import List, Optional, Union, Tuple
 import torch
 from diffusers import DDPMPipeline, ImagePipelineOutput, UNet2DConditionModel
-from diffusers.utils import randn_tensor
+from diffusers.utils.torch_utils import randn_tensor
 
 
 class CCDDPMPipeline(DDPMPipeline):
