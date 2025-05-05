@@ -147,7 +147,7 @@ def DiT_B_2_vae_channels_4(config, **kwargs):
 
 
 def DiT_B_2_vae_channels_16(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=8,
+    return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=4,
                channels=16, **kwargs).create_dit()
 
 
