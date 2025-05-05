@@ -130,41 +130,44 @@ class ADMUNet(UNet2DModel):
         )
 
 
-# class ConditionalUNet(UNet2DConditionModel):
-#     def __init__(self, config):
-#         super().__init__(
-#             sample_size=config.image_size,
-#             in_channels=3,
-#             out_channels=3,
-#             layers_per_block=2,
-#             block_out_channels=(128, 128, 256, 256, 512, 512),
-#             down_block_types=(
-#                 "DownBlock2D",  # 128 -> 64
-#                 "AttnDownBlock2D",  # 64 -> 32
-#                 "AttnDownBlock2D",  # 32 -> 16
-#                 "AttnDownBlock2D",  # 16 -> 8
-#                 "DownBlock2D",  # 8 -> 4
-#                 "DownBlock2D",  # 4 -> 2
-#             ),
-#             up_block_types=(
-#                 "UpBlock2D",  # 2 -> 4
-#                 "AttnUpBlock2D",  # 4 -> 8
-#                 "AttnUpBlock2D",  # 8 -> 16
-#                 "AttnUpBlock2D",  # 16 -> 32
-#                 "UpBlock2D",  # 32 -> 64
-#                 "UpBlock2D",  # 64 -> 128
-#             ),
-#             attention_head_dim=64,
-#             cross_attention_dim=config.cross_attention_dim,
-#             resnet_time_scale_shift="scale_shift",
-#         )
+class ClassConditionedUNet(UNet2DConditionModel):
+    """ For simplicity's sake and a quick proof of concept, we can just use the standard DDPM model and add class embeddings to it."""
+
+    def __init__(self, config):
+        super().__init__(
+            sample_size=config.image_size,
+            in_channels=3,
+            out_channels=3,
+            layers_per_block=2,
+            block_out_channels=(128, 128, 256, 256, 512, 512),
+            down_block_types=(
+                "DownBlock2D",  # 128 -> 64
+                "AttnDownBlock2D",  # 64 -> 32
+                "AttnDownBlock2D",  # 32 -> 16
+                "AttnDownBlock2D",  # 16 -> 8
+                "DownBlock2D",  # 8 -> 4
+                "DownBlock2D",  # 4 -> 2
+            ),
+            up_block_types=(
+                "UpBlock2D",  # 2 -> 4
+                "AttnUpBlock2D",  # 4 -> 8
+                "AttnUpBlock2D",  # 8 -> 16
+                "AttnUpBlock2D",  # 16 -> 32
+                "UpBlock2D",  # 32 -> 64
+                "UpBlock2D",  # 64 -> 128
+            ),
+            attention_head_dim=64,
+            num_class_embeds=2,  # 2 classes for male and female.
+            class_embed_type=None,  # keeping this simple since we just have 0 and 1
+            mid_block_type = "UNetMidBlock2D", # disable cross attention
+        )
 
 
 ARCHITECTURES = {
     "base": BaseUNet,
     "ddpm": DDPMUNet,
     "adm": ADMUNet,
-    # "cond": ConditionalUNet,
+    "cond": ClassConditionedUNet,
 }
 
 
