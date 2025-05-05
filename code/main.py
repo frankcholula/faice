@@ -94,7 +94,7 @@ def main():
     with torch.no_grad():
         try:
             # Determine device
-            print(f"Using model: {model}...")
+            print(f"Using model: {model.__class__.__name__}")
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
             # Move model to the device first
@@ -102,6 +102,7 @@ def main():
 
             sample_batch = next(iter(train_dataloader))
             sample_image = sample_batch["images"].to(device)
+            sample_labels = sample_batch["labels"].to(device)
 
             if len(sample_image.shape) == 3:  # Add batch dimension if missing
                 sample_image = sample_image.unsqueeze(0)
@@ -118,13 +119,17 @@ def main():
                     device=device,
                 )
                 _ = model(
-                    sample_image, timestep=timestep, encoder_hidden_states=encoder_hidden_states
+                    sample_image,
+                    timestep=timestep,
+                    encoder_hidden_states=encoder_hidden_states,
+                    class_labels=sample_labels,
                 )
+
             else:
                 _ = model(sample_image, timestep=timestep)
             print(f"Model sanity check passed on {device}!")
         except Exception as e:
-            print(f"Model sanity check error (but continuing): {e}")
+            raise e
 
     train_args = (
         config,
