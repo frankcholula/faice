@@ -9,8 +9,8 @@ python main.py \
     --unet_variant adm \
     --attention_head_dim 64 \
     --image_size 128 \
-    --num_epochs 1 \
-    --num_train_timesteps 1000 \
+    --num_epochs 500 \
+    --num_train_timesteps 4000 \
     --train_batch_size 24 \
     --eval_batch_size 24 \
     --loss_type mse \
