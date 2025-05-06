@@ -62,7 +62,7 @@ def pipeline_inference(
             class_labels=class_labels,
             encoder_hidden_states=encoder_hidden_states,
         ).images
-    elif isinstance(pipeline, DDPMPipeline):
+    else:
         images = pipeline(
             batch_size=batch_size,
             generator=generator,

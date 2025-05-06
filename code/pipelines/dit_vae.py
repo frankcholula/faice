@@ -206,10 +206,8 @@ def train_loop(
             bs = clean_images.shape[0]
 
             image_labels = [name_to_label(img_name) for img_name in image_names]
-
             image_labels = np.array(image_labels)
             # Convert the name in image_names to int number
-            image_labels = image_labels.astype(int)
             class_labels = torch.tensor(image_labels, dtype=torch.int, device=device).reshape(-1)
 
             # Sample a random timestep for each image

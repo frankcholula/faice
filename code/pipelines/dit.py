@@ -178,18 +178,9 @@ def train_loop(
             bs = clean_images.shape[0]
 
             image_labels = [name_to_label(img_name) for img_name in image_names]
-
             image_labels = np.array(image_labels)
             # Convert the name in image_names to int number
-            image_labels = image_labels.astype(int)
-            map_ids = torch.tensor(image_labels, dtype=torch.int)
-            map_ids = map_ids.to(device)
-
-            # label_num = 2700
-            # emb_size = 64
-            # label_emb = nn.Embedding(num_embeddings=label_num, embedding_dim=emb_size)
-            #
-            # map_ids = label_emb(map_ids)
+            map_ids = torch.tensor(image_labels, dtype=torch.int, device=device).reshape(-1)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
@@ -288,6 +279,3 @@ def train_loop(
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
-
-
-
