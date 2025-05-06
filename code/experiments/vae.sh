@@ -22,9 +22,9 @@ python main.py \
     --pipeline vae \
     --image_size 128 \
     --num_epochs 500 \
-    --train_batch_size 112 \
-    --eval_batch_size 112 \
-    --wandb_run_name liang_vae_l_4_latent_channels4_loss_weight_0.5_batch_size_112 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
+    --wandb_run_name liang_vae_l_4_latent_channels4_loss_weight_0.1_batch_size_16 \
     --calculate_fid \
     --no_confirm
 #    --no_wandb
