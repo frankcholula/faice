@@ -1,7 +1,7 @@
 from diffusers import UNet2DModel, UNet2DConditionModel
 
 
-class BaseUNet(UNet2DModel):
+class BasicUNet(UNet2DModel):
     """Baseline model given. Don't tweak this.
     This is technically wrong because it's built for 256 x 256 images.
     """
@@ -164,7 +164,7 @@ class ClassConditionedUNet(UNet2DConditionModel):
 
 
 ARCHITECTURES = {
-    "base": BaseUNet,
+    "base": BasicUNet,
     "ddpm": DDPMUNet,
     "adm": ADMUNet,
     "cond": ClassConditionedUNet,
@@ -185,8 +185,8 @@ def create_unet(config):
 
 _COMPRESS_RATE = 4
 
-
-class BasicUNet(object):
+# TODO: refactor to use Liang's custom implementation.
+class BaseUNet(object):
     def __init__(
         self,
         config,
