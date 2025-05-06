@@ -1,7 +1,7 @@
 from diffusers import UNet2DModel, UNet2DConditionModel
 
 
-class BasicUNet(UNet2DModel):
+class BaseUNet(UNet2DModel):
     """Baseline model given. Don't tweak this.
     This is technically wrong because it's built for 256 x 256 images.
     """
@@ -85,7 +85,8 @@ class DDPMUNet(UNet2DModel):
             in_channels=3,
             out_channels=3,
             layers_per_block=config.layers_per_block,
-            attention_head_dim=config.attention_head_dim,  # 256 for single head attention at the 16 x 16 resolution.
+            attention_head_dim=config.attention_head_dim,
+            # 256 for single head attention at the 16 x 16 resolution.
             time_embedding_type="positional",
             block_out_channels=tuple(
                 config.base_channels * m for m in (1, 1, 2, 2, 4, 4)
@@ -164,7 +165,7 @@ class ClassConditionedUNet(UNet2DConditionModel):
 
 
 ARCHITECTURES = {
-    "base": BasicUNet,
+    "base": BaseUNet,
     "ddpm": DDPMUNet,
     "adm": ADMUNet,
     "cond": ClassConditionedUNet,
@@ -185,15 +186,16 @@ def create_unet(config):
 
 _COMPRESS_RATE = 4
 
+
 # TODO: refactor to use Liang's custom implementation.
-class BaseUNet(object):
+class BasicUNet(object):
     def __init__(
-        self,
-        config,
-        compress_rate=1,
-        attention_head_dim=8,
-        layers_per_block=2,
-        block_num=6,
+            self,
+            config,
+            compress_rate=1,
+            attention_head_dim=8,
+            layers_per_block=2,
+            block_num=6,
     ):
         self.sample_size = int(config.image_size / compress_rate)
         self.attention_head_dim = attention_head_dim
