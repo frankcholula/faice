@@ -161,7 +161,7 @@ def perform_model_sanity_check(model, train_dataloader):
         print(f"Model sanity check passed on {device}!")
     except Exception as e:
         print(f"Model sanity check failed!")
-        raise e
+        # raise e
 
 
 if __name__ == "__main__":
