@@ -4,13 +4,23 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import DDPMPipeline
+from diffusers import DDPMPipeline, DDIMPipeline
+from pipelines.ccddpm_pipeline import CCDDPMPipeline
+
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
+
+
+AVAILABLE_PIPELINES = {
+    "ddpm": DDPMPipeline,
+    "ddim": DDIMPipeline,
+    "pndm": DDIMPipeline,
+    "cond": CCDDPMPipeline,
+}
 
 
 def train_loop(
@@ -70,11 +80,38 @@ def train_loop(
             noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
 
             with accelerator.accumulate(model):
-                # Predict the noise residual
-                noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
-                loss = F.mse_loss(noise_pred, noise)
-                accelerator.backward(loss)
+                if noise_scheduler.config.prediction_type == "epsilon":
+                    # Predict the noise residual
+                    target = noise
+                elif noise_scheduler.config.prediction_type == "v_prediction":
+                    # Predict velocity
+                    target = noise_scheduler.get_velocity(
+                        clean_images, noise, timesteps
+                    )
+                # Predict the target (noise or velocity)
+                if config.pipeline == "cond":
+                    # Extract class labels for conditioning
+                    class_labels = batch["labels"]
+                    # the encoder_hidden_states are really just a placeholder since we're only using labels.
+                    encoder_hidden_states = torch.zeros(
+                        bs,
+                        1,  # random sequence length
+                        model.config.cross_attention_dim,
+                        device=clean_images.device,
+                    )
+                    pred = model(
+                        noisy_images,
+                        timesteps,
+                        class_labels=class_labels,
+                        encoder_hidden_states=encoder_hidden_states,
+                        return_dict=False,
+                    )[0]
 
+                else:
+                    pred = model(noisy_images, timesteps, return_dict=False)[0]
+                loss = F.mse_loss(pred, target)
+
+                accelerator.backward(loss)
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
                 lr_scheduler.step()
@@ -95,10 +132,9 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = DDPMPipeline(
+            pipeline = AVAILABLE_PIPELINES[config.pipeline](
                 unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
             )
-
             generate_samples = (
                 epoch + 1
             ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
@@ -125,7 +161,7 @@ def train_loop(
         and config.calculate_fid
         and test_dataloader is not None
     ):
-        pipeline = DDPMPipeline(
+        pipeline = AVAILABLE_PIPELINES[config.pipeline](
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
         )
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)

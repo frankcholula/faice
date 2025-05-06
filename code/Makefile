@@ -6,10 +6,6 @@ trainb:
 trainf:
 	python main.py --dataset face --num_epochs 1 --verbose --wandb_run_name frank-test-run
 
-.PHONY: augmentation
-augmentation:
-	./experiments/augmentation.sh
-
 .PHONY: tensorboardb
 tensorboardb:
 	tensorboard --logdir=ddpm-butterflies-128/logs

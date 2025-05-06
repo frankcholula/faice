@@ -17,6 +17,8 @@ class BaseConfig:
     scheduler: str = "ddpm"
     beta_schedule: str = "linear"
     pipeline: str = "ddpm"
+    prediction_type: str = "epsilon"
+    rescale_betas_zero_snr: bool = False
 
     # dataset params need to be set by subclass
     dataset: str = None
@@ -37,8 +39,8 @@ class BaseConfig:
     prediction_type: str = "epsilon"
 
     # saving params
-    save_image_epochs: int = 5
-    save_model_epochs: int = 10
+    save_image_epochs: int = 50
+    save_model_epochs: int = 50
     output_dir: str = None
     overwrite_output_dir: bool = True
 
