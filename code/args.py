@@ -137,9 +137,6 @@ def parse_args():
         default=1000,
         help="Number of inference steps",
     )
-    training_group.add_argument(
-        "--prediction_type", help="type of scheduler prediction"
-    )
     training_group.add_argument("--learning_rate", type=float, help="Learning rate")
     training_group.add_argument(
         "--image_size", type=int, help="Image size for training"
