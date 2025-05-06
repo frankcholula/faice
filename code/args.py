@@ -23,11 +23,11 @@ from conf.training_config import get_config, get_all_datasets
 
 
 def create_scheduler(
-    scheduler: str,
-    beta_schedule: str,
-    num_train_timesteps: int,
-    prediction_type: str,
-    rescale_betas_zero_snr: bool,
+        scheduler: str,
+        beta_schedule: str,
+        num_train_timesteps: int,
+        prediction_type: str,
+        rescale_betas_zero_snr: bool,
 ):
     if scheduler.lower() == "ddpm":
         return DDPMScheduler(
@@ -63,10 +63,11 @@ def create_scheduler(
 
 def create_model(model_name: str, config):
     # TODO: refactor this to use the same init_modlel function in the future.
-    if config.unet_variant in ["base", "ddpm", "adm", "cond"]:
+    if model_name == 'unet' and config.unet_variant in ["base", "ddpm", "adm", "cond"]:
         model = create_unet(config)
     else:
-        model = models.init_model(model_name, config)
+        model = models.init_model(config.model, config)
+
     return model
 
 
