@@ -66,10 +66,6 @@ def train_loop(
 
     global_step = 0
 
-    # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
-    # vae = AutoencoderKL.from_single_file(url)
-    # vae.eval().requires_grad_(False)
-
     vae = AutoencoderKL.from_pretrained("stable-diffusion-v1-5/stable-diffusion-v1-5",
                                         subfolder="vae")
     vae = vae.to(device)

@@ -111,6 +111,9 @@ def parse_args():
     dataset_group.add_argument(
         "--RHFlip", help="Random horizontal flip augmentation", action="store_true"
     )
+    dataset_group.add_argument(
+        "--center_crop_arr", help="Random horizontal flip augmentation", action="store_true"
+    )
 
     training_group.add_argument(
         "--train_batch_size", type=int, help="Batch size for training"
@@ -190,6 +193,7 @@ def get_config_and_components():
     print(f"Local output directory: {config.output_dir}")
     print(f"Gaussian Blur? : {config.gblur}")
     print(f"Random Horizontal Flip? : {config.RHFlip}")
+    print(f"center crop arr? : {config.center_crop_arr}")
 
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:
