@@ -56,7 +56,7 @@ python main.py \
     --wandb_run_name liang_DiT_B_4_ddpm_linear_bs64 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm
-#    --no_wandb
+    --no_confirm \
+    --no_wandb
 
 

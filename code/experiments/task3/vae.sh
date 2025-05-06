@@ -26,5 +26,5 @@ python main.py \
     --eval_batch_size 16 \
     --wandb_run_name liang_vae_l_4_latent_channels4_loss_weight_0.5_batch_size_16 \
     --calculate_fid \
-    --no_confirm
-#    --no_wandb
+    --no_confirm \
+    --no_wandb
