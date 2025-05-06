@@ -20,7 +20,10 @@ def create_scheduler(
         )
     elif scheduler.lower() == "ddim":
         return DDIMScheduler(
-            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
+            num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule,
+            beta_start=0.0015,
+            beta_end=0.0195,
+            clip_sample=False
         )
     elif scheduler.lower() == "pndm":
         return PNDMScheduler(
