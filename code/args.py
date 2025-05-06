@@ -143,6 +143,28 @@ def parse_args():
     training_group.add_argument(
         "--calculate_is", action="store_true", help="Calculate Inception score"
     )
+    training_group.add_argument(
+        "--use_ema", action="store_true", help="Use ema"
+    )
+    training_group.add_argument(
+        "--foreach_ema", action="store_true", help="For each ema"
+    )
+    training_group.add_argument(
+        "--enable_xformers_memory_efficient_attention", action="store_true",
+        help="Enable xformers memory efficient attention"
+    )
+    training_group.add_argument(
+        "--gradient_checkpointing", action="store_true",
+        help="Use gradient checkpointing"
+    )
+    training_group.add_argument(
+        "--scale_lr", action="store_true",
+        help="Scale learning rate"
+    )
+    training_group.add_argument(
+        "--gradient_accumulation_steps", type=int,
+        help="Gradient accumulation steps"
+    )
 
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument("--scheduler", help="Sampling scheduler")

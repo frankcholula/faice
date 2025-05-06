@@ -10,15 +10,23 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import numpy as np
+import random
 from torch import nn
 from typing import List, Optional, Tuple, Union
 import inspect
 from copy import deepcopy
 
 # Hugging Face
-from diffusers import StableDiffusionPipeline, AutoencoderKL
+from diffusers import StableDiffusionPipeline, AutoencoderKL, UNet2DConditionModel
 from diffusers.pipelines.pipeline_utils import ImagePipelineOutput
 from diffusers.utils.torch_utils import randn_tensor
+from diffusers.training_utils import EMAModel, compute_dream_and_update_latents, compute_snr
+from diffusers.utils.import_utils import is_xformers_available
+from packaging import version
+import accelerate
+from accelerate.state import AcceleratorState
+from transformers import CLIPTextModel, CLIPTokenizer
+from transformers.utils import ContextManagers
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -26,11 +34,11 @@ from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
-from utils.model_tools import name_to_label, update_ema, requires_grad
+from utils.model_tools import name_to_label
 
-vae_path = "runs/vae_xl-vae-ddpm-face-500-4-0.1/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
+pretrained_model_name_or_path = "stable-diffusion-v1-5/stable-diffusion-v1-5"
 
 selected_pipeline = StableDiffusionPipeline
 
@@ -66,10 +74,19 @@ def train_loop(
 
     global_step = 0
 
-    vae = AutoencoderKL.from_pretrained("stable-diffusion-v1-5/stable-diffusion-v1-5",
-                                        subfolder="vae")
-    vae = vae.to(device)
+    with ContextManagers(deepspeed_zero_init_disabled_context_manager()):
+        text_encoder = CLIPTextModel.from_pretrained(
+            pretrained_model_name_or_path, subfolder="text_encoder"
+        )
+        vae = AutoencoderKL.from_pretrained(
+            pretrained_model_name_or_path, subfolder="vae")
+
+    vae = AutoencoderKL.from_pretrained(pretrained_model_name_or_path, subfolder="vae")
     vae.eval().requires_grad_(False)
+
+    tokenizer = CLIPTokenizer.from_pretrained(
+        pretrained_model_name_or_path, subfolder="tokenizer"
+    )
 
     # vae = vae_l_4(config)
     # # vae = vae_b_16(config)
@@ -77,12 +94,100 @@ def train_loop(
     # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     # vae.eval().requires_grad_(False)
 
-    ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
-    requires_grad(ema, False)
-    # Prepare models for training:
-    update_ema(ema, model, decay=0)  # Ensure EMA is initialized with synced weights
+    # Create EMA for the unet.
+    if config.use_ema:
+        ema_unet = EMAModel(
+            model.parameters(),
+            model_cls=UNet2DConditionModel,
+            model_config=model.config,
+            foreach=config.foreach_ema,
+        )
+
     model.train()  # important! This enables embedding dropout for classifier-free guidance
-    ema.eval()  # EMA model should always be in eval mode
+
+    if config.enable_xformers_memory_efficient_attention:
+        if is_xformers_available():
+            import xformers
+
+            xformers_version = version.parse(xformers.__version__)
+            if xformers_version == version.parse("0.0.16"):
+                print(
+                    "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
+                )
+            model.enable_xformers_memory_efficient_attention()
+        else:
+            raise ValueError("xformers is not available. Make sure it is installed correctly")
+
+    if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
+        # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
+        def save_model_hook(models, weights, output_dir):
+            if accelerator.is_main_process:
+                if config.use_ema:
+                    ema_unet.save_pretrained(os.path.join(output_dir, "unet_ema"))
+
+                for i, model in enumerate(models):
+                    model.save_pretrained(os.path.join(output_dir, "unet"))
+
+                    # make sure to pop weight so that corresponding model is not saved again
+                    weights.pop()
+
+        def load_model_hook(models, input_dir):
+            if config.use_ema:
+                load_model = EMAModel.from_pretrained(
+                    os.path.join(input_dir, "unet_ema"), UNet2DConditionModel, foreach=config.foreach_ema
+                )
+                ema_unet.load_state_dict(load_model.state_dict())
+                if config.offload_ema:
+                    ema_unet.pin_memory()
+                else:
+                    ema_unet.to(accelerator.device)
+                del load_model
+
+            for _ in range(len(models)):
+                # pop models so that they are not loaded again
+                model = models.pop()
+
+                # load diffusers style into model
+                load_model = UNet2DConditionModel.from_pretrained(input_dir, subfolder="unet")
+                model.register_to_config(**load_model.config)
+
+                model.load_state_dict(load_model.state_dict())
+                del load_model
+
+        accelerator.register_save_state_pre_hook(save_model_hook)
+        accelerator.register_load_state_pre_hook(load_model_hook)
+
+    if config.gradient_checkpointing:
+        model.enable_gradient_checkpointing()
+
+    # Enable TF32 for faster training on Ampere GPUs,
+    # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
+    if config.allow_tf32:
+        torch.backends.cuda.matmul.allow_tf32 = True
+
+    if config.scale_lr:
+        config.learning_rate = (
+                config.learning_rate * config.gradient_accumulation_steps * config.train_batch_size * accelerator.num_processes
+        )
+
+    def preprocess_train(examples):
+        images = [image.convert("RGB") for image in examples['images']]
+        examples["pixel_values"] = images
+        examples["input_ids"] = tokenize_captions(examples, tokenizer)
+        return examples
+
+    train_dataloader = train_dataloader.with_transform(preprocess_train)
+    train_dataloader = train_dataloader.map(collate_fn)
+
+    if config.use_ema:
+        if config.offload_ema:
+            ema_unet.pin_memory()
+        else:
+            ema_unet.to(accelerator.device)
+
+    # Move text_encode and vae to gpu and cast to weight_dtype
+    text_encoder.to(accelerator.device)
+    vae.to(accelerator.device)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -93,43 +198,41 @@ def train_loop(
 
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
-            image_names = batch["image_names"]
             bs = clean_images.shape[0]
-
-            image_labels = [name_to_label(img_name) for img_name in image_names]
-
-            image_labels = np.array(image_labels)
-            # Convert the name in image_names to int number
-            image_labels = image_labels.astype(int)
-            class_labels = torch.tensor(image_labels, dtype=torch.int, device=device).reshape(-1)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
                 0,
                 noise_scheduler.config.num_train_timesteps,
                 (bs,),
-                device=clean_images.device,
+                device=device,
             ).long()
 
-            # Encode image to latent space
-            latents = vae.encode(clean_images).latent_dist.sample()
+            # Convert images to latent space
+            latents = vae.encode(batch["pixel_values"]).latent_dist.sample()
             latents = latents * vae.config.scaling_factor
-            latents = latents * noise_scheduler.init_noise_sigma
 
             # # Add noise (diffusion process)
-            noise = torch.randn_like(latents).to(clean_images.device)
+            noise = torch.randn_like(latents).to(device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
             # # (this is the forward diffusion process)
 
             noisy_latent = noise_scheduler.add_noise(latents, noise, timesteps)
 
+            # Get the text embedding for conditioning
+            encoder_hidden_states = text_encoder(batch["input_ids"], return_dict=False)[0]
+
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_latent,
+                model_pred = model(noisy_latent,
                                    timestep=timesteps,
                                    class_labels=class_labels,
                                    return_dict=False)[0]
 
+                # Get the target for loss depending on the prediction type
+                if config.prediction_type is not None:
+                    # set prediction_type of scheduler if defined
+                    noise_scheduler.register_to_config(prediction_type=config.prediction_type)
                 if noise_scheduler.config.prediction_type == "epsilon":
                     target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
@@ -137,15 +240,32 @@ def train_loop(
                 else:
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
-                loss = F.mse_loss(noise_pred, target)
-                # loss = F.l1_loss(noise_pred, target)
+                if config.snr_gamma is None:
+                    loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
+                else:
+                    # Compute loss-weights as per Section 3.4 of https://arxiv.org/abs/2303.09556.
+                    # Since we predict the noise instead of x_0, the original formulation is slightly changed.
+                    # This is discussed in Section 4.2 of the same paper.
+                    snr = compute_snr(noise_scheduler, timesteps)
+                    mse_loss_weights = \
+                    torch.stack([snr, config.snr_gamma * torch.ones_like(timesteps)], dim=1).min(
+                        dim=1
+                    )[0]
+                    if noise_scheduler.config.prediction_type == "epsilon":
+                        mse_loss_weights = mse_loss_weights / snr
+                    elif noise_scheduler.config.prediction_type == "v_prediction":
+                        mse_loss_weights = mse_loss_weights / (snr + 1)
+
+                    loss = F.mse_loss(model_pred.float(), target.float(), reduction="none")
+                    loss = loss.mean(dim=list(range(1, len(loss.shape)))) * mse_loss_weights
+                    loss = loss.mean()
+
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                update_ema(ema, model)
 
             progress_bar.update(1)
             logs = {
@@ -162,11 +282,12 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = selected_pipeline(
-                accelerator.unwrap_model(model),
-                # accelerator.unwrap_model(ema),
-                accelerator.unwrap_model(vae),
-                scheduler=noise_scheduler
+            pipeline = StableDiffusionPipeline.from_pretrained(
+                pretrained_model_name_or_path,
+                text_encoder=text_encoder,
+                vae=vae,
+                unet=model,
+                revision=config.revision,
             )
 
             generate_samples = (
@@ -184,21 +305,23 @@ def train_loop(
                     (config.train_batch_size,),
                     device=device,
                 ).int()
+                if config.use_ema:
+                    # Store the UNet parameters temporarily and load the EMA parameters to perform inference.
+                    ema_unet.store(model.parameters())
+                    ema_unet.copy_to(model.parameters())
+                if config.enable_xformers_memory_efficient_attention:
+                    pipeline.enable_xformers_memory_efficient_attention()
                 evaluate(config, epoch, pipeline, class_labels=class_labels)
+                if config.use_ema:
+                    # Switch back to the original UNet parameters.
+                    ema_unet.restore(model.parameters())
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    # pipeline.save_pretrained(config.output_dir)
-                    checkpoint = {
-                        "model": model.state_dict(),
-                        "ema_model": ema.state_dict(),
-                        "optimizer": optimizer.state_dict(),
-                    }
-                    model_path = f"{config.output_dir}/checkpoints"
-                    if not os.path.exists(model_path):
-                        os.makedirs(model_path)
-                    torch.save(checkpoint, model_path + '/model_dit.pth')
+                    if config.use_ema:
+                        ema_unet.copy_to(model.parameters())
+                    pipeline.save_pretrained(config.output_dir)
                     if save_to_wandb:
                         wandb_logger.save_model()
 
@@ -213,18 +336,17 @@ def train_loop(
             and config.calculate_fid
             and test_dataloader is not None
     ):
-        pipeline = selected_pipeline(
-            accelerator.unwrap_model(model),
-            # accelerator.unwrap_model(ema),
-            accelerator.unwrap_model(vae),
-            scheduler=noise_scheduler
+        pipeline = StableDiffusionPipeline.from_pretrained(
+            pretrained_model_name_or_path,
+            text_encoder=text_encoder,
+            vae=vae,
+            unet=model,
+            revision=config.revision,
         )
-        class_labels = torch.randint(
-            0,
-            num_class,
-            (config.train_batch_size,),
-            device=device,
-        ).int()
+
+        if config.enable_xformers_memory_efficient_attention:
+            pipeline.enable_xformers_memory_efficient_attention()
+
         fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
 
         wandb_logger.log_fid_score(fid_score)
@@ -239,3 +361,40 @@ def train_loop(
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
+
+
+def deepspeed_zero_init_disabled_context_manager():
+    """
+    returns either a context list that includes one that will disable zero.Init or an empty context list
+    """
+    deepspeed_plugin = AcceleratorState().deepspeed_plugin if accelerate.state.is_initialized() else None
+    if deepspeed_plugin is None:
+        return []
+
+    return [deepspeed_plugin.zero3_init_context_manager(enable=False)]
+
+
+def tokenize_captions(examples, tokenizer, caption_column, is_train=True):
+    captions = []
+    for caption in examples[caption_column]:
+        if isinstance(caption, str):
+            captions.append(caption)
+        elif isinstance(caption, (list, np.ndarray)):
+            # take a random caption if there are multiple
+            captions.append(random.choice(caption) if is_train else caption[0])
+        else:
+            raise ValueError(
+                f"Caption column `{caption_column}` should contain either strings or lists of strings."
+            )
+    inputs = tokenizer(
+        captions, max_length=tokenizer.model_max_length, padding="max_length", truncation=True,
+        return_tensors="pt"
+    )
+    return inputs.input_ids
+
+
+def collate_fn(examples):
+    pixel_values = torch.stack([example["pixel_values"] for example in examples])
+    pixel_values = pixel_values.to(memory_format=torch.contiguous_format).float()
+    input_ids = torch.stack([example["input_ids"] for example in examples])
+    return {"pixel_values": pixel_values, "input_ids": input_ids}
