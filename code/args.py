@@ -62,7 +62,11 @@ def create_scheduler(
 
 
 def create_model(model_name: str, config):
-    model = models.init_model(model_name, config)
+    # TODO: refactor this to use the same init_modlel function in the future.
+    if config.unet_variant in ["base", "ddpm", "adm", "cond"]:
+        model = create_unet(config)
+    else:
+        model = models.init_model(model_name, config)
     return model
 
 
