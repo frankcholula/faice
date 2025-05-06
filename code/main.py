@@ -15,7 +15,6 @@ from utils.loggers import timer
 
 # Suppress all FutureWarnings from the 'diffusers' module
 warnings.filterwarnings("ignore", category=FutureWarning, module="diffusers")
-from datasets import load_dataset
 
 
 def setup_dataset(config):
@@ -67,6 +66,7 @@ def setup_dataset(config):
         )
 
     elif isinstance(config, ButterflyConfig):
+        from datasets import load_dataset
 
         dataset = load_dataset(config.dataset_name, split="train")
 
