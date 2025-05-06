@@ -70,6 +70,13 @@ class BaseUNetCondition(object):
         return blocks
 
 
+_compress_rate = 8
+
+
+def unet_cond_l_block_4(config):
+    return BaseUNetCondition(config, compress_rate=_compress_rate).unet_cond_l()
+
+
 def freeze_layers(model, freeze_until_layer):
     """
     Freeze layers until the specified layer index.
@@ -91,6 +98,3 @@ def freeze_layers(model, freeze_until_layer):
             # Skip parameters that do not match the expected format
             continue
     print(f"The model has {layers} layers and freeze the front {freeze_until_layer} layers")
-
-
-

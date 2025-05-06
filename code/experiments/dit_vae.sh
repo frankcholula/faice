@@ -83,15 +83,15 @@ python main.py \
     --dataset face \
     --model DiT_B_2_vae_channels_4\
     --pipeline dit_vae \
-    --scheduler dpmsolvermultistep \
-    --beta_schedule scaled_linear \
+    --scheduler ddim \
+    --beta_schedule linear \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_DiT_B_2_vae_channels_4_dpmsolvermultistep_scaled_linear_bs64_vae0.1 \
+    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_linear_bs64_vae0.1 \
     --calculate_fid \
     --calculate_is \
     --no_confirm

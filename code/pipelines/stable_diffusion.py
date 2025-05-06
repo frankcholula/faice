@@ -5,28 +5,44 @@
 @File : stable_diffusion.py
 @Project : code
 """
+import os
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
+import numpy as np
+from torch import nn
+from typing import List, Optional, Tuple, Union
+import inspect
+from copy import deepcopy
 
 # Hugging Face
-from diffusers import DDPMPipeline
+from diffusers import StableDiffusionPipeline, AutoencoderKL
+from diffusers.pipelines.pipeline_utils import ImagePipelineOutput
+from diffusers.utils.torch_utils import randn_tensor
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
+from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
+from utils.model_tools import name_to_label, update_ema, requires_grad
+
+vae_path = "runs/vae_xl-vae-ddpm-face-500-4-0.1/checkpoints/model_vae.pth"
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+num_class = 2
+
+selected_pipeline = StableDiffusionPipeline
 
 
 def train_loop(
-    config,
-    model,
-    noise_scheduler,
-    optimizer,
-    train_dataloader,
-    lr_scheduler,
-    test_dataloader=None,
+        config,
+        model,
+        noise_scheduler,
+        optimizer,
+        train_dataloader,
+        lr_scheduler,
+        test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -50,6 +66,28 @@ def train_loop(
 
     global_step = 0
 
+    # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
+    # vae = AutoencoderKL.from_single_file(url)
+    # vae.eval().requires_grad_(False)
+
+    vae = AutoencoderKL.from_pretrained("stable-diffusion-v1-5/stable-diffusion-v1-5",
+                                        subfolder="vae")
+    vae = vae.to(device)
+    vae.eval().requires_grad_(False)
+
+    # vae = vae_l_4(config)
+    # # vae = vae_b_16(config)
+    # vae = vae.to(device)
+    # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+    # vae.eval().requires_grad_(False)
+
+    ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
+    requires_grad(ema, False)
+    # Prepare models for training:
+    update_ema(ema, model, decay=0)  # Ensure EMA is initialized with synced weights
+    model.train()  # important! This enables embedding dropout for classifier-free guidance
+    ema.eval()  # EMA model should always be in eval mode
+
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
@@ -59,9 +97,15 @@ def train_loop(
 
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
-            # Sample noise to add to the images
-            noise = torch.randn(clean_images.shape).to(clean_images.device)
+            image_names = batch["image_names"]
             bs = clean_images.shape[0]
+
+            image_labels = [name_to_label(img_name) for img_name in image_names]
+
+            image_labels = np.array(image_labels)
+            # Convert the name in image_names to int number
+            image_labels = image_labels.astype(int)
+            class_labels = torch.tensor(image_labels, dtype=torch.int, device=device).reshape(-1)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
@@ -71,20 +115,41 @@ def train_loop(
                 device=clean_images.device,
             ).long()
 
-            # Add noise to the clean images according to the noise magnitude at each timestep
-            # (this is the forward diffusion process)
-            noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+            # Encode image to latent space
+            latents = vae.encode(clean_images).latent_dist.sample()
+            latents = latents * vae.config.scaling_factor
+            latents = latents * noise_scheduler.init_noise_sigma
+
+            # # Add noise (diffusion process)
+            noise = torch.randn_like(latents).to(clean_images.device)
+            # # Add noise to the clean images according to the noise magnitude at each timestep
+            # # (this is the forward diffusion process)
+
+            noisy_latent = noise_scheduler.add_noise(latents, noise, timesteps)
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
-                loss = F.mse_loss(noise_pred, noise)
+                noise_pred = model(noisy_latent,
+                                   timestep=timesteps,
+                                   class_labels=class_labels,
+                                   return_dict=False)[0]
+
+                if noise_scheduler.config.prediction_type == "epsilon":
+                    target = noise
+                elif noise_scheduler.config.prediction_type == "v_prediction":
+                    target = noise_scheduler.get_velocity(clean_images, noise, timesteps)
+                else:
+                    raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+
+                loss = F.mse_loss(noise_pred, target)
+                # loss = F.l1_loss(noise_pred, target)
                 accelerator.backward(loss)
 
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
+                update_ema(ema, model)
 
             progress_bar.update(1)
             logs = {
@@ -101,50 +166,80 @@ def train_loop(
 
         # After each epoch you optionally sample some demo images with evaluate() and save the model
         if accelerator.is_main_process:
-            pipeline = DDPMPipeline(
-                unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+            pipeline = selected_pipeline(
+                accelerator.unwrap_model(model),
+                # accelerator.unwrap_model(ema),
+                accelerator.unwrap_model(vae),
+                scheduler=noise_scheduler
             )
 
             generate_samples = (
-                epoch + 1
-            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                                       epoch + 1
+                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                epoch + 1
-            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                                 epoch + 1
+                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, pipeline)
+                class_labels = torch.randint(
+                    0,
+                    num_class,
+                    (config.train_batch_size,),
+                    device=device,
+                ).int()
+                evaluate(config, epoch, pipeline, class_labels=class_labels)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
-                    pipeline.save_pretrained(config.output_dir)
+                    # pipeline.save_pretrained(config.output_dir)
+                    checkpoint = {
+                        "model": model.state_dict(),
+                        "ema_model": ema.state_dict(),
+                        "optimizer": optimizer.state_dict(),
+                    }
+                    model_path = f"{config.output_dir}/checkpoints"
+                    if not os.path.exists(model_path):
+                        os.makedirs(model_path)
+                    torch.save(checkpoint, model_path + '/model_dit.pth')
                     if save_to_wandb:
                         wandb_logger.save_model()
 
             progress_bar.close()
 
+    model.eval()  # important! This disables randomized embedding dropout
+    # do any sampling/FID calculation/etc. with ema (or model) in eval mode ...
+
     # Now we evaluate the model on the test set
     if (
-        accelerator.is_main_process
-        and config.calculate_fid
-        and test_dataloader is not None
+            accelerator.is_main_process
+            and config.calculate_fid
+            and test_dataloader is not None
     ):
-        pipeline = DDPMPipeline(
-            unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
+        pipeline = selected_pipeline(
+            accelerator.unwrap_model(model),
+            # accelerator.unwrap_model(ema),
+            accelerator.unwrap_model(vae),
+            scheduler=noise_scheduler
         )
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        class_labels = torch.randint(
+            0,
+            num_class,
+            (config.train_batch_size,),
+            device=device,
+        ).int()
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
 
         wandb_logger.log_fid_score(fid_score)
 
     if (
-        accelerator.is_main_process
-        and config.calculate_is
-        and test_dataloader is not None
+            accelerator.is_main_process
+            and config.calculate_is
+            and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device
+            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
