@@ -321,12 +321,6 @@ def get_config_and_components():
         config.beta_schedule,
         config.num_train_timesteps,
         config.prediction_type,
-    )
-    scheduler = create_scheduler(
-        config.scheduler,
-        config.beta_schedule,
-        config.num_train_timesteps,
-        config.prediction_type,
         config.rescale_betas_zero_snr,
     )
     pipeline = create_pipeline(config.pipeline)
