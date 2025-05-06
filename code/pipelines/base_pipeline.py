@@ -2,18 +2,18 @@
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
+import numpy as np
 
 # Hugging Face
 from diffusers import DDPMPipeline, DDIMPipeline
 from pipelines.ccddpm_pipeline import CCDDPMPipeline
-
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
-
+from utils.model_tools import name_to_label
 
 AVAILABLE_PIPELINES = {
     "ddpm": DDPMPipeline,
@@ -24,13 +24,13 @@ AVAILABLE_PIPELINES = {
 
 
 def train_loop(
-    config,
-    model,
-    noise_scheduler,
-    optimizer,
-    train_dataloader,
-    lr_scheduler,
-    test_dataloader=None,
+        config,
+        model,
+        noise_scheduler,
+        optimizer,
+        train_dataloader,
+        lr_scheduler,
+        test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -91,7 +91,14 @@ def train_loop(
                 # Predict the target (noise or velocity)
                 if config.pipeline == "cond":
                     # Extract class labels for conditioning
-                    class_labels = batch["labels"]
+                    # class_labels = batch["labels"]
+
+                    image_names = batch["image_names"]
+                    image_labels = [name_to_label(img_name) for img_name in image_names]
+                    image_labels = np.array(image_labels)
+                    # Convert the name in image_names to int number
+                    class_labels = torch.tensor(image_labels, dtype=torch.int).reshape(-1)
+
                     # the encoder_hidden_states are really just a placeholder since we're only using labels.
                     encoder_hidden_states = torch.zeros(
                         bs,
@@ -136,11 +143,11 @@ def train_loop(
                 unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
             )
             generate_samples = (
-                epoch + 1
-            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                                       epoch + 1
+                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                epoch + 1
-            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                                 epoch + 1
+                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
@@ -157,9 +164,9 @@ def train_loop(
 
     # Now we evaluate the model on the test set
     if (
-        accelerator.is_main_process
-        and config.calculate_fid
-        and test_dataloader is not None
+            accelerator.is_main_process
+            and config.calculate_fid
+            and test_dataloader is not None
     ):
         pipeline = AVAILABLE_PIPELINES[config.pipeline](
             unet=accelerator.unwrap_model(model), scheduler=noise_scheduler
@@ -169,9 +176,9 @@ def train_loop(
         wandb_logger.log_fid_score(fid_score)
 
     if (
-        accelerator.is_main_process
-        and config.calculate_is
-        and test_dataloader is not None
+            accelerator.is_main_process
+            and config.calculate_is
+            and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
             config, pipeline, test_dataloader, device=accelerator.device
