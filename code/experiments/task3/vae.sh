@@ -21,7 +21,7 @@ python main.py \
     --model vae_l_4 \
     --pipeline vae \
     --image_size 128 \
-    --num_epochs 500 \
+    --num_epochs 1 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
     --wandb_run_name liang_vae_l_4_latent_channels4_loss_weight_0.5_batch_size_16 \

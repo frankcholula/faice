@@ -22,7 +22,7 @@ python main.py \
     --model vqvae_channel_3 \
     --pipeline vqvae \
     --image_size 128 \
-    --num_epochs 500 \
+    --num_epochs 1 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
     --wandb_run_name liang_vqvae_latent_loss_weight_0.4_channels3_batch_size_16 \
