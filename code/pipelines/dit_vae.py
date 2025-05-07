@@ -13,6 +13,8 @@ from diffusers import AutoencoderKL, Transformer2DModel
 from diffusers import DDIMScheduler
 from diffusers.pipelines.pipeline_utils import ImagePipelineOutput
 from diffusers.utils.torch_utils import randn_tensor
+from diffusers.utils.import_utils import is_xformers_available
+from packaging import version
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score

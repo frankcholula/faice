@@ -12,6 +12,8 @@ import pandas as pd
 
 from diffusers.utils.torch_utils import randn_tensor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline, ImagePipelineOutput
+from diffusers.utils.import_utils import is_xformers_available
+from packaging import version
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
