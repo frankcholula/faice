@@ -9,8 +9,7 @@ import os
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
-import numpy as np
-import random
+import pandas as pd
 import json
 from collections import defaultdict
 
@@ -165,11 +164,10 @@ def train_loop(
                 config.learning_rate * config.gradient_accumulation_steps * config.train_batch_size * accelerator.num_processes
         )
 
-    prompts = load_prompts(config.stable_diffusion_prompt_dir)
-
     def preprocess_train(examples):
         images = []
         batch_prompts = []
+        prompts = load_prompts(config.stable_diffusion_prompt_dir)
         for example in examples:
             image = example['images']
             image_name = example['image_names']
@@ -181,6 +179,17 @@ def train_loop(
 
     train_dataloader = train_dataloader.with_transform(preprocess_train)
     train_dataloader = train_dataloader.map(collate_fn)
+
+    prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
+    test_prompts = []
+    for t_batch in tqdm(test_dataloader):
+        image_names = t_batch['image_names']
+        t_prompts = [prompt_dict[x] for x in image_names]
+        test_prompts.extend(t_prompts)
+
+    # For evaluation
+    evaluate_batch_size = 16
+    evaluation_prompts = test_prompts[:evaluate_batch_size]
 
     if config.use_ema:
         if config.offload_ema:
@@ -228,8 +237,8 @@ def train_loop(
             with accelerator.accumulate(model):
                 # Predict the noise residual
                 model_pred = model(noisy_latent,
-                                   timestep=timesteps,
-                                   class_labels=class_labels,
+                                   timesteps,
+                                   encoder_hidden_states,
                                    return_dict=False)[0]
 
                 # Get the target for loss depending on the prediction type
@@ -302,19 +311,14 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                class_labels = torch.randint(
-                    0,
-                    num_class,
-                    (config.train_batch_size,),
-                    device=device,
-                ).int()
                 if config.use_ema:
                     # Store the UNet parameters temporarily and load the EMA parameters to perform inference.
                     ema_unet.store(model.parameters())
                     ema_unet.copy_to(model.parameters())
                 if config.enable_xformers_memory_efficient_attention:
                     pipeline.enable_xformers_memory_efficient_attention()
-                evaluate(config, epoch, pipeline, class_labels=class_labels)
+
+                evaluate(config, epoch, pipeline, prompt=evaluation_prompts)
                 if config.use_ema:
                     # Switch back to the original UNet parameters.
                     ema_unet.restore(model.parameters())
@@ -350,7 +354,7 @@ def train_loop(
         if config.enable_xformers_memory_efficient_attention:
             pipeline.enable_xformers_memory_efficient_attention()
 
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader, prompt_dict=prompt_dict)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -360,7 +364,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
+            config, pipeline, test_dataloader, device=accelerator.device, prompt_dict=prompt_dict
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
@@ -403,3 +407,20 @@ def load_prompts(prompt_path):
         image_name = k.split('.')[0]
         prompts_data[image_name] = v["overall_caption"]
     return prompts_data
+
+
+def load_request_prompt(prompt_path):
+    # Get first batch_size rows prompts
+    data = pd.read_table(prompt_path, header=None)
+    data = data.iloc[1:]
+    data.columns = ['image', 'prompt']
+    data['image'] = data['image'].apply(lambda x: int(x.split('.')[0]))
+    prompt_dict = dict(zip(data['image'], data['prompt']))
+    return prompt_dict
+
+
+if __name__ == "__main__":
+    stable_diffusion_prompt_dir: str = "../datasets/celeba_hq_stable_diffusion/captions_hq.json"
+    stable_diffusion_request_prompt_dir: str = "../datasets/celeba_hq_stable_diffusion/request_hq.txt"
+    # train_prompts = load_prompts(stable_diffusion_prompt_dir)
+    test_prompts = load_request_prompt(stable_diffusion_request_prompt_dir)

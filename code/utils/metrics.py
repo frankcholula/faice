@@ -9,7 +9,7 @@ from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
 from cleanfid import fid
-from diffusers import DiTPipeline, DDPMPipeline, DDIMPipeline
+from diffusers import DiTPipeline, DDPMPipeline, DDIMPipeline, StableDiffusionPipeline
 from pipelines.ccddpm_pipeline import CCDDPMPipeline
 from pipelines.custom_pipelines import CustomTransformer2DPipeline
 
@@ -23,12 +23,13 @@ def make_grid(images, rows, cols):
 
 
 def pipeline_inference(
-    config,
-    pipeline,
-    batch_size,
-    output_type="pil",
-    generator=torch.manual_seed(0),
-    class_labels=[],
+        config,
+        pipeline,
+        batch_size,
+        output_type="pil",
+        generator=torch.manual_seed(0),
+        class_labels=[],
+        prompt=[]
 ):
     if isinstance(pipeline, DiTPipeline) or isinstance(pipeline, CustomTransformer2DPipeline):
         images = pipeline(
@@ -41,6 +42,15 @@ def pipeline_inference(
     elif isinstance(pipeline, CustomTransformer2DPipeline):
         images = pipeline(
             class_labels,
+            generator=generator,
+            num_inference_steps=config.num_inference_steps,
+            output_type=output_type,
+        ).images
+    elif isinstance(pipeline, StableDiffusionPipeline):
+        images = pipeline(
+            prompt=prompt,
+            guidance_scale=7.5,
+            eta=0.0,
             generator=generator,
             num_inference_steps=config.num_inference_steps,
             output_type=output_type,
@@ -80,11 +90,11 @@ def pipeline_inference(
     return images
 
 
-def evaluate(config, epoch, pipeline, class_labels=[]):
+def evaluate(config, epoch, pipeline, class_labels=[], prompt=[]):
     # Sample some images from random noise (this is the backward diffusion process).
     # The default pipeline output type is `List[PIL.Image]`
     batch_size = 16
-    images = pipeline_inference(config, pipeline, batch_size, class_labels=class_labels)
+    images = pipeline_inference(config, pipeline, batch_size, class_labels=class_labels, prompt=prompt)
     images_kwargs = {
         "batch_size": batch_size,
         "generator": torch.manual_seed(config.seed),
@@ -121,7 +131,7 @@ def preprocess_image(image, img_src, device):
 
 
 def calculate_inception_score(
-    config, pipeline, test_dataloader, device=None, class_labels=[]
+        config, pipeline, test_dataloader, device=None, class_labels=[], prompt_dict={}
 ):
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -159,6 +169,13 @@ def calculate_inception_score(
                     config.eval_batch_size, len(test_dataloader.dataset) - batch
                 )
                 generator = torch.manual_seed(config.seed + batch)
+
+                if prompt_dict:
+                    image_names = batch['image_names']
+                    prompts = [prompt_dict[x] for x in image_names]
+                else:
+                    prompts = []
+
                 output = pipeline_inference(
                     config,
                     pipeline,
@@ -166,6 +183,7 @@ def calculate_inception_score(
                     generator=generator,
                     output_type="np",
                     class_labels=class_labels,
+                    prompt=prompts
                 )
                 processed_fake = preprocess_image(
                     output,
@@ -179,7 +197,8 @@ def calculate_inception_score(
 
 
 def calculate_fid_score(
-    config, pipeline, test_dataloader, device=None, save=True, class_labels=[]
+        config, pipeline, test_dataloader, device=None, save=True, class_labels=[],
+        prompt_dict={}
 ):
     """Calculate FID score between generated images and test dataset"""
     if device is None:
@@ -198,7 +217,7 @@ def calculate_fid_score(
 
     with torch.no_grad():
         for batch in tqdm(
-            test_dataloader, desc="Loading Real Images for FID Calculation..."
+                test_dataloader, desc="Loading Real Images for FID Calculation..."
         ):
             real_images = batch["images"].to(device)
             real_image_names = batch["image_names"]
@@ -215,14 +234,20 @@ def calculate_fid_score(
 
     with torch.no_grad():
         for batch in tqdm(
-            range(0, len(test_dataloader.dataset), config.eval_batch_size),
-            desc="Loading Fake Images for FID Calculation..",
+                range(0, len(test_dataloader.dataset), config.eval_batch_size),
+                desc="Loading Fake Images for FID Calculation..",
         ):
             # Generate images as numpy arrays
             batch_size = min(
                 config.eval_batch_size, len(test_dataloader.dataset) - batch
             )
             generator = torch.manual_seed(config.seed + batch)
+
+            if prompt_dict:
+                image_names = batch['image_names']
+                prompts = [prompt_dict[x] for x in image_names]
+            else:
+                prompts = []
             output = pipeline_inference(
                 config,
                 pipeline,
@@ -230,6 +255,7 @@ def calculate_fid_score(
                 generator=generator,
                 output_type="np",
                 class_labels=class_labels,
+                prompt=prompts
             )
             processed_fake = preprocess_image(
                 output,
