@@ -202,7 +202,6 @@ def train_loop(
             image_names = batch['image_names']
             batch_prompts = [train_prompts[x] for x in image_names]
             batch["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
-            batch = collate_fn(batch)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
@@ -385,9 +384,9 @@ def tokenize_captions(prompts, tokenizer):
 
 
 def collate_fn(examples):
-    pixel_values = torch.stack(examples["images"])
+    pixel_values = torch.stack([example["images"] for example in examples])
     pixel_values = pixel_values.to(memory_format=torch.contiguous_format).float()
-    input_ids = torch.stack(examples["input_ids"])
+    input_ids = torch.stack([example["input_ids"] for example in examples])
     return {"images": pixel_values, "input_ids": input_ids}
 
 
