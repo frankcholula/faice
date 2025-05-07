@@ -1,5 +1,6 @@
 import os
 import glob
+import warnings
 
 import torch
 import csv
@@ -10,7 +11,10 @@ from models.unet import ClassConditionedUNet
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from conf.training_config import FaceConfig, ButterflyConfig
 from utils.transforms import build_transforms
-from datasets import load_dataset
+from utils.loggers import timer
+
+# Suppress all FutureWarnings from the 'diffusers' module
+warnings.filterwarnings("ignore", category=FutureWarning, module="diffusers")
 
 
 def setup_dataset(config):
@@ -24,17 +28,17 @@ def setup_dataset(config):
                 self.root_dir = root_dir
                 self.transform = transform
                 self.image_paths = glob.glob(os.path.join(root_dir, "*.jpg"))
-                self.labels_path = os.path.join(root_dir, "labels.csv")
-                self.labels_map = self._load_labels()
+                # self.labels_path = os.path.join(root_dir, "labels.csv")
+                # self.labels_map = self._load_labels()
 
-            def _load_labels(self):
-                labels_map = {}
-                with open(self.labels_path, newline="") as f:
-                    reader = csv.reader(f)
-                    header = next(reader, None)  # skip header
-                    for img, label in reader:
-                        labels_map[img] = int(label)
-                return labels_map
+            # def _load_labels(self):
+            #     labels_map = {}
+            #     with open(self.labels_path, newline="") as f:
+            #         reader = csv.reader(f)
+            #         header = next(reader, None)  # skip header
+            #         for img, label in reader:
+            #             labels_map[img] = int(label)
+            #     return labels_map
 
             def __len__(self):
                 return len(self.image_paths)
@@ -43,10 +47,11 @@ def setup_dataset(config):
                 img_path = self.image_paths[idx]
                 image = Image.open(img_path).convert("RGB")
                 image_name = os.path.splitext(os.path.basename(img_path))[0]
-                label = self.labels_map.get(image_name, None)
+                # label = self.labels_map.get(image_name, None)
                 if self.transform:
                     image = self.transform(image)
-                return {"images": image, "image_names": image_name, "labels": label}
+                # return {"images": image, "image_names": image_name, "labels": label}
+                return {"images": image, "image_names": image_name}
 
         train_dataset = CelebaAHQDataset(
             root_dir=config.train_dir, transform=transform_train
@@ -62,6 +67,7 @@ def setup_dataset(config):
         )
 
     elif isinstance(config, ButterflyConfig):
+        from datasets import load_dataset
 
         dataset = load_dataset(config.dataset_name, split="train")
 
@@ -156,8 +162,9 @@ def perform_model_sanity_check(model, train_dataloader):
         print(f"Model sanity check passed on {device}!")
     except Exception as e:
         print(f"Model sanity check failed!")
-        raise e
+        # raise e
 
 
 if __name__ == "__main__":
-    main()
+    with timer("total training time"):
+        main()

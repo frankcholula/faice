@@ -1,7 +1,11 @@
 # Standard library imports
 import os
+import time
+from contextlib import contextmanager
+
 import wandb
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -64,6 +68,16 @@ class WandBLogger:
 
         wandb.run.summary["fid_score"] = fid_score
 
+    def log_fid_score_rec(self, fid_score):
+        if (
+            not self.config.use_wandb
+            or not self.accelerator.is_main_process
+            or fid_score is None
+        ):
+            return
+
+        wandb.run.summary["fid_score_reconstruction"] = fid_score
+
     def log_inception_score(self, inception_score):
         if (
             not self.config.use_wandb
@@ -117,3 +131,16 @@ class WandBLogger:
             and self.accelerator.is_main_process
         ):
             wandb.finish()
+
+
+@contextmanager
+def timer(msg='all tasks'):
+    """
+    Calculate the time of running
+    @return:
+    """
+    startTime = time.time()
+    yield
+    endTime = time.time()
+    # print(f'The time cost for {msg}：{round(1000.0 * (endTime - startTime), 2)}, ms')
+    print(f'The time cost for {msg}：', round((endTime - startTime)/60, 2), 'minutes')
