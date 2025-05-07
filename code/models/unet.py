@@ -319,10 +319,6 @@ class BasicUNet(object):
             block_out_channels = block_out_channels + [1792, 2048]
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 2
             up_block_types = ["AttnUpBlock2D"] * 2 + up_block_types
-        elif self.block_num == 8:
-            block_out_channels = block_out_channels + [1792, 2048, 2048, 2048, 2048, 2048]
-            down_block_types = down_block_types + ["AttnDownBlock2D"] * 6
-            up_block_types = ["AttnUpBlock2D"] * 6 + up_block_types
         blocks = {
             "block_out_channels": tuple(block_out_channels),
             "down_block_types": tuple(down_block_types),
@@ -451,17 +447,11 @@ def unet_xl_block_6_head_dim_64_layer_4(config):
     ).unet_xl()
 
 
-def unet_xl_block_8_head_dim_64(config):
-    return BasicUNet(
-        config, compress_rate=_COMPRESS_RATE, block_num=8, attention_head_dim=64
-    ).unet_xl()
-
-
-def unet_xl_block_8_head_dim_64_layer_4(config):
+def unet_xl_block_6_head_dim_64_layer_6(config):
     return BasicUNet(
         config,
         compress_rate=_COMPRESS_RATE,
-        block_num=8,
+        block_num=6,
         attention_head_dim=64,
-        layers_per_block=4,
+        layers_per_block=6,
     ).unet_xl()
