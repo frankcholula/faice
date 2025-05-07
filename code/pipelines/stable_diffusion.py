@@ -185,7 +185,7 @@ def train_loop(
     test_prompts = []
     for t_batch in tqdm(test_dataloader):
         image_names = t_batch['image_names']
-        t_prompts = [prompt_dict[x] for x in image_names]
+        t_prompts = [prompt_dict[int(x)] for x in image_names]
         test_prompts.extend(t_prompts)
 
     # For evaluation
