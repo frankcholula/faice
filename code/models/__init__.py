@@ -40,7 +40,7 @@ __model_factory = {
     "unet_xl_block_6": unet_xl_block_6,
     "unet_xl_block_6_head_dim_64": unet_xl_block_6_head_dim_64,
     "unet_xl_block_6_head_dim_64_layer_4": unet_xl_block_6_head_dim_64_layer_4,
-    "unet_cond_l": unet_cond_l_block_4,
+    "unet_cond_l_block_4": unet_cond_l_block_4,
     "unet_resnet512": create_unet_resnet512,
     "unet_resnet1024": create_unet_resnet1024,
     "unet_resnet768": create_unet_resnet768,
