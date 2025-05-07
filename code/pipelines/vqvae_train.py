@@ -81,7 +81,8 @@ def train_loop(
                 # loss_weight = 0.15
                 # loss_weight = 0.25
                 # loss_weight = 0.3
-                loss_weight = 0.4
+                loss_weight = 0.35
+                # loss_weight = 0.4
                 # loss_weight = 0.5
                 loss = rec_loss + commit_loss * loss_weight
 
