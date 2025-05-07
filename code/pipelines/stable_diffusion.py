@@ -175,10 +175,10 @@ def train_loop(
             images.append(image)
             batch_prompts.append(prompt)
         examples["input_ids"] = tokenize_captions(examples, tokenizer)
+        examples = collate_fn(examples)
         return examples
 
-    train_dataloader = train_dataloader.map(preprocess_train)
-    train_dataloader = train_dataloader.map(collate_fn)
+    train_dataloader.collate_fn = preprocess_train
 
     prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
     test_prompts = []
