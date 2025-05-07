@@ -3,7 +3,7 @@ from .unet import unet_b_block_6, unet_b_block_8, unet_b_block_6_head_dim_64, un
     unet_l_block_4_head_dim_64_layer_4, unet_l_block_5, unet_l_block_5_head_dim_64, \
     unet_l_block_5_head_dim_64_layer_3, \
     unet_l_block_5_head_dim_64_layer_4, unet_l_block_6, unet_l_block_6_head_dim_64, \
-    unet_l_block_6_head_dim_64_layer_4
+    unet_l_block_6_head_dim_64_layer_4, unet_l_block_8_head_dim_64, unet_l_block_8_head_dim_64_layer_4
 from .unet_with_pretrain import unet_cond_l_block_4
 from .unet_resnet import create_unet_resnet512, create_unet_resnet1024, create_unet_resnet768
 from .transformer import DiT_XL_2, DiT_XL_4, DiT_XL_8, DiT_L_2, DiT_L_4, DiT_L_8, DiT_B_2, DiT_B_4, DiT_B_8, \
@@ -35,6 +35,8 @@ __model_factory = {
     "unet_l_block_6": unet_l_block_6,
     "unet_l_block_6_head_dim_64": unet_l_block_6_head_dim_64,
     "unet_l_block_6_head_dim_64_layer_4": unet_l_block_6_head_dim_64_layer_4,
+    "unet_l_block_8_head_dim_64": unet_l_block_8_head_dim_64,
+    "unet_l_block_8_head_dim_64_layer_4": unet_l_block_8_head_dim_64_layer_4,
     "unet_cond_l": unet_cond_l_block_4,
     "unet_resnet512": create_unet_resnet512,
     "unet_resnet1024": create_unet_resnet1024,
