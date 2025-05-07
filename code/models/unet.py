@@ -405,7 +405,7 @@ def unet_l_block_8_head_dim_64_layer_4(config):
     return BasicUNet(
         config,
         compress_rate=_COMPRESS_RATE,
-        block_num=6,
+        block_num=8,
         attention_head_dim=64,
         layers_per_block=4,
     ).unet_l()
