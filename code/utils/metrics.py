@@ -47,6 +47,8 @@ def pipeline_inference(
             output_type=output_type,
         ).images
     elif isinstance(pipeline, StableDiffusionPipeline):
+        # Convert prompt to tensor
+        prompt = torch.tensor(prompt)
         prompt = prompt.to(pipeline.device)
         images = pipeline(
             prompt=prompt,
