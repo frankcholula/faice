@@ -189,6 +189,10 @@ def train_loop(
             # dit=accelerator.unwrap_model(ema),
             scheduler=noise_scheduler
         )
+
+        if config.enable_xformers_memory_efficient_attention:
+            pipeline.enable_xformers_memory_efficient_attention()
+
         class_labels = torch.randint(
             0,
             num_class,

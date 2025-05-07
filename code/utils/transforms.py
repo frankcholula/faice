@@ -23,7 +23,8 @@ def build_transforms(config):
     if config.gblur:
         transform_train += [T.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0))]
     if config.center_crop_arr:
-        transform_train += [T.Lambda(lambda pil_image: center_crop_arr(pil_image, config.image_size))]
+        # transform_train += [T.Lambda(lambda pil_image: center_crop_arr(pil_image, config.image_size))]
+        transform_train += [T.CenterCrop((config.image_size, config.image_size))]
 
     transform_train = T.Compose(transform_train)
     transform_test = T.Compose(transform_test)
@@ -36,7 +37,7 @@ def center_crop_arr(pil_image, image_size):
     Center cropping implementation from ADM.
     https://github.com/openai/guided-diffusion/blob/8fb3ad9197f16bbc40620447b2742e13458d2831/guided_diffusion/image_datasets.py#L126
     """
-    while min(*pil_image.size) >= 2 * image_size:
+    if min(pil_image.size) >= 2 * image_size:
         pil_image = pil_image.resize(
             tuple(x // 2 for x in pil_image.size), resample=Image.BOX
         )

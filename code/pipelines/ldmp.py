@@ -185,6 +185,8 @@ def train_loop(
                 unet=accelerator.unwrap_model(model),
                 scheduler=noise_scheduler
             )
+            if config.enable_xformers_memory_efficient_attention:
+                pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
                                        epoch + 1
@@ -215,6 +217,9 @@ def train_loop(
             unet=accelerator.unwrap_model(model),
             scheduler=noise_scheduler
         )
+        if config.enable_xformers_memory_efficient_attention:
+            pipeline.enable_xformers_memory_efficient_attention()
+
         fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
         wandb_logger.log_fid_score(fid_score)

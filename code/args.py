@@ -9,6 +9,7 @@ from pipelines import (
     dit,
     dit_vae,
     base_pipeline,
+    stable_diffusion
 )
 from diffusers import (
     DDPMScheduler,
@@ -86,6 +87,8 @@ def create_pipeline(pipeline: str):
         return dit.train_loop
     elif pipeline.lower() == "dit_vae":
         return dit_vae.train_loop
+    elif pipeline.lower() == "stable_diffusion":
+        return stable_diffusion.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 

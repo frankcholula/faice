@@ -11,15 +11,11 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 import numpy as np
 import random
-from torch import nn
-from typing import List, Optional, Tuple, Union
-import inspect
-from copy import deepcopy
+import json
+from collections import defaultdict
 
 # Hugging Face
 from diffusers import StableDiffusionPipeline, AutoencoderKL, UNet2DConditionModel
-from diffusers.pipelines.pipeline_utils import ImagePipelineOutput
-from diffusers.utils.torch_utils import randn_tensor
 from diffusers.training_utils import EMAModel, compute_dream_and_update_latents, compute_snr
 from diffusers.utils.import_utils import is_xformers_available
 from packaging import version
@@ -80,19 +76,17 @@ def train_loop(
         )
         vae = AutoencoderKL.from_pretrained(
             pretrained_model_name_or_path, subfolder="vae")
+        vae.eval().requires_grad_(False)
 
-    vae = AutoencoderKL.from_pretrained(pretrained_model_name_or_path, subfolder="vae")
-    vae.eval().requires_grad_(False)
+        # vae = vae_l_4(config)
+        # # vae = vae_b_16(config)
+        # vae = vae.to(device)
+        # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+        # vae.eval().requires_grad_(False)
 
     tokenizer = CLIPTokenizer.from_pretrained(
         pretrained_model_name_or_path, subfolder="tokenizer"
     )
-
-    # vae = vae_l_4(config)
-    # # vae = vae_b_16(config)
-    # vae = vae.to(device)
-    # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
-    # vae.eval().requires_grad_(False)
 
     # Create EMA for the unet.
     if config.use_ema:
@@ -171,9 +165,17 @@ def train_loop(
                 config.learning_rate * config.gradient_accumulation_steps * config.train_batch_size * accelerator.num_processes
         )
 
+    prompts = load_prompts(config.stable_diffusion_prompt_dir)
+
     def preprocess_train(examples):
-        images = [image.convert("RGB") for image in examples['images']]
-        examples["pixel_values"] = images
+        images = []
+        batch_prompts = []
+        for example in examples:
+            image = example['images']
+            image_name = example['image_names']
+            prompt = prompts[image_name]
+            images.append(image)
+            batch_prompts.append(prompt)
         examples["input_ids"] = tokenize_captions(examples, tokenizer)
         return examples
 
@@ -210,7 +212,7 @@ def train_loop(
             ).long()
 
             # Convert images to latent space
-            latents = vae.encode(batch["pixel_values"]).latent_dist.sample()
+            latents = vae.encode(batch["images"]).latent_dist.sample()
             latents = latents * vae.config.scaling_factor
 
             # # Add noise (diffusion process)
@@ -249,9 +251,9 @@ def train_loop(
                     # This is discussed in Section 4.2 of the same paper.
                     snr = compute_snr(noise_scheduler, timesteps)
                     mse_loss_weights = \
-                    torch.stack([snr, config.snr_gamma * torch.ones_like(timesteps)], dim=1).min(
-                        dim=1
-                    )[0]
+                        torch.stack([snr, config.snr_gamma * torch.ones_like(timesteps)], dim=1).min(
+                            dim=1
+                        )[0]
                     if noise_scheduler.config.prediction_type == "epsilon":
                         mse_loss_weights = mse_loss_weights / snr
                     elif noise_scheduler.config.prediction_type == "v_prediction":
@@ -375,18 +377,10 @@ def deepspeed_zero_init_disabled_context_manager():
     return [deepspeed_plugin.zero3_init_context_manager(enable=False)]
 
 
-def tokenize_captions(examples, tokenizer, caption_column, is_train=True):
+def tokenize_captions(prompts, tokenizer):
     captions = []
-    for caption in examples[caption_column]:
-        if isinstance(caption, str):
-            captions.append(caption)
-        elif isinstance(caption, (list, np.ndarray)):
-            # take a random caption if there are multiple
-            captions.append(random.choice(caption) if is_train else caption[0])
-        else:
-            raise ValueError(
-                f"Caption column `{caption_column}` should contain either strings or lists of strings."
-            )
+    for caption in prompts:
+        captions.append(caption)
     inputs = tokenizer(
         captions, max_length=tokenizer.model_max_length, padding="max_length", truncation=True,
         return_tensors="pt"
@@ -395,7 +389,17 @@ def tokenize_captions(examples, tokenizer, caption_column, is_train=True):
 
 
 def collate_fn(examples):
-    pixel_values = torch.stack([example["pixel_values"] for example in examples])
+    pixel_values = torch.stack([example["images"] for example in examples])
     pixel_values = pixel_values.to(memory_format=torch.contiguous_format).float()
     input_ids = torch.stack([example["input_ids"] for example in examples])
-    return {"pixel_values": pixel_values, "input_ids": input_ids}
+    return {"images": pixel_values, "input_ids": input_ids}
+
+
+def load_prompts(prompt_path):
+    f = open(prompt_path, "r")
+    data = json.load(f)
+    prompts_data = defaultdict()
+    for k, v in data.items():
+        image_name = k.split('.')[0]
+        prompts_data[image_name] = v["overall_caption"]
+    return prompts_data

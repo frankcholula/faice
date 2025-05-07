@@ -181,6 +181,8 @@ def train_loop(
                 accelerator.unwrap_model(vae),
                 scheduler=noise_scheduler
             )
+            if config.enable_xformers_memory_efficient_attention:
+                pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
                                        epoch + 1
@@ -224,6 +226,9 @@ def train_loop(
             accelerator.unwrap_model(vae),
             scheduler=noise_scheduler
         )
+        if config.enable_xformers_memory_efficient_attention:
+            pipeline.enable_xformers_memory_efficient_attention()
+
         class_labels = torch.randint(
             0,
             num_class,
