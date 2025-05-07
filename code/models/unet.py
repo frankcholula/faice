@@ -445,13 +445,3 @@ def unet_xl_block_6_head_dim_64_layer_4(config):
         attention_head_dim=64,
         layers_per_block=4,
     ).unet_xl()
-
-
-def unet_xl_block_6_head_dim_64_layer_6(config):
-    return BasicUNet(
-        config,
-        compress_rate=_COMPRESS_RATE,
-        block_num=6,
-        attention_head_dim=64,
-        layers_per_block=6,
-    ).unet_xl()
