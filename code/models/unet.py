@@ -294,10 +294,6 @@ class BasicUNet(object):
             block_out_channels = block_out_channels + [1120, 1344]
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 2
             up_block_types = ["AttnUpBlock2D"] * 2 + up_block_types
-        elif self.block_num == 8:
-            block_out_channels = block_out_channels + [1120, 1344, 1568, 1792]
-            down_block_types = down_block_types + ["AttnDownBlock2D"] * 4
-            up_block_types = ["AttnUpBlock2D"] * 4 + up_block_types
         blocks = {
             "block_out_channels": tuple(block_out_channels),
             "down_block_types": tuple(down_block_types),
@@ -306,7 +302,7 @@ class BasicUNet(object):
         return blocks
 
     def multi_attention_block_xl(self):
-        block_out_channels = [256, 256, 512, 512]
+        block_out_channels = [256, 512, 1024, 2048]
         down_block_types = [
             "DownBlock2D",
             "AttnDownBlock2D",
@@ -319,16 +315,12 @@ class BasicUNet(object):
             "AttnUpBlock2D",
             "UpBlock2D",
         ]
-        if self.block_num == 4:
-            block_out_channels = block_out_channels
-            down_block_types = down_block_types
-            up_block_types = up_block_types
-        elif self.block_num == 6:
-            block_out_channels = block_out_channels + [1024, 1024]
+        if self.block_num == 6:
+            block_out_channels = block_out_channels + [2048, 2048]
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 2
             up_block_types = ["AttnUpBlock2D"] * 2 + up_block_types
         elif self.block_num == 8:
-            block_out_channels = block_out_channels + [1024, 1024, 2048, 2048]
+            block_out_channels = block_out_channels + [2048, 2048, 4096, 4096]
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 4
             up_block_types = ["AttnUpBlock2D"] * 4 + up_block_types
         blocks = {
@@ -434,22 +426,6 @@ def unet_l_block_6_head_dim_64_layer_4(config):
         config,
         compress_rate=_COMPRESS_RATE,
         block_num=6,
-        attention_head_dim=64,
-        layers_per_block=4,
-    ).unet_l()
-
-
-def unet_l_block_8_head_dim_64(config):
-    return BasicUNet(
-        config, compress_rate=_COMPRESS_RATE, block_num=8, attention_head_dim=64
-    ).unet_l()
-
-
-def unet_l_block_8_head_dim_64_layer_4(config):
-    return BasicUNet(
-        config,
-        compress_rate=_COMPRESS_RATE,
-        block_num=8,
         attention_head_dim=64,
         layers_per_block=4,
     ).unet_l()
