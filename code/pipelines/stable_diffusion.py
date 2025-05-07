@@ -288,11 +288,13 @@ def train_loop(
         if accelerator.is_main_process:
             pipeline = StableDiffusionPipeline.from_pretrained(
                 pretrained_model_name_or_path,
-                text_encoder=text_encoder,
-                vae=vae,
-                unet=model,
+                text_encoder=accelerator.unwrap_model(text_encoder),
+                vae=accelerator.unwrap_model(vae),
+                unet=accelerator.unwrap_model(model),
+                tokenizer=tokenizer,
                 # revision=config.revision,
             )
+            pipeline = pipeline.to(accelerator.device)
 
             generate_samples = (
                                        epoch + 1
@@ -337,11 +339,13 @@ def train_loop(
     ):
         pipeline = StableDiffusionPipeline.from_pretrained(
             pretrained_model_name_or_path,
-            text_encoder=text_encoder,
-            vae=vae,
-            unet=model,
+            text_encoder=accelerator.unwrap_model(text_encoder),
+            vae=accelerator.unwrap_model(vae),
+            unet=accelerator.unwrap_model(model),
+            tokenizer=tokenizer,
             # revision=config.revision,
         )
+        pipeline = pipeline.to(accelerator.device)
 
         if config.enable_xformers_memory_efficient_attention:
             pipeline.enable_xformers_memory_efficient_attention()
