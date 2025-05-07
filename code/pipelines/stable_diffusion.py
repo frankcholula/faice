@@ -199,8 +199,8 @@ def train_loop(
             clean_images = batch["images"]
             bs = clean_images.shape[0]
 
-            image_name = batch['image_names']
-            batch_prompts = train_prompts[image_name]
+            image_names = batch['image_names']
+            batch_prompts = [train_prompts[x] for x in image_names]
             batch["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
             batch = collate_fn(batch)
 
