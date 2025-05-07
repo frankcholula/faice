@@ -291,7 +291,7 @@ def train_loop(
                 text_encoder=text_encoder,
                 vae=vae,
                 unet=model,
-                revision=config.revision,
+                # revision=config.revision,
             )
 
             generate_samples = (
@@ -340,7 +340,7 @@ def train_loop(
             text_encoder=text_encoder,
             vae=vae,
             unet=model,
-            revision=config.revision,
+            # revision=config.revision,
         )
 
         if config.enable_xformers_memory_efficient_attention:
