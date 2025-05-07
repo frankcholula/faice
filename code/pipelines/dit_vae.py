@@ -309,10 +309,11 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
+                evaluate_batch_size = 16
                 class_labels = torch.randint(
                     0,
                     num_class,
-                    (config.train_batch_size,),
+                    (evaluate_batch_size,),
                     device=device,
                 ).int()
                 evaluate(config, epoch, pipeline, class_labels=class_labels)
