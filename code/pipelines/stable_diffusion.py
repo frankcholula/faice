@@ -165,28 +165,13 @@ def train_loop(
                 config.learning_rate * config.gradient_accumulation_steps * config.train_batch_size * accelerator.num_processes
         )
 
-    def preprocess_train(examples):
-        images = []
-        batch_prompts = []
-        prompts = load_prompts(config.stable_diffusion_prompt_dir)
-        for example in examples:
-            image = example['images']
-            image_name = example['image_names']
-            prompt = prompts[image_name]
-            images.append(image)
-            batch_prompts.append(prompt)
-        examples["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
-        print('>'*9, f"Train prompts: {batch_prompts}")
-        examples = collate_fn(examples)
-        return examples
+    train_prompts = load_prompts(config.stable_diffusion_prompt_dir)
 
-    train_dataloader = DataLoader(train_dataloader, collate_fn=preprocess_train)
-
-    prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
+    test_prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
     test_prompts = []
     for t_batch in tqdm(test_dataloader):
         image_names = t_batch['image_names']
-        t_prompts = [prompt_dict[int(x)] for x in image_names]
+        t_prompts = [test_prompt_dict[int(x)] for x in image_names]
         test_prompts.extend(t_prompts)
 
     # For evaluation
@@ -213,6 +198,11 @@ def train_loop(
         for step, batch in enumerate(train_dataloader):
             clean_images = batch["images"]
             bs = clean_images.shape[0]
+
+            image_name = batch['image_names']
+            batch_prompts = train_prompts[image_name]
+            batch["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
+            batch = collate_fn(batch)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
@@ -356,7 +346,7 @@ def train_loop(
         if config.enable_xformers_memory_efficient_attention:
             pipeline.enable_xformers_memory_efficient_attention()
 
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, prompt_dict=prompt_dict)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader, prompt_dict=test_prompt_dict)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -366,7 +356,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, prompt_dict=prompt_dict
+            config, pipeline, test_dataloader, device=accelerator.device, prompt_dict=test_prompt_dict
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
