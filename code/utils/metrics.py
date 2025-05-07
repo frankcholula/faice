@@ -47,6 +47,7 @@ def pipeline_inference(
             output_type=output_type,
         ).images
     elif isinstance(pipeline, StableDiffusionPipeline):
+        prompt = prompt.to(pipeline.device)
         images = pipeline(
             prompt=prompt,
             guidance_scale=7.5,
