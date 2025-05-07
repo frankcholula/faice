@@ -174,7 +174,8 @@ def train_loop(
             prompt = prompts[image_name]
             images.append(image)
             batch_prompts.append(prompt)
-        examples["input_ids"] = tokenize_captions(examples, tokenizer)
+        examples["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
+        print('>'*9, f"Train prompts: {batch_prompts}")
         examples = collate_fn(examples)
         return examples
 
