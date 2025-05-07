@@ -202,7 +202,7 @@ def train_loop(
             image_names = batch['image_names']
             batch_prompts = [train_prompts[x] for x in image_names]
             batch["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
-            batch.to(accelerator.device)
+            batch["input_ids"].to(accelerator.device)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
