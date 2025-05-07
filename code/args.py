@@ -158,6 +158,11 @@ def parse_args():
         help="Enable xformers memory efficient attention",
     )
     training_group.add_argument(
+        "--allow_tf32",
+        action="store_true",
+        help="Enable TF32 for faster training on Ampere GPUs,",
+    )
+    training_group.add_argument(
         "--gradient_checkpointing",
         action="store_true",
         help="Use gradient checkpointing",

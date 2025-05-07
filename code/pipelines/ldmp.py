@@ -103,6 +103,11 @@ def train_loop(
         else:
             raise ValueError("xformers is not available. Make sure it is installed correctly")
 
+    # Enable TF32 for faster training on Ampere GPUs,
+    # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
+    if config.allow_tf32:
+        torch.backends.cuda.matmul.allow_tf32 = True
+
     # Now you train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(
