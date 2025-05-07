@@ -178,6 +178,13 @@ def parse_args():
     )
     training_group.add_argument("--offload_ema", action="store_true",
                                 help="Offload EMA model to CPU during training step.")
+    training_group.add_argument(
+        "--snr_gamma",
+        type=float,
+        default=None,
+        help="SNR weighting gamma to be used if rebalancing the loss. Recommended value is 5.0. "
+             "More details here: https://arxiv.org/abs/2303.09556.",
+    )
 
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument(
