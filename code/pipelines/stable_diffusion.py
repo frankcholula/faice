@@ -177,7 +177,7 @@ def train_loop(
         examples["input_ids"] = tokenize_captions(examples, tokenizer)
         return examples
 
-    train_dataloader = train_dataloader.with_transform(preprocess_train)
+    train_dataloader = train_dataloader.map(preprocess_train)
     train_dataloader = train_dataloader.map(collate_fn)
 
     prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
