@@ -37,7 +37,7 @@ python main.py \
     --num_epochs 500 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
-    --wandb_run_name liang_vae_b_4_batch_loss_weight_0.1_size_16 \
+    --wandb_run_name liang_vae_b_4_batch_loss_weight_0.05_size_16 \
     --calculate_fid \
     --no_confirm
 #    --no_wandb
