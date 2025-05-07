@@ -302,7 +302,7 @@ class BasicUNet(object):
         return blocks
 
     def multi_attention_block_xl(self):
-        block_out_channels = [256, 256, 1024, 1024]
+        block_out_channels = [256, 512, 768, 1024]
         down_block_types = [
             "DownBlock2D",
             "AttnDownBlock2D",
@@ -316,11 +316,11 @@ class BasicUNet(object):
             "UpBlock2D",
         ]
         if self.block_num == 6:
-            block_out_channels = block_out_channels + [1024, 1024]
+            block_out_channels = block_out_channels + [1280, 1536]
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 2
             up_block_types = ["AttnUpBlock2D"] * 2 + up_block_types
         elif self.block_num == 8:
-            block_out_channels = block_out_channels + [1024, 2048, 2048, 2048]
+            block_out_channels = block_out_channels + [1280, 1536, 1792, 2048]
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 4
             up_block_types = ["AttnUpBlock2D"] * 4 + up_block_types
         blocks = {
