@@ -320,7 +320,7 @@ class BasicUNet(object):
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 2
             up_block_types = ["AttnUpBlock2D"] * 2 + up_block_types
         elif self.block_num == 8:
-            block_out_channels = block_out_channels + [1280, 1536, 1792, 2048, 2048, 2048]
+            block_out_channels = block_out_channels + [2048, 2048, 2048, 2048, 2048, 2048]
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 6
             up_block_types = ["AttnUpBlock2D"] * 6 + up_block_types
         blocks = {
