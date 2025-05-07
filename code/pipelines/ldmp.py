@@ -13,6 +13,8 @@ from tqdm.auto import tqdm
 
 # Hugging Face
 from diffusers import LDMPipeline, VQModel
+from diffusers.utils.import_utils import is_xformers_available
+from packaging import version
 
 # Configuration
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
@@ -84,6 +86,21 @@ def train_loop(
     # vae = vae.to(device)
     # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     # vae.eval().requires_grad_(False)
+
+    model.train()  # important! This enables embedding dropout for classifier-free guidance
+
+    if config.enable_xformers_memory_efficient_attention:
+        if is_xformers_available():
+            import xformers
+
+            xformers_version = version.parse(xformers.__version__)
+            if xformers_version == version.parse("0.0.16"):
+                print(
+                    "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
+                )
+            model.enable_xformers_memory_efficient_attention()
+        else:
+            raise ValueError("xformers is not available. Make sure it is installed correctly")
 
     # Now you train the model
     for epoch in range(config.num_epochs):
