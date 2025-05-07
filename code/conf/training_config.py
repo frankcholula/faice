@@ -85,6 +85,7 @@ class FaceConfig(BaseConfig):
     stable_diffusion_test_dir: str = "datasets/celeba_hq_stable_diffusion/test_300"
     stable_diffusion_prompt_dir: str = "datasets/celeba_hq_stable_diffusion/captions_hq.json"
     stable_diffusion_request_prompt_dir: str = "datasets/celeba_hq_stable_diffusion/request_hq.txt"
+    snr_gamma: float = None
 
 
 CONFIG_REGISTRY = {
