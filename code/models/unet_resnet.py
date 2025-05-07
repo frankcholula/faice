@@ -19,7 +19,6 @@ def create_unet_resnet512(config):
         time_embedding_type="positional",
         upsample_type="resnet",
         downsample_type="resnet",
-        resnet_time_scale_shift="scale_shift",
         # num_class_embeds=1000,
         block_out_channels=(
             128,

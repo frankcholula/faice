@@ -1,17 +1,11 @@
 # Deep learning framework
-import os
-from typing import List, Optional, Tuple, Union
 from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import numpy as np
-from torch import nn
-import pandas as pd
 
-from diffusers.utils.torch_utils import randn_tensor
-from diffusers.pipelines.pipeline_utils import DiffusionPipeline, ImagePipelineOutput
 from diffusers.utils.import_utils import is_xformers_available
 from packaging import version
 
@@ -21,110 +15,10 @@ from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from utils.model_tools import name_to_label, update_ema, requires_grad
+from pipelines.custom_pipelines import CustomTransformer2DPipeline
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
-
-
-class CustomTransformer2DPipeline(DiffusionPipeline):
-    r"""
-    Pipeline for image generation.
-
-    This model inherits from [`DiffusionPipeline`]. Check the superclass documentation for the generic methods
-    implemented for all pipelines (downloading, saving, running on a particular device, etc.).
-
-    Parameters:
-        dit: Transformer2DModel
-    """
-
-    def __init__(self, dit, scheduler):
-        super().__init__()
-        self.register_modules(dit=dit, scheduler=scheduler)
-
-    @torch.no_grad()
-    def __call__(
-            self,
-            batch_size: int = 1,
-            generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
-            num_inference_steps: int = 1000,
-            output_type: Optional[str] = "pil",
-            return_dict: bool = True,
-    ) -> Union[ImagePipelineOutput, Tuple]:
-        r"""
-        The call function to the pipeline for generation.
-
-        Args:
-            batch_size (`int`, *optional*, defaults to 1):
-                The number of images to generate.
-            generator (`torch.Generator`, *optional*):
-                A [`torch.Generator`](https://pytorch.org/docs/stable/generated/torch.Generator.html) to make
-                generation deterministic.
-            num_inference_steps (`int`, *optional*, defaults to 1000):
-                The number of denoising steps. More denoising steps usually lead to a higher quality image at the
-                expense of slower inference.
-            output_type (`str`, *optional*, defaults to `"pil"`):
-                The output format of the generated image. Choose between `PIL.Image` or `np.array`.
-            return_dict (`bool`, *optional*, defaults to `True`):
-                Whether or not to return a [`~pipelines.ImagePipelineOutput`] instead of a plain tuple.
-
-        Example:
-
-
-        Returns:
-            [`~pipelines.ImagePipelineOutput`] or `tuple`:
-                If `return_dict` is `True`, [`~pipelines.ImagePipelineOutput`] is returned, otherwise a `tuple` is
-                returned where the first element is a list with the generated images
-        """
-        # Sample gaussian noise to begin loop
-        if isinstance(self.dit.config.sample_size, int):
-            image_shape = (
-                batch_size,
-                self.dit.config.in_channels,
-                self.dit.config.sample_size,
-                self.dit.config.sample_size,
-            )
-        else:
-            image_shape = (batch_size, self.dit.config.in_channels, *self.dit.config.sample_size)
-
-        if self.device.type == "mps":
-            # randn does not work reproducibly on mps
-            image = randn_tensor(image_shape, generator=generator, dtype=self.dit.dtype)
-            image = image.to(self.device)
-        else:
-            image = randn_tensor(image_shape, generator=generator, device=self.device, dtype=self.dit.dtype)
-
-        # set step values
-        self.scheduler.set_timesteps(num_inference_steps)
-
-        class_labels = torch.randint(
-            0,
-            num_class,
-            (batch_size,),
-            device=device,
-        ).int()
-
-        for t in self.progress_bar(self.scheduler.timesteps):
-            # 1. predict noise model_output
-            # Convert one number t to 1d-array
-            t = t.cpu().numpy()
-            t = np.array([t])
-            t = torch.from_numpy(t).to(device)
-            model_output = self.dit(image, timestep=t, class_labels=class_labels).sample
-
-            # 2. compute previous image: x_t -> x_t-1
-            t = t.cpu()
-            image = self.scheduler.step(model_output, t, image, generator=generator).prev_sample
-
-        image = (image / 2 + 0.5).clamp(0, 1)
-        image = image.cpu().permute(0, 2, 3, 1).numpy()
-        if output_type == "pil":
-            image = self.numpy_to_pil(image)
-
-        if not return_dict:
-            return (image,)
-
-        return ImagePipelineOutput(images=image)
-
 
 selected_pipeline = CustomTransformer2DPipeline
 
@@ -263,7 +157,14 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                evaluate(config, epoch, pipeline)
+                evaluate_batch_size = 16
+                class_labels = torch.randint(
+                    0,
+                    num_class,
+                    (evaluate_batch_size,),
+                    device=device,
+                ).int()
+                evaluate(config, epoch, pipeline, class_labels=class_labels)
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
@@ -288,7 +189,13 @@ def train_loop(
             # dit=accelerator.unwrap_model(ema),
             scheduler=noise_scheduler
         )
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        class_labels = torch.randint(
+            0,
+            num_class,
+            (config.train_batch_size,),
+            device=device,
+        ).int()
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -298,7 +205,7 @@ def train_loop(
             and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device
+            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()

@@ -11,6 +11,7 @@ from huggingface_hub import whoami, HfFolder
 from cleanfid import fid
 from diffusers import DiTPipeline, DDPMPipeline, DDIMPipeline
 from pipelines.ccddpm_pipeline import CCDDPMPipeline
+from pipelines.custom_pipelines import CustomTransformer2DPipeline
 
 
 def make_grid(images, rows, cols):
@@ -29,10 +30,17 @@ def pipeline_inference(
     generator=torch.manual_seed(0),
     class_labels=[],
 ):
-    if isinstance(pipeline, DiTPipeline):
+    if isinstance(pipeline, DiTPipeline) or isinstance(pipeline, CustomTransformer2DPipeline):
         images = pipeline(
             class_labels,
             guidance_scale=1.0,
+            generator=generator,
+            num_inference_steps=config.num_inference_steps,
+            output_type=output_type,
+        ).images
+    elif isinstance(pipeline, CustomTransformer2DPipeline):
+        images = pipeline(
+            class_labels,
             generator=generator,
             num_inference_steps=config.num_inference_steps,
             output_type=output_type,
