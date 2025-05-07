@@ -181,7 +181,6 @@ def train_loop(
     train_dataloader.collate_fn = preprocess_train
 
     prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
-    print('>'*9, prompt_dict)
     test_prompts = []
     for t_batch in tqdm(test_dataloader):
         image_names = t_batch['image_names']

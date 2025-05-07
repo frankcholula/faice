@@ -176,6 +176,8 @@ def parse_args():
     training_group.add_argument(
         "--gradient_accumulation_steps", type=int, help="Gradient accumulation steps"
     )
+    training_group.add_argument("--offload_ema", action="store_true",
+                                help="Offload EMA model to CPU during training step.")
 
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument(
