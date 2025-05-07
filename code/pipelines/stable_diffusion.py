@@ -22,6 +22,7 @@ import accelerate
 from accelerate.state import AcceleratorState
 from transformers import CLIPTextModel, CLIPTokenizer
 from transformers.utils import ContextManagers
+from torch.utils.data import Dataset, DataLoader
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -179,7 +180,7 @@ def train_loop(
         examples = collate_fn(examples)
         return examples
 
-    train_dataloader.collate_fn = preprocess_train
+    train_dataloader = DataLoader(train_dataloader, collate_fn=preprocess_train)
 
     prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
     test_prompts = []
