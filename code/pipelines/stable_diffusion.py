@@ -385,9 +385,9 @@ def tokenize_captions(prompts, tokenizer):
 
 
 def collate_fn(examples):
-    pixel_values = torch.stack([example["images"] for example in examples])
+    pixel_values = torch.stack(examples["images"])
     pixel_values = pixel_values.to(memory_format=torch.contiguous_format).float()
-    input_ids = torch.stack([example["input_ids"] for example in examples])
+    input_ids = torch.stack(examples["input_ids"])
     return {"images": pixel_values, "input_ids": input_ids}
 
 
