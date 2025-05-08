@@ -35,6 +35,7 @@ from utils.model_tools import name_to_label
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
 pretrained_model_name_or_path = "stable-diffusion-v1-5/stable-diffusion-v1-5"
+vae_path = "runs/vae_l_4-vae-ddpm-face-500-0.05-16/checkpoints/model_vae.pth"
 
 selected_pipeline = StableDiffusionPipeline
 
@@ -74,19 +75,19 @@ def train_loop(
         text_encoder = CLIPTextModel.from_pretrained(
             pretrained_model_name_or_path, subfolder="text_encoder"
         )
-        vae = AutoencoderKL.from_pretrained(
-            pretrained_model_name_or_path, subfolder="vae")
-        vae.eval().requires_grad_(False)
-
-        # vae = vae_l_4(config)
-        # # vae = vae_b_16(config)
-        # vae = vae.to(device)
-        # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+        # vae = AutoencoderKL.from_pretrained(
+        #     pretrained_model_name_or_path, subfolder="vae")
         # vae.eval().requires_grad_(False)
 
-    model = UNet2DConditionModel.from_pretrained(
-        pretrained_model_name_or_path, subfolder="unet",
-    )
+        vae = vae_l_4(config)
+        # # vae = vae_b_16(config)
+        # vae = vae.to(device)
+        vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+        vae.eval().requires_grad_(False)
+
+    # model = UNet2DConditionModel.from_pretrained(
+    #     pretrained_model_name_or_path, subfolder="unet",
+    # )
 
     tokenizer = CLIPTokenizer.from_pretrained(
         pretrained_model_name_or_path, subfolder="tokenizer"
@@ -101,7 +102,6 @@ def train_loop(
             foreach=config.foreach_ema,
         )
 
-    model = model.to(device)
     model.train()  # important! This enables embedding dropout for classifier-free guidance
 
     if config.enable_xformers_memory_efficient_attention:
@@ -192,6 +192,7 @@ def train_loop(
     # Move text_encode and vae to gpu and cast to weight_dtype
     text_encoder.to(accelerator.device)
     vae.to(accelerator.device)
+    model.to(accelerator.device)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
