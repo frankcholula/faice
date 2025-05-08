@@ -105,6 +105,7 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
+                # TODO: refactor loss function here to use get_loss
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
