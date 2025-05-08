@@ -17,7 +17,6 @@ from collections import defaultdict
 from diffusers import StableDiffusionPipeline, AutoencoderKL, UNet2DConditionModel
 from diffusers.training_utils import (
     EMAModel,
-    compute_dream_and_update_latents,
     compute_snr,
 )
 from diffusers.utils.import_utils import is_xformers_available
