@@ -2,7 +2,7 @@
 
 python main.py \
     --dataset face \
-    --scheduler ddm \
+    --scheduler ddpm \
     --pipeline ddpm \
     --num_inference_steps 100 \
     --beta_schedule squaredcos_cap_v2 \
