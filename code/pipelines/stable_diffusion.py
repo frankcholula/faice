@@ -79,11 +79,11 @@ def train_loop(
             pretrained_model_name_or_path, subfolder="vae")
         vae.eval().requires_grad_(False)
 
-        vae = vae_l_4(config)
+        # vae = vae_l_4(config)
         # # vae = vae_b_16(config)
-        vae = vae.to(device)
-        vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
-        vae.eval().requires_grad_(False)
+        # vae = vae.to(device)
+        # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+        # vae.eval().requires_grad_(False)
 
     # model = UNet2DConditionModel.from_pretrained(
     #     pretrained_model_name_or_path, subfolder="unet",
