@@ -11,8 +11,8 @@ python main.py \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 4000 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
     --loss_type hybrid \
     --hybrid_weight 0.5 \
     --wandb_run_name task6_hybrid_0.5 \
