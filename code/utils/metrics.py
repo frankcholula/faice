@@ -172,7 +172,8 @@ def calculate_inception_score(
                 generator = torch.manual_seed(config.seed + batch)
 
                 if prompt_dict:
-                    image_names = batch['image_names']
+                    batch_data = test_dataloader.dataset[batch:batch + batch_size]
+                    image_names = batch_data['image_names']
                     prompts = [prompt_dict[x] for x in image_names]
                 else:
                     prompts = []
@@ -245,7 +246,8 @@ def calculate_fid_score(
             generator = torch.manual_seed(config.seed + batch)
 
             if prompt_dict:
-                image_names = batch['image_names']
+                batch_data = test_dataloader.dataset[batch:batch + batch_size]
+                image_names = batch_data['image_names']
                 prompts = [prompt_dict[x] for x in image_names]
             else:
                 prompts = []
