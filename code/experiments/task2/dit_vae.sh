@@ -131,6 +131,8 @@ python main.py \
     --wandb_run_name liang_DiT_B_2_vae_channels_4_compress_4_ddim_linear_bs64_vae0.05 \
     --calculate_fid \
     --calculate_is \
+    --enable_xformers_memory_efficient_attention \
+    --allow_tf32 \
     --no_confirm \
     --no_wandb
 
