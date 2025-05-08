@@ -11,7 +11,7 @@ python main.py \
     --beta_schedule scaled_linear \
     --RHFlip \
     --center_crop_arr \
-    --image_size 256 \
+    --image_size 512 \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 999 \
