@@ -72,14 +72,12 @@ def train_loop(
 
     global_step = 0
 
-
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
     # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
     # vqvae = vqvae.to(device)
     # vqvae.eval().requires_grad_
-
 
     vqvae = vqvae_b_3(config)
     vqvae = vqvae.to(device)
