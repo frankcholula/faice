@@ -84,6 +84,10 @@ def train_loop(
         # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
         # vae.eval().requires_grad_(False)
 
+    model = UNet2DConditionModel.from_pretrained(
+        pretrained_model_name_or_path, subfolder="unet",
+    )
+
     tokenizer = CLIPTokenizer.from_pretrained(
         pretrained_model_name_or_path, subfolder="tokenizer"
     )

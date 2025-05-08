@@ -12,7 +12,8 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 # Hugging Face
-from diffusers import LDMPipeline, VQModel
+from diffusers import LDMPipeline, VQModel, UNet2DModel
+from diffusers.training_utils import EMAModel
 from diffusers.utils.import_utils import is_xformers_available
 from packaging import version
 
@@ -70,12 +71,14 @@ def train_loop(
 
     global_step = 0
 
+
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
     # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
     # vqvae = vqvae.to(device)
-    # vqvae.eval().requires_grad_(False)
+    # vqvae.eval().requires_grad_
+
 
     vqvae = vqvae_b_3(config)
     vqvae = vqvae.to(device)
@@ -86,6 +89,15 @@ def train_loop(
     # vae = vae.to(device)
     # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     # vae.eval().requires_grad_(False)
+
+    # Create EMA for the unet.
+    if config.use_ema:
+        ema_unet = EMAModel(
+            model.parameters(),
+            model_cls=UNet2DModel,
+            model_config=model.config,
+            foreach=config.foreach_ema,
+        )
 
     model.train()  # important! This enables embedding dropout for classifier-free guidance
 
