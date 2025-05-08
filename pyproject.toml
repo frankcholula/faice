@@ -33,6 +33,7 @@ wandb = "^0.19.8"
 dotenv = "^0.9.9"
 pytorch-fid = "^0.3.0"
 clean-fid = "^0.1.35"
+transformers = "4.49.0"
 
 
 [tool.poetry.group.dev.dependencies]
