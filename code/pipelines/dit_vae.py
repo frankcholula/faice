@@ -32,13 +32,13 @@ selected_pipeline = DiTPipeline
 
 
 def train_loop(
-        config,
-        model,
-        noise_scheduler,
-        optimizer,
-        train_dataloader,
-        lr_scheduler,
-        test_dataloader=None,
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -74,7 +74,7 @@ def train_loop(
     # vae = vae_l_4(config)
     # vae = vae_b_16(config)
     vae = vae.to(device)
-    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+    vae.load_state_dict(torch.load(vae_path, map_location=device)["model_state_dict"])
     vae.eval().requires_grad_(False)
 
     # Create EMA for the unet.
@@ -97,10 +97,12 @@ def train_loop(
                 print(
                     "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
                 )
-            print('Start using xformers ...')
+            print("Start using xformers ...")
             model.enable_xformers_memory_efficient_attention()
         else:
-            raise ValueError("xformers is not available. Make sure it is installed correctly")
+            raise ValueError(
+                "xformers is not available. Make sure it is installed correctly"
+            )
 
     if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
         # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
@@ -118,7 +120,9 @@ def train_loop(
         def load_model_hook(models, input_dir):
             if config.use_ema:
                 load_model = EMAModel.from_pretrained(
-                    os.path.join(input_dir, "unet_ema"), DiTTransformer2DModel, foreach=config.foreach_ema
+                    os.path.join(input_dir, "unet_ema"),
+                    DiTTransformer2DModel,
+                    foreach=config.foreach_ema,
                 )
                 ema_model.load_state_dict(load_model.state_dict())
                 if config.offload_ema:
@@ -132,7 +136,9 @@ def train_loop(
                 model = models.pop()
 
                 # load diffusers style into model
-                load_model = DiTTransformer2DModel.from_pretrained(input_dir, subfolder="unet")
+                load_model = DiTTransformer2DModel.from_pretrained(
+                    input_dir, subfolder="unet"
+                )
                 model.register_to_config(**load_model.config)
 
                 model.load_state_dict(load_model.state_dict())
@@ -167,7 +173,9 @@ def train_loop(
             image_labels = [name_to_label(img_name) for img_name in image_names]
             image_labels = np.array(image_labels)
             # Convert the name in image_names to int number
-            class_labels = torch.tensor(image_labels, dtype=torch.int, device=device).reshape(-1)
+            class_labels = torch.tensor(
+                image_labels, dtype=torch.int, device=device
+            ).reshape(-1)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
@@ -191,17 +199,23 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_latent,
-                                   timestep=timesteps,
-                                   class_labels=class_labels,
-                                   return_dict=False)[0]
+                noise_pred = model(
+                    noisy_latent,
+                    timestep=timesteps,
+                    class_labels=class_labels,
+                    return_dict=False,
+                )[0]
 
                 if noise_scheduler.config.prediction_type == "epsilon":
                     target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
-                    target = noise_scheduler.get_velocity(clean_images, noise, timesteps)
+                    target = noise_scheduler.get_velocity(
+                        clean_images, noise, timesteps
+                    )
                 else:
-                    raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+                    raise ValueError(
+                        f"Unknown prediction type {noise_scheduler.config.prediction_type}"
+                    )
 
                 loss = F.mse_loss(noise_pred, target)
                 # loss = F.l1_loss(noise_pred, target)
@@ -231,7 +245,7 @@ def train_loop(
                 accelerator.unwrap_model(model),
                 # accelerator.unwrap_model(ema),
                 accelerator.unwrap_model(vae),
-                scheduler=noise_scheduler
+                scheduler=noise_scheduler,
             )
             pipeline = pipeline.to(accelerator.device)
 
@@ -239,11 +253,11 @@ def train_loop(
                 pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
-                                       epoch + 1
-                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                epoch + 1
+            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                                 epoch + 1
-                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                epoch + 1
+            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
@@ -285,9 +299,9 @@ def train_loop(
 
     # Now we evaluate the model on the test set
     if (
-            accelerator.is_main_process
-            and config.calculate_fid
-            and test_dataloader is not None
+        accelerator.is_main_process
+        and config.calculate_fid
+        and test_dataloader is not None
     ):
         if config.use_ema:
             ema_model.copy_to(model.parameters())
@@ -296,7 +310,7 @@ def train_loop(
             accelerator.unwrap_model(model),
             # accelerator.unwrap_model(ema),
             accelerator.unwrap_model(vae),
-            scheduler=noise_scheduler
+            scheduler=noise_scheduler,
         )
         pipeline = pipeline.to(accelerator.device)
 
@@ -309,17 +323,23 @@ def train_loop(
             (config.train_batch_size,),
             device=device,
         ).int()
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
+        fid_score = calculate_fid_score(
+            config, pipeline, test_dataloader, class_labels=class_labels
+        )
 
         wandb_logger.log_fid_score(fid_score)
 
     if (
-            accelerator.is_main_process
-            and config.calculate_is
-            and test_dataloader is not None
+        accelerator.is_main_process
+        and config.calculate_is
+        and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
+            config,
+            pipeline,
+            test_dataloader,
+            device=accelerator.device,
+            class_labels=class_labels,
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()

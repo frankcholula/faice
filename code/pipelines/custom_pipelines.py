@@ -36,12 +36,12 @@ class CustomTransformer2DPipeline(DiffusionPipeline):
 
     @torch.no_grad()
     def __call__(
-            self,
-            class_labels: List[int],
-            generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
-            num_inference_steps: int = 1000,
-            output_type: Optional[str] = "pil",
-            return_dict: bool = True,
+        self,
+        class_labels: List[int],
+        generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+        num_inference_steps: int = 1000,
+        output_type: Optional[str] = "pil",
+        return_dict: bool = True,
     ) -> Union[ImagePipelineOutput, Tuple]:
         r"""
         The call function to the pipeline for generation.
@@ -78,14 +78,23 @@ class CustomTransformer2DPipeline(DiffusionPipeline):
                 self.dit.config.sample_size,
             )
         else:
-            image_shape = (batch_size, self.dit.config.in_channels, *self.dit.config.sample_size)
+            image_shape = (
+                batch_size,
+                self.dit.config.in_channels,
+                *self.dit.config.sample_size,
+            )
 
         if self.device.type == "mps":
             # randn does not work reproducibly on mps
             image = randn_tensor(image_shape, generator=generator, dtype=self.dit.dtype)
             image = image.to(self.device)
         else:
-            image = randn_tensor(image_shape, generator=generator, device=self.device, dtype=self.dit.dtype)
+            image = randn_tensor(
+                image_shape,
+                generator=generator,
+                device=self.device,
+                dtype=self.dit.dtype,
+            )
 
         # set step values
         self.scheduler.set_timesteps(num_inference_steps)
@@ -100,7 +109,9 @@ class CustomTransformer2DPipeline(DiffusionPipeline):
 
             # 2. compute previous image: x_t -> x_t-1
             t = t.cpu()
-            image = self.scheduler.step(model_output, t, image, generator=generator).prev_sample
+            image = self.scheduler.step(
+                model_output, t, image, generator=generator
+            ).prev_sample
 
         image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()
@@ -126,20 +137,22 @@ class CustomTransformerVAEPipeline(DiffusionPipeline):
             [`DDIMScheduler`] is used in combination with `unet` to denoise the encoded image latents.
     """
 
-    def __init__(self, vae: AutoencoderKL, dit: Transformer2DModel, scheduler: DDIMScheduler):
+    def __init__(
+        self, vae: AutoencoderKL, dit: Transformer2DModel, scheduler: DDIMScheduler
+    ):
         super().__init__()
         self.register_modules(vae=vae, dit=dit, scheduler=scheduler)
 
     @torch.no_grad()
     def __call__(
-            self,
-            class_labels: List[int],
-            generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
-            eta: float = 0.0,
-            num_inference_steps: int = 50,
-            output_type: Optional[str] = "pil",
-            return_dict: bool = True,
-            **kwargs,
+        self,
+        class_labels: List[int],
+        generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+        eta: float = 0.0,
+        num_inference_steps: int = 50,
+        output_type: Optional[str] = "pil",
+        return_dict: bool = True,
+        **kwargs,
     ) -> Union[Tuple, ImagePipelineOutput]:
         r"""
         The call function to the pipeline for generation.
@@ -169,8 +182,12 @@ class CustomTransformerVAEPipeline(DiffusionPipeline):
         """
         batch_size = class_labels.shape[0]
         latents = randn_tensor(
-            (batch_size, self.dit.config.in_channels, self.dit.config.sample_size,
-             self.dit.config.sample_size),
+            (
+                batch_size,
+                self.dit.config.in_channels,
+                self.dit.config.sample_size,
+                self.dit.config.sample_size,
+            ),
             generator=generator,
         )
         latents = latents.to(self.device)
@@ -181,7 +198,9 @@ class CustomTransformerVAEPipeline(DiffusionPipeline):
         self.scheduler.set_timesteps(num_inference_steps)
 
         # prepare extra kwargs for the scheduler step, since not all schedulers have the same signature
-        accepts_eta = "eta" in set(inspect.signature(self.scheduler.step).parameters.keys())
+        accepts_eta = "eta" in set(
+            inspect.signature(self.scheduler.step).parameters.keys()
+        )
 
         extra_kwargs = {}
         if accepts_eta:
@@ -194,10 +213,14 @@ class CustomTransformerVAEPipeline(DiffusionPipeline):
             t = t.cpu().numpy()
             t = np.array([t])
             t = torch.from_numpy(t).to(device)
-            noise_prediction = self.dit(latent_model_input, timestep=t, class_labels=class_labels).sample
+            noise_prediction = self.dit(
+                latent_model_input, timestep=t, class_labels=class_labels
+            ).sample
 
             # compute the previous noisy sample x_t -> x_t-1
-            latents = self.scheduler.step(noise_prediction, t, latents, **extra_kwargs).prev_sample
+            latents = self.scheduler.step(
+                noise_prediction, t, latents, **extra_kwargs
+            ).prev_sample
 
         # adjust latents with inverse of vae scale
         latents = latents / self.vae.config.scaling_factor
