@@ -184,7 +184,7 @@ def create_unet(config):
     return model
 
 
-_COMPRESS_RATE = 4
+_COMPRESS_RATE = 8
 
 
 # TODO: refactor to use Liang's custom implementation.

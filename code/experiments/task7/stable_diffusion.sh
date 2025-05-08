@@ -5,7 +5,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
     --dataset face \
-    --model unet_cond_l_block_4 \
+    --model unet_l_block_5_head_dim_64 \
     --pipeline stable_diffusion \
     --scheduler pndm \
     --beta_schedule scaled_linear \
@@ -15,7 +15,7 @@ python main.py \
     --num_inference_steps 2 \
     --train_batch_size 8 \
     --eval_batch_size 8 \
-    --wandb_run_name liang_unet_cond_l_block_4_stable_diffusion_pndm_scaled_linear_bs64 \
+    --wandb_run_name liang_unet_l_block_5_head_dim_64_stable_diffusion_pndm_scaled_linear_bs64 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
