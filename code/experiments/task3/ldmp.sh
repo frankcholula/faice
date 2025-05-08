@@ -226,13 +226,13 @@ python main.py \
     --scheduler ddim \
     --beta_schedule scaled_linear \
     --image_size 128 \
-    --num_epochs 10 \
-    --num_train_timesteps 1000 \
+    --num_epochs 500 \
+    --num_train_timesteps 2000 \
     --num_inference_steps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_timesteps_4000_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
+    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_timesteps_2000_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
