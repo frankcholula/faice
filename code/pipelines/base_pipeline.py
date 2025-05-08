@@ -2,9 +2,11 @@
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
+import numpy as np
 
 # Hugging Face
 from diffusers import DDPMPipeline, DDIMPipeline
+from pipelines.ccddpm_pipeline import CCDDPMPipeline
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -12,6 +14,7 @@ from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from utils.loss import get_loss
+from utils.model_tools import name_to_label
 
 import lpips
 
@@ -19,7 +22,9 @@ AVAILABLE_PIPELINES = {
     "ddpm": DDPMPipeline,
     "ddim": DDIMPipeline,
     "pndm": DDIMPipeline,
+    "cond": CCDDPMPipeline,
 }
+
 
 def train_loop(
     config,
@@ -55,7 +60,7 @@ def train_loop(
     if config.use_lpips_regularization:
         lpips_fn = lpips.LPIPS(net=config.lpips_net).to(config.device)
         lpips_fn.eval()
-        
+
     global_step = 0
 
     # Now you train the model
@@ -92,12 +97,38 @@ def train_loop(
                     target = noise_scheduler.get_velocity(
                         clean_images, noise, timesteps
                     )
-                pred = model(noisy_images, timesteps, return_dict=False)[0]
-                
-                # loss = F.mse_loss(pred, target)
+                # Predict the target (noise or velocity)
+                if config.pipeline == "cond":
+                    # Extract class labels for conditioning
+                    # class_labels = batch["labels"]
+
+                    image_names = batch["image_names"]
+                    image_labels = [name_to_label(img_name) for img_name in image_names]
+                    image_labels = np.array(image_labels)
+                    # Convert the name in image_names to int number
+                    class_labels = torch.tensor(image_labels, dtype=torch.int).reshape(
+                        -1
+                    )
+
+                    # the encoder_hidden_states are really just a placeholder since we're only using labels.
+                    encoder_hidden_states = torch.zeros(
+                        bs,
+                        1,  # random sequence length
+                        model.config.cross_attention_dim,
+                        device=clean_images.device,
+                    )
+                    pred = model(
+                        noisy_images,
+                        timesteps,
+                        class_labels=class_labels,
+                        encoder_hidden_states=encoder_hidden_states,
+                        return_dict=False,
+                    )[0]
+
+                else:
+                    pred = model(noisy_images, timesteps, return_dict=False)[0]
 
                 loss = get_loss(pred, target, config, lpips_fn=lpips_fn)
-
                 accelerator.backward(loss)
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()

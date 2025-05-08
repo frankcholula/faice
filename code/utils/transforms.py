@@ -2,6 +2,7 @@ from typing import Tuple
 
 import torchvision.transforms as T
 from PIL import Image
+import numpy as np
 
 
 def build_transforms(config):
@@ -21,6 +22,8 @@ def build_transforms(config):
         transform_train += [T.RandomHorizontalFlip()]
     if config.gblur:
         transform_train += [T.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0))]
+    if config.center_crop_arr:
+        transform_train += [T.CenterCrop((config.image_size, config.image_size))]
 
     transform_train = T.Compose(transform_train)
     transform_test = T.Compose(transform_test)

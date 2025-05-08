@@ -1,8 +1,24 @@
 import argparse
 import inspect
 import sys
-from pipelines import base_pipeline, consistency
-from diffusers import DDPMScheduler, DDIMScheduler, PNDMScheduler
+from pipelines import (
+    consistency,
+    ldmp,
+    vae_train,
+    vqvae_train,
+    dit,
+    dit_vae,
+    base_pipeline,
+    stable_diffusion,
+)
+from diffusers import (
+    DDPMScheduler,
+    DDIMScheduler,
+    PNDMScheduler,
+    DPMSolverMultistepScheduler,
+)
+from diffusers.schedulers import CMStochasticIterativeScheduler
+import models
 from models.unet import create_unet
 from conf.training_config import get_config, get_all_datasets
 
@@ -32,24 +48,47 @@ def create_scheduler(
         return PNDMScheduler(
             num_train_timesteps=num_train_timesteps, beta_schedule=beta_schedule
         )
+    elif scheduler.lower() == "cmstochastic":
+        return CMStochasticIterativeScheduler(num_train_timesteps=num_train_timesteps)
+    elif scheduler.lower() == "dpmsolvermultistep":
+        return DPMSolverMultistepScheduler(
+            num_train_timesteps=num_train_timesteps,
+            beta_schedule=beta_schedule,
+            solver_order=2,
+        )
     else:
         raise ValueError(
             f"Scheduler type '{scheduler}' or noise scheduler type '{beta_schedule}' is not supported."
         )
 
 
-def create_model(model: str, config):
-    if model.lower() == "unet":
-        return create_unet(config)
+def create_model(model_name: str, config):
+    # TODO: refactor this to use the same init_modlel function in the future.
+    if model_name == "unet" and config.unet_variant in ["base", "ddpm", "adm", "cond"]:
+        model = create_unet(config)
     else:
-        raise ValueError(f"Model type '{model}' is not supported.")
+        model = models.init_model(config.model, config)
+
+    return model
 
 
 def create_pipeline(pipeline: str):
-    if pipeline.lower() in ["ddim", "ddpm", "pndm"]:
+    if pipeline.lower() in ["ddim", "ddpm", "pndm", "cond"]:
         return base_pipeline.train_loop
     elif pipeline.lower() == "consistency":
         return consistency.train_loop
+    elif pipeline.lower() == "ldmp":
+        return ldmp.train_loop
+    elif pipeline.lower() == "vqvae":
+        return vqvae_train.train_loop
+    elif pipeline.lower() == "vae":
+        return vae_train.train_loop
+    elif pipeline.lower() == "dit":
+        return dit.train_loop
+    elif pipeline.lower() == "dit_vae":
+        return dit_vae.train_loop
+    elif pipeline.lower() == "stable_diffusion":
+        return stable_diffusion.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 
@@ -77,6 +116,11 @@ def parse_args():
     )
     dataset_group.add_argument(
         "--RHFlip", help="Random horizontal flip augmentation", action="store_true"
+    )
+    dataset_group.add_argument(
+        "--center_crop_arr",
+        help="Random horizontal flip augmentation",
+        action="store_true",
     )
 
     training_group.add_argument(
@@ -139,11 +183,47 @@ def parse_args():
         help="Weight for LPIPS regularization (if enabled)",
     )
     
+    training_group.add_argument("--use_ema", action="store_true", help="Use ema")
+    training_group.add_argument(
+        "--foreach_ema", action="store_true", help="For each ema"
+    )
+    training_group.add_argument(
+        "--enable_xformers_memory_efficient_attention",
+        action="store_true",
+        help="Enable xformers memory efficient attention",
+    )
+    training_group.add_argument(
+        "--allow_tf32",
+        action="store_true",
+        help="Enable TF32 for faster training on Ampere GPUs,",
+    )
+    training_group.add_argument(
+        "--gradient_checkpointing",
+        action="store_true",
+        help="Use gradient checkpointing",
+    )
+    training_group.add_argument(
+        "--scale_lr", action="store_true", help="Scale learning rate"
+    )
+    training_group.add_argument(
+        "--gradient_accumulation_steps", type=int, help="Gradient accumulation steps"
+    )
+    training_group.add_argument(
+        "--offload_ema",
+        action="store_true",
+        help="Offload EMA model to CPU during training step.",
+    )
+    training_group.add_argument(
+        "--snr_gamma",
+        type=float,
+        default=None,
+        help="SNR weighting gamma to be used if rebalancing the loss. Recommended value is 5.0. More details here: https://arxiv.org/abs/2303.09556.",
+    )
 
     model_group.add_argument("--model", help="Model architecture")
     model_group.add_argument(
         "--unet_variant",
-        choices=["base", "ddpm", "adm"],
+        choices=["base", "ddpm", "adm", "cond"],
         default="base",
         help="Which UNet variant to use when --model==unet",
     )
@@ -196,9 +276,29 @@ def parse_args():
     )
     model_group.add_argument(
         "--pipeline",
-        choices=["ddpm", "ddim", "pndm", "consistency"],  
-        default="ddpm",                   
-        help="Training pipeline")
+        choices=[
+            "ddpm",
+            "ddim",
+            "pndm",
+            "consistency",
+            "cond",
+            "ldmp",
+            "dit",
+            "dit_vae",
+            "vae",
+            "vqvae",
+            "stable_diffusion",
+        ],
+        default="ddpm",
+        help="Training pipeline",
+    )
+
+    model_group.add_argument(
+        "--condition_on",
+        choices=["male", "female"],
+        default="male",
+        help="Condition on male or female on inference (if cond pipeline is selected)",
+    )
     model_group.add_argument(
         "--rescale_betas_zero_snr",
         action="store_true",
@@ -240,13 +340,9 @@ def parse_args():
             elif key != "dataset":
                 setattr(config, key, value)
     if config.wandb_run_name is None:
-        config.wandb_run_name = (
-            f"{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
-        )
+        config.wandb_run_name = f"{config.model}-{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
     if config.output_dir is None:
-        config.output_dir = (
-            f"runs/{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
-        )
+        config.output_dir = f"runs/{config.model}-{config.pipeline}-{config.scheduler}-{dataset}-{config.num_epochs}"
     return config
 
 
@@ -264,6 +360,7 @@ def get_config_and_components():
     print(f"Local output directory: {config.output_dir}")
     print(f"Gaussian Blur? : {config.gblur}")
     print(f"Random Horizontal Flip? : {config.RHFlip}")
+    print(f"center crop arr? : {config.center_crop_arr}")
     print(f"Prediction_type: {config.prediction_type}")
     print(f"Rescale_betas_zero_snr?: {config.rescale_betas_zero_snr}")
     print(f"Loss type: {config.loss_type}")

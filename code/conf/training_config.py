@@ -86,6 +86,11 @@ class FaceConfig(BaseConfig):
     save_model_epochs: int = 50
     train_dir: str = "datasets/celeba_hq_split/train"
     test_dir: str = "datasets/celeba_hq_split/test"
+    stable_diffusion_train_dir: str = "datasets/celeba_hq_stable_diffusion/train_2700"
+    stable_diffusion_test_dir: str = "datasets/celeba_hq_stable_diffusion/test_300"
+    stable_diffusion_prompt_dir: str = "datasets/celeba_hq_stable_diffusion/captions_hq.json"
+    stable_diffusion_request_prompt_dir: str = "datasets/celeba_hq_stable_diffusion/request_hq.txt"
+    snr_gamma: float = None
 
 
 CONFIG_REGISTRY = {
