@@ -3,16 +3,19 @@
 python main.py \
     --dataset face \
     --scheduler ddpm \
-    --beta_schedule linear \
+    --pipeline ddpm \
+    --num_inference_steps 100 \
+    --beta_schedule squaredcos_cap_v2 \
     --model unet \
     --unet_variant adm \
     --attention_head_dim 64 \
+    --prediction_type v_prediction \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 4000 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
-    --wandb_run_name task4_baseline \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
+    --wandb_run_name task4_ddpm_cos_v \
     --calculate_fid \
     --calculate_is \
     --verbose
