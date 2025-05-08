@@ -196,27 +196,48 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --no_confirm
 #    --no_wandb
 
-
 python main.py \
     --dataset face \
     --model unet_l_block_5_head_dim_64 \
     --pipeline ldmp \
     --scheduler ddim \
     --beta_schedule scaled_linear \
-    --RHFlip \
-    --center_crop_arr \
+    --eta 0.5 \
     --image_size 128 \
-    --num_epochs 10 \
+    --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_RHFlip_center_crop_arr_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
+    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_timesteps_4000_eta_0.5_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
     --allow_tf32 \
     --no_confirm
+    --no_wandb
+
+
+#python main.py \
+#    --dataset face \
+#    --model unet_l_block_5_head_dim_64 \
+#    --pipeline ldmp \
+#    --scheduler ddim \
+#    --beta_schedule scaled_linear \
+#    --RHFlip \
+#    --center_crop_arr \
+#    --image_size 128 \
+#    --num_epochs 10 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_RHFlip_center_crop_arr_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
 #    --no_wandb
 
 #python main.py \
