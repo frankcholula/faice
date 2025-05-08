@@ -12,7 +12,7 @@ python main.py \
     --RHFlip \
     --center_crop_arr \
     --image_size 256 \
-    --num_epochs 500 \
+    --num_epochs 1 \
     --num_train_timesteps 1000 \
     --num_inference_steps 999 \
     --train_batch_size 16 \
