@@ -181,6 +181,8 @@ def train_loop(
                 accelerator.unwrap_model(vae),
                 scheduler=noise_scheduler
             )
+            pipeline = pipeline.to(accelerator.device)
+
             if config.enable_xformers_memory_efficient_attention:
                 pipeline.enable_xformers_memory_efficient_attention()
 
@@ -226,6 +228,8 @@ def train_loop(
             accelerator.unwrap_model(vae),
             scheduler=noise_scheduler
         )
+        pipeline = pipeline.to(accelerator.device)
+
         if config.enable_xformers_memory_efficient_attention:
             pipeline.enable_xformers_memory_efficient_attention()
 
