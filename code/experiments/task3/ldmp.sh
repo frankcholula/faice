@@ -227,7 +227,7 @@ python main.py \
     --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 10 \
-    --num_train_timesteps 4000 \
+    --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
