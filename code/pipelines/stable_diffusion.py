@@ -300,10 +300,10 @@ def train_loop(
                 tokenizer=tokenizer,
                 # revision=config.revision,
             )
-            pipeline = pipeline.to(accelerator.device)
+            # pipeline = pipeline.to(accelerator.device)
 
-            if config.enable_xformers_memory_efficient_attention:
-                pipeline.enable_xformers_memory_efficient_attention()
+            # if config.enable_xformers_memory_efficient_attention:
+            #     pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
                                        epoch + 1
@@ -355,10 +355,10 @@ def train_loop(
             tokenizer=tokenizer,
             # revision=config.revision,
         )
-        pipeline = pipeline.to(accelerator.device)
+        # pipeline = pipeline.to(accelerator.device)
 
-        if config.enable_xformers_memory_efficient_attention:
-            pipeline.enable_xformers_memory_efficient_attention()
+        # if config.enable_xformers_memory_efficient_attention:
+        #     pipeline.enable_xformers_memory_efficient_attention()
 
         fid_score = calculate_fid_score(config, pipeline, test_dataloader, prompt_dict=test_prompt_dict)
 

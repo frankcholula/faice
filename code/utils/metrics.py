@@ -173,8 +173,8 @@ def calculate_inception_score(
 
                 if prompt_dict:
                     batch_data = test_dataloader.dataset
-                    prompts = [prompt_dict[int(x['image_names'])] for x in batch_data]
-                    prompts = prompts[batch:batch + batch_size]
+                    prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
+                               i in range(batch, batch + batch_size)]
                 else:
                     prompts = []
 
@@ -247,8 +247,8 @@ def calculate_fid_score(
 
             if prompt_dict:
                 batch_data = test_dataloader.dataset
-                prompts = [prompt_dict[int(x['image_names'])] for x in batch_data]
-                prompts = prompts[batch:batch + batch_size]
+                prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
+                           i in range(batch, batch + batch_size)]
             else:
                 prompts = []
             output = pipeline_inference(
