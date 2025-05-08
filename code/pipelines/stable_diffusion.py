@@ -318,7 +318,8 @@ def train_loop(
                 if config.enable_xformers_memory_efficient_attention:
                     pipeline.enable_xformers_memory_efficient_attention()
 
-                evaluate(config, epoch, pipeline, prompt=evaluation_prompts)
+                with torch.no_grad():
+                    evaluate(config, epoch, pipeline, prompt=evaluation_prompts)
                 if config.use_ema:
                     # Switch back to the original UNet parameters.
                     ema_unet.restore(model.parameters())
@@ -359,7 +360,8 @@ def train_loop(
         if config.enable_xformers_memory_efficient_attention:
             pipeline.enable_xformers_memory_efficient_attention()
 
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, prompt_dict=test_prompt_dict)
+        with torch.no_grad():
+            fid_score = calculate_fid_score(config, pipeline, test_dataloader, prompt_dict=test_prompt_dict)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -368,9 +370,10 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
-        inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, prompt_dict=test_prompt_dict
-        )
+        with torch.no_grad():
+            inception_score = calculate_inception_score(
+                config, pipeline, test_dataloader, device=accelerator.device, prompt_dict=test_prompt_dict
+            )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
 
