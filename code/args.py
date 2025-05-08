@@ -114,7 +114,7 @@ def parse_args():
         help="Type of loss function to use (mse, l1, hybrid)",
     )
     training_group.add_argument(
-        "--hyrbid_weight",
+        "--hybrid_weight",
         type=float,
         default=0.5,
         help="Weight for hybrid loss (if applicable)",
