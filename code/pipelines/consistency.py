@@ -8,7 +8,6 @@
 # Deep learning framework
 from typing import Optional
 
-import random
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -27,6 +26,8 @@ from utils.loss import get_loss
 import lpips
 
 selected_pipeline = ConsistencyModelPipeline
+
+
 def train_loop(
     config,
     model,
