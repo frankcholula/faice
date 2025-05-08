@@ -1,12 +1,15 @@
 # Deep learning framework
 from copy import deepcopy
-
+import os
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import numpy as np
 
+import accelerate
+from diffusers import Transformer2DModel
 from diffusers.utils.import_utils import is_xformers_available
+from diffusers.training_utils import EMAModel
 from packaging import version
 
 # Configuration
@@ -54,14 +57,80 @@ def train_loop(
 
     global_step = 0
 
-    ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
-    requires_grad(ema, False)
-    # Prepare models for training:
-    update_ema(ema, model, decay=0)  # Ensure EMA is initialized with synced weights
-    model.train()  # important! This enables embedding dropout for classifier-free guidance
-    ema.eval()  # EMA model should always be in eval mode
+    # Create EMA for the unet.
+    if config.use_ema:
+        ema_model = EMAModel(
+            model.parameters(),
+            model_cls=Transformer2DModel,
+            model_config=model.config,
+            foreach=config.foreach_ema,
+        )
 
     model.train()  # important! This enables embedding dropout for classifier-free guidance
+
+    if config.enable_xformers_memory_efficient_attention:
+        if is_xformers_available():
+            import xformers
+
+            xformers_version = version.parse(xformers.__version__)
+            if xformers_version == version.parse("0.0.16"):
+                print(
+                    "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
+                )
+            print('Start using xformers ...')
+            model.enable_xformers_memory_efficient_attention()
+        else:
+            raise ValueError("xformers is not available. Make sure it is installed correctly")
+
+    if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
+        # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
+        def save_model_hook(models, weights, output_dir):
+            if accelerator.is_main_process:
+                if config.use_ema:
+                    ema_model.save_pretrained(os.path.join(output_dir, "unet_ema"))
+
+                for i, model in enumerate(models):
+                    model.save_pretrained(os.path.join(output_dir, "unet"))
+
+                    # make sure to pop weight so that corresponding model is not saved again
+                    weights.pop()
+
+        def load_model_hook(models, input_dir):
+            if config.use_ema:
+                load_model = EMAModel.from_pretrained(
+                    os.path.join(input_dir, "unet_ema"), Transformer2DModel, foreach=config.foreach_ema
+                )
+                ema_model.load_state_dict(load_model.state_dict())
+                if config.offload_ema:
+                    ema_model.pin_memory()
+                else:
+                    ema_model.to(accelerator.device)
+                del load_model
+
+            for _ in range(len(models)):
+                # pop models so that they are not loaded again
+                model = models.pop()
+
+                # load diffusers style into model
+                load_model = Transformer2DModel.from_pretrained(input_dir, subfolder="unet")
+                model.register_to_config(**load_model.config)
+
+                model.load_state_dict(load_model.state_dict())
+                del load_model
+
+        accelerator.register_save_state_pre_hook(save_model_hook)
+        accelerator.register_load_state_pre_hook(load_model_hook)
+
+    # Enable TF32 for faster training on Ampere GPUs,
+    # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
+    if config.allow_tf32:
+        torch.backends.cuda.matmul.allow_tf32 = True
+
+    if config.use_ema:
+        if config.offload_ema:
+            ema_model.pin_memory()
+        else:
+            ema_model.to(accelerator.device)
 
     if config.enable_xformers_memory_efficient_attention:
         if is_xformers_available():
@@ -125,7 +194,6 @@ def train_loop(
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                update_ema(ema, model)
 
             progress_bar.update(1)
             logs = {
@@ -147,6 +215,10 @@ def train_loop(
                 # dit=accelerator.unwrap_model(ema),
                 scheduler=noise_scheduler
             )
+            pipeline = pipeline.to(accelerator.device)
+
+            if config.enable_xformers_memory_efficient_attention:
+                pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
                                        epoch + 1
@@ -157,6 +229,13 @@ def train_loop(
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
+                if config.use_ema:
+                    # Store the UNet parameters temporarily and load the EMA parameters to perform inference.
+                    ema_model.store(model.parameters())
+                    ema_model.copy_to(model.parameters())
+                if config.enable_xformers_memory_efficient_attention:
+                    pipeline.enable_xformers_memory_efficient_attention()
+
                 evaluate_batch_size = 16
                 class_labels = torch.randint(
                     0,
@@ -165,10 +244,18 @@ def train_loop(
                     device=device,
                 ).int()
                 evaluate(config, epoch, pipeline, class_labels=class_labels)
+
+                if config.use_ema:
+                    # Switch back to the original UNet parameters.
+                    ema_model.restore(model.parameters())
+
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
+                    if config.use_ema:
+                        ema_model.copy_to(model.parameters())
+
                     pipeline.save_pretrained(config.output_dir)
                     if save_to_wandb:
                         wandb_logger.save_model()
@@ -184,6 +271,9 @@ def train_loop(
             and config.calculate_fid
             and test_dataloader is not None
     ):
+        if config.use_ema:
+            ema_model.copy_to(model.parameters())
+
         pipeline = selected_pipeline(
             dit=accelerator.unwrap_model(model),
             # dit=accelerator.unwrap_model(ema),
