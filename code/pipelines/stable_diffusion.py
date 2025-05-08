@@ -101,6 +101,7 @@ def train_loop(
             foreach=config.foreach_ema,
         )
 
+    model = model.to(device)
     model.train()  # important! This enables embedding dropout for classifier-free guidance
 
     if config.enable_xformers_memory_efficient_attention:
