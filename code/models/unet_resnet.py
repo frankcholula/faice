@@ -18,7 +18,8 @@ def create_unet_resnet512(config):
         # attn_norm_num_groups=32,
         time_embedding_type="positional",
         upsample_type="resnet",
-        downsample_type="resnet",
+        downsample_type="" \
+        "resnet",
         # num_class_embeds=1000,
         block_out_channels=(
             128,
@@ -28,7 +29,6 @@ def create_unet_resnet512(config):
             512,
             512,
         ),
-
         down_block_types=(
             "ResnetDownsampleBlock2D",
             "ResnetDownsampleBlock2D",
@@ -44,9 +44,8 @@ def create_unet_resnet512(config):
             "AttnUpBlock2D",
             "ResnetUpsampleBlock2D",
             "ResnetUpsampleBlock2D",
-            "ResnetUpsampleBlock2D"
+            "ResnetUpsampleBlock2D",
         ),
-
     )
     return model
 
@@ -63,22 +62,14 @@ def create_unet_resnet1024(config):
         upsample_type="resnet",
         downsample_type="resnet",
         # num_class_embeds=1000,
-        block_out_channels=(
-            256,
-            256,
-            512,
-            512,
-            1024,
-            1024
-        ),
-
+        block_out_channels=(256, 256, 512, 512, 1024, 1024),
         down_block_types=(
             "ResnetDownsampleBlock2D",
             "ResnetDownsampleBlock2D",
             "ResnetDownsampleBlock2D",
             "AttnDownBlock2D",
             "AttnDownBlock2D",
-            "AttnDownBlock2D"
+            "AttnDownBlock2D",
         ),
         up_block_types=(
             "AttnUpBlock2D",
@@ -86,9 +77,8 @@ def create_unet_resnet1024(config):
             "AttnUpBlock2D",
             "ResnetUpsampleBlock2D",
             "ResnetUpsampleBlock2D",
-            "ResnetUpsampleBlock2D"
+            "ResnetUpsampleBlock2D",
         ),
-
     )
     return model
 
@@ -105,18 +95,12 @@ def create_unet_resnet768(config):
         upsample_type="resnet",
         downsample_type="resnet",
         # num_class_embeds=1000,
-        block_out_channels=(
-            192,
-            384,
-            576,
-            768
-        ),
-
+        block_out_channels=(192, 384, 576, 768),
         down_block_types=(
             "ResnetDownsampleBlock2D",
             "AttnDownBlock2D",
             "AttnDownBlock2D",
-            "AttnDownBlock2D"
+            "AttnDownBlock2D",
         ),
         up_block_types=(
             "AttnUpBlock2D",
@@ -124,6 +108,5 @@ def create_unet_resnet768(config):
             "AttnUpBlock2D",
             "ResnetUpsampleBlock2D",
         ),
-
     )
     return model

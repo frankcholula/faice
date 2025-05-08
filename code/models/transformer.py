@@ -9,8 +9,17 @@ from diffusers import DiTTransformer2DModel, Transformer2DModel
 
 
 class DiT(object):
-    def __init__(self, config, depth=28, hidden_size=1152, patch_size=2, num_heads=16, compress_rate=4,
-                 channels=4, attention_type='default'):
+    def __init__(
+        self,
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=4,
+        channels=4,
+        attention_type="default",
+    ):
         self.sample_size = int(config.image_size / compress_rate)
         self.num_layers = depth
         self.num_attention_heads = num_heads
@@ -49,12 +58,12 @@ class DiT(object):
             num_embeds_ada_norm=1000,
             num_layers=self.num_layers,
             patch_size=self.patch_size,
-            attention_type=self.attention_type
+            attention_type=self.attention_type,
         )
 
-        if self.attention_type == 'flash':
+        if self.attention_type == "flash":
             dit.enable_flash_attention()
-        elif self.attention_type == 'xformers':
+        elif self.attention_type == "xformers":
             dit.enable_xformers_memory_efficient_attention()
         else:
             pass
@@ -66,194 +75,500 @@ class DiT(object):
 #                                   DiT Configs                                  #
 #################################################################################
 
+
 def DiT_XL_2(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=2, num_heads=16, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_XL_4(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=4, num_heads=16, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=4,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_XL_8(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=8, num_heads=16, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=8,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_L_2(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=2, num_heads=16, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_L_4(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=4, num_heads=16, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=4,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_L_8(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=8, num_heads=16, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=8,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_B_2(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=2,
+        num_heads=12,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_B_4(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=4, num_heads=12, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=4,
+        num_heads=12,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_B_8(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=8, num_heads=12, compress_rate=1,
-               channels=3, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=8,
+        num_heads=12,
+        compress_rate=1,
+        channels=3,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_XL_2_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=2, num_heads=16, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_XL_4_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=4, num_heads=16, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=4,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_XL_8_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=8, num_heads=16, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=8,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_L_2_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=2, num_heads=16, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_L_4_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=4, num_heads=16, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=4,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_L_8_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=8, num_heads=16, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=8,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_B_2_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=2,
+        num_heads=12,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
+
 
 def DiT_B_2_vae_channels_4_compress_4(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=4,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=2,
+        num_heads=12,
+        compress_rate=4,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_B_2_vae_channels_16(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=4,
-               channels=16, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=2,
+        num_heads=12,
+        compress_rate=4,
+        channels=16,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_B_4_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=4, num_heads=12, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=4,
+        num_heads=12,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 def DiT_B_8_vae_channels_4(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=8, num_heads=12, compress_rate=8,
-               channels=4, **kwargs).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=8,
+        num_heads=12,
+        compress_rate=8,
+        channels=4,
+        **kwargs
+    ).create_dit()
 
 
 # Set the attention type
-attention_type_transformer_2d = 'xformers'
+attention_type_transformer_2d = "xformers"
 
 
 def DiT_XL_2_transformer_2d(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=2, num_heads=16, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_XL_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=4, num_heads=16, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=4,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_XL_8_transformer_2d(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=8, num_heads=16, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=8,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_L_2_transformer_2d(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=2, num_heads=16, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_L_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=4, num_heads=16, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=4,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_L_8_transformer_2d(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=8, num_heads=16, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=8,
+        num_heads=16,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_B_2_transformer_2d(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=2,
+        num_heads=12,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_B_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=4, num_heads=12, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=4,
+        num_heads=12,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_B_8_transformer_2d(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=8, num_heads=12, compress_rate=1,
-               channels=3, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=8,
+        num_heads=12,
+        compress_rate=1,
+        channels=3,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_XL_2_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=2, num_heads=16, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_XL_4_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=4, num_heads=16, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=4,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_XL_8_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=28, hidden_size=1152, patch_size=8, num_heads=16, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=28,
+        hidden_size=1152,
+        patch_size=8,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_L_2_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=2, num_heads=16, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=2,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_L_4_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=4, num_heads=16, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_transformer_2d()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=4,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_transformer_2d()
 
 
 def DiT_L_8_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=24, hidden_size=1024, patch_size=8, num_heads=16, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_dit()
+    return DiT(
+        config,
+        depth=24,
+        hidden_size=1024,
+        patch_size=8,
+        num_heads=16,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_dit()
 
 
 def DiT_B_2_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=2, num_heads=12, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=2,
+        num_heads=12,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_dit()
 
 
 def DiT_B_4_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=4, num_heads=12, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=4,
+        num_heads=12,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_dit()
 
 
 def DiT_B_8_vae_channels_4_transformer_2d(config, **kwargs):
-    return DiT(config, depth=12, hidden_size=768, patch_size=8, num_heads=12, compress_rate=8,
-               channels=4, attention_type=attention_type_transformer_2d).create_dit()
+    return DiT(
+        config,
+        depth=12,
+        hidden_size=768,
+        patch_size=8,
+        num_heads=12,
+        compress_rate=8,
+        channels=4,
+        attention_type=attention_type_transformer_2d,
+    ).create_dit()

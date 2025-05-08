@@ -27,7 +27,6 @@ def base_vae(config, latent_channels=4):
             "UpDecoderBlock2D",
             "UpDecoderBlock2D",
         ),
-
     )
     return vae
 
@@ -45,15 +44,14 @@ def base_vae_l(config, latent_channels=4):
             "DownEncoderBlock2D",
             "DownEncoderBlock2D",
             "DownEncoderBlock2D",
-            "DownEncoderBlock2D"
+            "DownEncoderBlock2D",
         ),
         up_block_types=(
             "UpDecoderBlock2D",
             "UpDecoderBlock2D",
             "UpDecoderBlock2D",
-            "UpDecoderBlock2D"
+            "UpDecoderBlock2D",
         ),
-
     )
     return vae
 
