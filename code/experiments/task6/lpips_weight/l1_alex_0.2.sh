@@ -17,7 +17,7 @@ python main.py \
     --use_lpips \
     --lpips_net alex \
     --lpips_weight 0.2 \
-    --wandb_run_name task6_mse_lpips_alex_0.2 \
+    --wandb_run_name task6_l1_lpips_alex_0.2 \
     --calculate_fid \
     --calculate_is \
     --verbose

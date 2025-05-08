@@ -17,7 +17,7 @@ python main.py \
     --use_lpips \
     --lpips_net vgg \
     --lpips_weight 0.1 \
-    --wandb_run_name task6_mse_lpips_vgg_0.1 \
+    --wandb_run_name task6_l1_lpips_vgg_0.1 \
     --calculate_fid \
     --calculate_is \
     --verbose
