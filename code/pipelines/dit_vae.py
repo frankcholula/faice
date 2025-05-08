@@ -22,7 +22,9 @@ from utils.model_tools import name_to_label, update_ema, requires_grad
 
 # vae_path = "runs/vae-vae-ddpm-face-500-16/checkpoints/model_vae.pth"
 # vae_path = "runs/vae_xl-vae-ddpm-face-500-4/checkpoints/model_vae.pth"
-vae_path = "runs/vae_xl-vae-ddpm-face-500-4-0.1/checkpoints/model_vae.pth"
+# vae_path = "runs/vae_xl-vae-ddpm-face-500-4-0.1/checkpoints/model_vae.pth"
+
+vae_path = "runs/vae_b_4-vae-ddpm-face-500-0.05/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
 

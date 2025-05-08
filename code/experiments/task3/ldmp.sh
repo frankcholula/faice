@@ -226,7 +226,7 @@ python main.py \
 #    --RHFlip \
 #    --center_crop_arr \
 #    --image_size 128 \
-#    --num_epochs 10 \
+#    --num_epochs 500 \
 #    --num_train_timesteps 1000 \
 #    --num_inference_steps 1000 \
 #    --train_batch_size 64 \
