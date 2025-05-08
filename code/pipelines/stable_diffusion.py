@@ -302,6 +302,9 @@ def train_loop(
             )
             pipeline = pipeline.to(accelerator.device)
 
+            if config.enable_xformers_memory_efficient_attention:
+                pipeline.enable_xformers_memory_efficient_attention()
+
             generate_samples = (
                                        epoch + 1
                                ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
@@ -315,8 +318,6 @@ def train_loop(
                     # Store the UNet parameters temporarily and load the EMA parameters to perform inference.
                     ema_unet.store(model.parameters())
                     ema_unet.copy_to(model.parameters())
-                if config.enable_xformers_memory_efficient_attention:
-                    pipeline.enable_xformers_memory_efficient_attention()
 
                 evaluate(config, epoch, pipeline, prompt=evaluation_prompts)
                 if config.use_ema:
