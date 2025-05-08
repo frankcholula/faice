@@ -337,6 +337,9 @@ def train_loop(
             and config.calculate_fid
             and test_dataloader is not None
     ):
+        if config.use_ema:
+            ema_unet.copy_to(model.parameters())
+
         pipeline = StableDiffusionPipeline.from_pretrained(
             pretrained_model_name_or_path,
             text_encoder=accelerator.unwrap_model(text_encoder),
