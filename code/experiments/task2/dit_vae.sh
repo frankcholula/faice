@@ -121,14 +121,14 @@ python main.py \
     --model DiT_B_2_vae_channels_4_compress_4\
     --pipeline dit_vae \
     --scheduler ddim \
-    --beta_schedule linear \
+    --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 1 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
-    --wandb_run_name liang_DiT_B_2_vae_channels_4_compress_4_ddim_linear_bs32_vae0.05 \
+    --wandb_run_name liang_DiT_B_2_vae_channels_4_compress_4_ddim_scaled_linear_bs16_vae0.05 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
