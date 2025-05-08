@@ -224,6 +224,17 @@ class BasicUNet(object):
         )
         return model
 
+    def unet_xl(self):
+        model = UNet2DModel(
+            sample_size=self.sample_size,  # the target image resolution
+            in_channels=3,  # the number of input channels, 3 for RGB images
+            out_channels=3,  # the number of output channels
+            attention_head_dim=self.attention_head_dim,
+            layers_per_block=self.layers_per_block,  # how many ResNet layers to use per UNet block
+            **self.multi_attention_block_xl(),
+        )
+        return model
+
     def single_attention_block(self):
         block_out_channels = [128, 128, 256, 256, 512, 512]
         down_block_types = [
@@ -281,6 +292,31 @@ class BasicUNet(object):
             up_block_types = ["AttnUpBlock2D"] + up_block_types
         elif self.block_num == 6:
             block_out_channels = block_out_channels + [1120, 1344]
+            down_block_types = down_block_types + ["AttnDownBlock2D"] * 2
+            up_block_types = ["AttnUpBlock2D"] * 2 + up_block_types
+        blocks = {
+            "block_out_channels": tuple(block_out_channels),
+            "down_block_types": tuple(down_block_types),
+            "up_block_types": tuple(up_block_types),
+        }
+        return blocks
+
+    def multi_attention_block_xl(self):
+        block_out_channels = [768, 1024, 1280, 1536]
+        down_block_types = [
+            "DownBlock2D",
+            "AttnDownBlock2D",
+            "AttnDownBlock2D",
+            "AttnDownBlock2D",
+        ]
+        up_block_types = [
+            "AttnUpBlock2D",
+            "AttnUpBlock2D",
+            "AttnUpBlock2D",
+            "UpBlock2D",
+        ]
+        if self.block_num == 6:
+            block_out_channels = block_out_channels + [1792, 2048]
             down_block_types = down_block_types + ["AttnDownBlock2D"] * 2
             up_block_types = ["AttnUpBlock2D"] * 2 + up_block_types
         blocks = {
@@ -389,3 +425,23 @@ def unet_l_block_6_head_dim_64_layer_4(config):
         attention_head_dim=64,
         layers_per_block=4,
     ).unet_l()
+
+
+def unet_xl_block_6(config):
+    return BasicUNet(config, compress_rate=_COMPRESS_RATE, block_num=6).unet_xl()
+
+
+def unet_xl_block_6_head_dim_64(config):
+    return BasicUNet(
+        config, compress_rate=_COMPRESS_RATE, block_num=6, attention_head_dim=64
+    ).unet_xl()
+
+
+def unet_xl_block_6_head_dim_64_layer_4(config):
+    return BasicUNet(
+        config,
+        compress_rate=_COMPRESS_RATE,
+        block_num=6,
+        attention_head_dim=64,
+        layers_per_block=4,
+    ).unet_xl()

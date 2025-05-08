@@ -1,18 +1,16 @@
 # Deep learning framework
+import os
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import numpy as np
-from torch import nn
-from typing import List, Optional, Tuple, Union
-import inspect
 from copy import deepcopy
 
-from diffusers import DiffusionPipeline, DiTPipeline
-from diffusers import AutoencoderKL, Transformer2DModel
-from diffusers import DDIMScheduler
-from diffusers.pipelines.pipeline_utils import ImagePipelineOutput
-from diffusers.utils.torch_utils import randn_tensor
+import accelerate
+from diffusers import DiTPipeline, DiTTransformer2DModel
+from diffusers.training_utils import EMAModel
+from diffusers.utils.import_utils import is_xformers_available
+from packaging import version
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -24,131 +22,23 @@ from utils.model_tools import name_to_label, update_ema, requires_grad
 
 # vae_path = "runs/vae-vae-ddpm-face-500-16/checkpoints/model_vae.pth"
 # vae_path = "runs/vae_xl-vae-ddpm-face-500-4/checkpoints/model_vae.pth"
-vae_path = "runs/vae_xl-vae-ddpm-face-500-4-0.1/checkpoints/model_vae.pth"
+# vae_path = "runs/vae_xl-vae-ddpm-face-500-4-0.1/checkpoints/model_vae.pth"
+
+vae_path = "runs/vae_b_4-vae-ddpm-face-500-0.05/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
-
-
-class CustomTransformerVAEPipeline(DiffusionPipeline):
-    r"""
-    Pipeline for unconditional image generation using latent diffusion.
-
-    This model inherits from [`DiffusionPipeline`]. Check the superclass documentation for the generic methods
-    implemented for all pipelines (downloading, saving, running on a particular device, etc.).
-
-    Parameters:
-        vae ():
-        scheduler ([`SchedulerMixin`]):
-            [`DDIMScheduler`] is used in combination with `unet` to denoise the encoded image latents.
-    """
-
-    def __init__(self, vae: AutoencoderKL, dit: Transformer2DModel, scheduler: DDIMScheduler):
-        super().__init__()
-        self.register_modules(vae=vae, dit=dit, scheduler=scheduler)
-
-    @torch.no_grad()
-    def __call__(
-            self,
-            batch_size: int = 1,
-            generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
-            eta: float = 0.0,
-            num_inference_steps: int = 50,
-            output_type: Optional[str] = "pil",
-            return_dict: bool = True,
-            **kwargs,
-    ) -> Union[Tuple, ImagePipelineOutput]:
-        r"""
-        The call function to the pipeline for generation.
-
-        Args:
-            batch_size (`int`, *optional*, defaults to 1):
-                Number of images to generate.
-            generator (`torch.Generator`, *optional*):
-                A [`torch.Generator`](https://pytorch.org/docs/stable/generated/torch.Generator.html) to make
-                generation deterministic.
-            num_inference_steps (`int`, *optional*, defaults to 50):
-                The number of denoising steps. More denoising steps usually lead to a higher quality image at the
-                expense of slower inference.
-            output_type (`str`, *optional*, defaults to `"pil"`):
-                The output format of the generated image. Choose between `PIL.Image` or `np.array`.
-            return_dict (`bool`, *optional*, defaults to `True`):
-                Whether or not to return a [`~pipelines.ImagePipelineOutput`] instead of a plain tuple.
-
-        Example:
-
-        ```py
-
-        Returns:
-            [`~pipelines.ImagePipelineOutput`] or `tuple`:
-                If `return_dict` is `True`, [`~pipelines.ImagePipelineOutput`] is returned, otherwise a `tuple` is
-                returned where the first element is a list with the generated images
-        """
-
-        latents = randn_tensor(
-            (batch_size, self.dit.config.in_channels, self.dit.config.sample_size,
-             self.dit.config.sample_size),
-            generator=generator,
-        )
-        latents = latents.to(self.device)
-
-        # scale the initial noise by the standard deviation required by the scheduler
-        latents = latents * self.scheduler.init_noise_sigma
-
-        self.scheduler.set_timesteps(num_inference_steps)
-
-        # prepare extra kwargs for the scheduler step, since not all schedulers have the same signature
-        accepts_eta = "eta" in set(inspect.signature(self.scheduler.step).parameters.keys())
-
-        extra_kwargs = {}
-        if accepts_eta:
-            extra_kwargs["eta"] = eta
-
-        class_labels = torch.randint(
-            0,
-            num_class,
-            (batch_size,),
-            device=device,
-        ).int()
-
-        for t in self.progress_bar(self.scheduler.timesteps):
-            latent_model_input = self.scheduler.scale_model_input(latents, t)
-
-            # Convert one number t to 1d-array
-            t = t.cpu().numpy()
-            t = np.array([t])
-            t = torch.from_numpy(t).to(device)
-            noise_prediction = self.dit(latent_model_input, timestep=t, class_labels=class_labels).sample
-
-            # compute the previous noisy sample x_t -> x_t-1
-            latents = self.scheduler.step(noise_prediction, t, latents, **extra_kwargs).prev_sample
-
-        # adjust latents with inverse of vae scale
-        latents = latents / self.vae.config.scaling_factor
-        # decode the image latents with the VAE
-        image = self.vae.decode(latents).sample
-
-        image = (image / 2 + 0.5).clamp(0, 1)
-        image = image.cpu().permute(0, 2, 3, 1).numpy()
-        if output_type == "pil":
-            image = self.numpy_to_pil(image)
-
-        if not return_dict:
-            return (image,)
-
-        return ImagePipelineOutput(images=image)
-
 
 selected_pipeline = DiTPipeline
 
 
 def train_loop(
-        config,
-        model,
-        noise_scheduler,
-        optimizer,
-        train_dataloader,
-        lr_scheduler,
-        test_dataloader=None,
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -180,18 +70,93 @@ def train_loop(
     # vae = vae.to(device)
     # vae.eval().requires_grad_(False)
 
-    vae = vae_l_4(config)
+    vae = vae_b_4(config)
+    # vae = vae_l_4(config)
     # vae = vae_b_16(config)
     vae = vae.to(device)
-    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+    vae.load_state_dict(torch.load(vae_path, map_location=device)["model_state_dict"])
     vae.eval().requires_grad_(False)
 
-    ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
-    requires_grad(ema, False)
-    # Prepare models for training:
-    update_ema(ema, model, decay=0)  # Ensure EMA is initialized with synced weights
+    # Create EMA for the unet.
+    if config.use_ema:
+        ema_model = EMAModel(
+            model.parameters(),
+            model_cls=DiTTransformer2DModel,
+            model_config=model.config,
+            foreach=config.foreach_ema,
+        )
+
     model.train()  # important! This enables embedding dropout for classifier-free guidance
-    ema.eval()  # EMA model should always be in eval mode
+
+    if config.enable_xformers_memory_efficient_attention:
+        if is_xformers_available():
+            import xformers
+
+            xformers_version = version.parse(xformers.__version__)
+            if xformers_version == version.parse("0.0.16"):
+                print(
+                    "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
+                )
+            print("Start using xformers ...")
+            model.enable_xformers_memory_efficient_attention()
+        else:
+            raise ValueError(
+                "xformers is not available. Make sure it is installed correctly"
+            )
+
+    if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
+        # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
+        def save_model_hook(models, weights, output_dir):
+            if accelerator.is_main_process:
+                if config.use_ema:
+                    ema_model.save_pretrained(os.path.join(output_dir, "unet_ema"))
+
+                for i, model in enumerate(models):
+                    model.save_pretrained(os.path.join(output_dir, "unet"))
+
+                    # make sure to pop weight so that corresponding model is not saved again
+                    weights.pop()
+
+        def load_model_hook(models, input_dir):
+            if config.use_ema:
+                load_model = EMAModel.from_pretrained(
+                    os.path.join(input_dir, "unet_ema"),
+                    DiTTransformer2DModel,
+                    foreach=config.foreach_ema,
+                )
+                ema_model.load_state_dict(load_model.state_dict())
+                if config.offload_ema:
+                    ema_model.pin_memory()
+                else:
+                    ema_model.to(accelerator.device)
+                del load_model
+
+            for _ in range(len(models)):
+                # pop models so that they are not loaded again
+                model = models.pop()
+
+                # load diffusers style into model
+                load_model = DiTTransformer2DModel.from_pretrained(
+                    input_dir, subfolder="unet"
+                )
+                model.register_to_config(**load_model.config)
+
+                model.load_state_dict(load_model.state_dict())
+                del load_model
+
+        accelerator.register_save_state_pre_hook(save_model_hook)
+        accelerator.register_load_state_pre_hook(load_model_hook)
+
+    # Enable TF32 for faster training on Ampere GPUs,
+    # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
+    if config.allow_tf32:
+        torch.backends.cuda.matmul.allow_tf32 = True
+
+    if config.use_ema:
+        if config.offload_ema:
+            ema_model.pin_memory()
+        else:
+            ema_model.to(accelerator.device)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -208,7 +173,9 @@ def train_loop(
             image_labels = [name_to_label(img_name) for img_name in image_names]
             image_labels = np.array(image_labels)
             # Convert the name in image_names to int number
-            class_labels = torch.tensor(image_labels, dtype=torch.int, device=device).reshape(-1)
+            class_labels = torch.tensor(
+                image_labels, dtype=torch.int, device=device
+            ).reshape(-1)
 
             # Sample a random timestep for each image
             timesteps = torch.randint(
@@ -223,7 +190,6 @@ def train_loop(
             latents = latents * vae.config.scaling_factor
             latents = latents * noise_scheduler.init_noise_sigma
 
-
             # # Add noise (diffusion process)
             noise = torch.randn_like(latents).to(clean_images.device)
             # # Add noise to the clean images according to the noise magnitude at each timestep
@@ -233,17 +199,23 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                noise_pred = model(noisy_latent,
-                                   timestep=timesteps,
-                                   class_labels=class_labels,
-                                   return_dict=False)[0]
+                noise_pred = model(
+                    noisy_latent,
+                    timestep=timesteps,
+                    class_labels=class_labels,
+                    return_dict=False,
+                )[0]
 
                 if noise_scheduler.config.prediction_type == "epsilon":
                     target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
-                    target = noise_scheduler.get_velocity(clean_images, noise, timesteps)
+                    target = noise_scheduler.get_velocity(
+                        clean_images, noise, timesteps
+                    )
                 else:
-                    raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+                    raise ValueError(
+                        f"Unknown prediction type {noise_scheduler.config.prediction_type}"
+                    )
 
                 loss = F.mse_loss(noise_pred, target)
                 # loss = F.l1_loss(noise_pred, target)
@@ -253,7 +225,6 @@ def train_loop(
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                update_ema(ema, model)
 
             progress_bar.update(1)
             logs = {
@@ -274,29 +245,49 @@ def train_loop(
                 accelerator.unwrap_model(model),
                 # accelerator.unwrap_model(ema),
                 accelerator.unwrap_model(vae),
-                scheduler=noise_scheduler
+                scheduler=noise_scheduler,
             )
+            pipeline = pipeline.to(accelerator.device)
+
+            if config.enable_xformers_memory_efficient_attention:
+                pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
-                                       epoch + 1
-                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                epoch + 1
+            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                                 epoch + 1
-                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                epoch + 1
+            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
+                if config.use_ema:
+                    # Store the UNet parameters temporarily and load the EMA parameters to perform inference.
+                    ema_model.store(model.parameters())
+                    ema_model.copy_to(model.parameters())
+                if config.enable_xformers_memory_efficient_attention:
+                    pipeline.enable_xformers_memory_efficient_attention()
+
+                evaluate_batch_size = 16
                 class_labels = torch.randint(
                     0,
                     num_class,
-                    (config.train_batch_size,),
+                    (evaluate_batch_size,),
                     device=device,
                 ).int()
                 evaluate(config, epoch, pipeline, class_labels=class_labels)
+
+                if config.use_ema:
+                    # Switch back to the original UNet parameters.
+                    ema_model.restore(model.parameters())
+
             if save_model:
                 if config.push_to_hub:
                     repo.push_to_hub(commit_message=f"Epoch {epoch}", blocking=True)
                 else:
+                    if config.use_ema:
+                        ema_model.copy_to(model.parameters())
+
                     pipeline.save_pretrained(config.output_dir)
                     if save_to_wandb:
                         wandb_logger.save_model()
@@ -308,36 +299,47 @@ def train_loop(
 
     # Now we evaluate the model on the test set
     if (
-            accelerator.is_main_process
-            and config.calculate_fid
-            and test_dataloader is not None
+        accelerator.is_main_process
+        and config.calculate_fid
+        and test_dataloader is not None
     ):
+        if config.use_ema:
+            ema_model.copy_to(model.parameters())
+
         pipeline = selected_pipeline(
             accelerator.unwrap_model(model),
             # accelerator.unwrap_model(ema),
             accelerator.unwrap_model(vae),
-            scheduler=noise_scheduler
+            scheduler=noise_scheduler,
         )
+        pipeline = pipeline.to(accelerator.device)
+
+        if config.enable_xformers_memory_efficient_attention:
+            pipeline.enable_xformers_memory_efficient_attention()
+
         class_labels = torch.randint(
             0,
             num_class,
             (config.train_batch_size,),
             device=device,
         ).int()
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
+        fid_score = calculate_fid_score(
+            config, pipeline, test_dataloader, class_labels=class_labels
+        )
 
         wandb_logger.log_fid_score(fid_score)
 
     if (
-            accelerator.is_main_process
-            and config.calculate_is
-            and test_dataloader is not None
+        accelerator.is_main_process
+        and config.calculate_is
+        and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
+            config,
+            pipeline,
+            test_dataloader,
+            device=accelerator.device,
+            class_labels=class_labels,
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
-
-
-

@@ -50,5 +50,5 @@ def vqvae_b_64(config):
     return base_vqvae(config, latent_channels=64)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

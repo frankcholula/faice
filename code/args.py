@@ -9,6 +9,7 @@ from pipelines import (
     dit,
     dit_vae,
     base_pipeline,
+    stable_diffusion,
 )
 from diffusers import (
     DDPMScheduler,
@@ -23,11 +24,11 @@ from conf.training_config import get_config, get_all_datasets
 
 
 def create_scheduler(
-        scheduler: str,
-        beta_schedule: str,
-        num_train_timesteps: int,
-        prediction_type: str,
-        rescale_betas_zero_snr: bool,
+    scheduler: str,
+    beta_schedule: str,
+    num_train_timesteps: int,
+    prediction_type: str,
+    rescale_betas_zero_snr: bool,
 ):
     if scheduler.lower() == "ddpm":
         return DDPMScheduler(
@@ -63,7 +64,7 @@ def create_scheduler(
 
 def create_model(model_name: str, config):
     # TODO: refactor this to use the same init_modlel function in the future.
-    if model_name == 'unet' and config.unet_variant in ["base", "ddpm", "adm", "cond"]:
+    if model_name == "unet" and config.unet_variant in ["base", "ddpm", "adm", "cond"]:
         model = create_unet(config)
     else:
         model = models.init_model(config.model, config)
@@ -86,6 +87,8 @@ def create_pipeline(pipeline: str):
         return dit.train_loop
     elif pipeline.lower() == "dit_vae":
         return dit_vae.train_loop
+    elif pipeline.lower() == "stable_diffusion":
+        return stable_diffusion.train_loop
     else:
         raise ValueError(f"Pipeline type '{pipeline}' is not supported.")
 
@@ -158,6 +161,11 @@ def parse_args():
         help="Enable xformers memory efficient attention",
     )
     training_group.add_argument(
+        "--allow_tf32",
+        action="store_true",
+        help="Enable TF32 for faster training on Ampere GPUs,",
+    )
+    training_group.add_argument(
         "--gradient_checkpointing",
         action="store_true",
         help="Use gradient checkpointing",
@@ -167,6 +175,17 @@ def parse_args():
     )
     training_group.add_argument(
         "--gradient_accumulation_steps", type=int, help="Gradient accumulation steps"
+    )
+    training_group.add_argument(
+        "--offload_ema",
+        action="store_true",
+        help="Offload EMA model to CPU during training step.",
+    )
+    training_group.add_argument(
+        "--snr_gamma",
+        type=float,
+        default=None,
+        help="SNR weighting gamma to be used if rebalancing the loss. Recommended value is 5.0. More details here: https://arxiv.org/abs/2303.09556.",
     )
 
     model_group.add_argument("--model", help="Model architecture")
@@ -225,7 +244,19 @@ def parse_args():
     )
     model_group.add_argument(
         "--pipeline",
-        choices=["ddpm", "ddim", "pndm", "consistency", "cond", 'ldmp', 'dit', 'dit_vae', 'vae', 'vqvae'],
+        choices=[
+            "ddpm",
+            "ddim",
+            "pndm",
+            "consistency",
+            "cond",
+            "ldmp",
+            "dit",
+            "dit_vae",
+            "vae",
+            "vqvae",
+            "stable_diffusion",
+        ],
         default="ddpm",
         help="Training pipeline",
     )

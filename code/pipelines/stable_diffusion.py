@@ -9,24 +9,23 @@ import os
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
-import numpy as np
-import random
-from torch import nn
-from typing import List, Optional, Tuple, Union
-import inspect
-from copy import deepcopy
+import pandas as pd
+import json
+from collections import defaultdict
 
 # Hugging Face
 from diffusers import StableDiffusionPipeline, AutoencoderKL, UNet2DConditionModel
-from diffusers.pipelines.pipeline_utils import ImagePipelineOutput
-from diffusers.utils.torch_utils import randn_tensor
-from diffusers.training_utils import EMAModel, compute_dream_and_update_latents, compute_snr
+from diffusers.training_utils import (
+    EMAModel,
+    compute_snr,
+)
 from diffusers.utils.import_utils import is_xformers_available
 from packaging import version
 import accelerate
 from accelerate.state import AcceleratorState
 from transformers import CLIPTextModel, CLIPTokenizer
 from transformers.utils import ContextManagers
+from torch.utils.data import Dataset, DataLoader
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -39,18 +38,19 @@ from utils.model_tools import name_to_label
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
 pretrained_model_name_or_path = "stable-diffusion-v1-5/stable-diffusion-v1-5"
+vae_path = "runs/vae_l_4-vae-ddpm-face-500-0.05-16/checkpoints/model_vae.pth"
 
 selected_pipeline = StableDiffusionPipeline
 
 
 def train_loop(
-        config,
-        model,
-        noise_scheduler,
-        optimizer,
-        train_dataloader,
-        lr_scheduler,
-        test_dataloader=None,
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -79,20 +79,23 @@ def train_loop(
             pretrained_model_name_or_path, subfolder="text_encoder"
         )
         vae = AutoencoderKL.from_pretrained(
-            pretrained_model_name_or_path, subfolder="vae")
+            pretrained_model_name_or_path, subfolder="vae"
+        )
+        vae.eval().requires_grad_(False)
 
-    vae = AutoencoderKL.from_pretrained(pretrained_model_name_or_path, subfolder="vae")
-    vae.eval().requires_grad_(False)
+        # vae = vae_l_4(config)
+        # # vae = vae_b_16(config)
+        # vae = vae.to(device)
+        # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+        # vae.eval().requires_grad_(False)
+
+    # model = UNet2DConditionModel.from_pretrained(
+    #     pretrained_model_name_or_path, subfolder="unet",
+    # )
 
     tokenizer = CLIPTokenizer.from_pretrained(
         pretrained_model_name_or_path, subfolder="tokenizer"
     )
-
-    # vae = vae_l_4(config)
-    # # vae = vae_b_16(config)
-    # vae = vae.to(device)
-    # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
-    # vae.eval().requires_grad_(False)
 
     # Create EMA for the unet.
     if config.use_ema:
@@ -114,9 +117,12 @@ def train_loop(
                 print(
                     "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
                 )
+            print("Start using xformers ...")
             model.enable_xformers_memory_efficient_attention()
         else:
-            raise ValueError("xformers is not available. Make sure it is installed correctly")
+            raise ValueError(
+                "xformers is not available. Make sure it is installed correctly"
+            )
 
     if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
         # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
@@ -134,7 +140,9 @@ def train_loop(
         def load_model_hook(models, input_dir):
             if config.use_ema:
                 load_model = EMAModel.from_pretrained(
-                    os.path.join(input_dir, "unet_ema"), UNet2DConditionModel, foreach=config.foreach_ema
+                    os.path.join(input_dir, "unet_ema"),
+                    UNet2DConditionModel,
+                    foreach=config.foreach_ema,
                 )
                 ema_unet.load_state_dict(load_model.state_dict())
                 if config.offload_ema:
@@ -148,7 +156,9 @@ def train_loop(
                 model = models.pop()
 
                 # load diffusers style into model
-                load_model = UNet2DConditionModel.from_pretrained(input_dir, subfolder="unet")
+                load_model = UNet2DConditionModel.from_pretrained(
+                    input_dir, subfolder="unet"
+                )
                 model.register_to_config(**load_model.config)
 
                 model.load_state_dict(load_model.state_dict())
@@ -167,17 +177,24 @@ def train_loop(
 
     if config.scale_lr:
         config.learning_rate = (
-                config.learning_rate * config.gradient_accumulation_steps * config.train_batch_size * accelerator.num_processes
+            config.learning_rate
+            * config.gradient_accumulation_steps
+            * config.train_batch_size
+            * accelerator.num_processes
         )
 
-    def preprocess_train(examples):
-        images = [image.convert("RGB") for image in examples['images']]
-        examples["pixel_values"] = images
-        examples["input_ids"] = tokenize_captions(examples, tokenizer)
-        return examples
+    train_prompts = load_prompts(config.stable_diffusion_prompt_dir)
 
-    train_dataloader = train_dataloader.with_transform(preprocess_train)
-    train_dataloader = train_dataloader.map(collate_fn)
+    test_prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
+    test_prompts = []
+    for t_batch in tqdm(test_dataloader):
+        image_names = t_batch["image_names"]
+        t_prompts = [test_prompt_dict[int(x)] for x in image_names]
+        test_prompts.extend(t_prompts)
+
+    # For evaluation
+    evaluate_batch_size = 16
+    evaluation_prompts = test_prompts[:evaluate_batch_size]
 
     if config.use_ema:
         if config.offload_ema:
@@ -188,6 +205,7 @@ def train_loop(
     # Move text_encode and vae to gpu and cast to weight_dtype
     text_encoder.to(accelerator.device)
     vae.to(accelerator.device)
+    model.to(accelerator.device)
 
     # Now you train the model
     for epoch in range(config.num_epochs):
@@ -200,6 +218,11 @@ def train_loop(
             clean_images = batch["images"]
             bs = clean_images.shape[0]
 
+            image_names = batch["image_names"]
+            batch_prompts = [train_prompts[x] for x in image_names]
+            batch["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
+            batch["input_ids"] = batch["input_ids"].to(accelerator.device)
+
             # Sample a random timestep for each image
             timesteps = torch.randint(
                 0,
@@ -209,7 +232,7 @@ def train_loop(
             ).long()
 
             # Convert images to latent space
-            latents = vae.encode(batch["pixel_values"]).latent_dist.sample()
+            latents = vae.encode(batch["images"]).latent_dist.sample()
             latents = latents * vae.config.scaling_factor
 
             # # Add noise (diffusion process)
@@ -220,44 +243,57 @@ def train_loop(
             noisy_latent = noise_scheduler.add_noise(latents, noise, timesteps)
 
             # Get the text embedding for conditioning
-            encoder_hidden_states = text_encoder(batch["input_ids"], return_dict=False)[0]
+            encoder_hidden_states = text_encoder(batch["input_ids"], return_dict=False)[
+                0
+            ]
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
-                model_pred = model(noisy_latent,
-                                   timestep=timesteps,
-                                   class_labels=class_labels,
-                                   return_dict=False)[0]
+                model_pred = model(
+                    noisy_latent, timesteps, encoder_hidden_states, return_dict=False
+                )[0]
 
                 # Get the target for loss depending on the prediction type
                 if config.prediction_type is not None:
                     # set prediction_type of scheduler if defined
-                    noise_scheduler.register_to_config(prediction_type=config.prediction_type)
+                    noise_scheduler.register_to_config(
+                        prediction_type=config.prediction_type
+                    )
                 if noise_scheduler.config.prediction_type == "epsilon":
                     target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
-                    target = noise_scheduler.get_velocity(clean_images, noise, timesteps)
+                    target = noise_scheduler.get_velocity(
+                        clean_images, noise, timesteps
+                    )
                 else:
-                    raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+                    raise ValueError(
+                        f"Unknown prediction type {noise_scheduler.config.prediction_type}"
+                    )
 
                 if config.snr_gamma is None:
-                    loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
+                    loss = F.mse_loss(
+                        model_pred.float(), target.float(), reduction="mean"
+                    )
                 else:
                     # Compute loss-weights as per Section 3.4 of https://arxiv.org/abs/2303.09556.
                     # Since we predict the noise instead of x_0, the original formulation is slightly changed.
                     # This is discussed in Section 4.2 of the same paper.
                     snr = compute_snr(noise_scheduler, timesteps)
-                    mse_loss_weights = \
-                    torch.stack([snr, config.snr_gamma * torch.ones_like(timesteps)], dim=1).min(
-                        dim=1
-                    )[0]
+                    mse_loss_weights = torch.stack(
+                        [snr, config.snr_gamma * torch.ones_like(timesteps)], dim=1
+                    ).min(dim=1)[0]
                     if noise_scheduler.config.prediction_type == "epsilon":
                         mse_loss_weights = mse_loss_weights / snr
                     elif noise_scheduler.config.prediction_type == "v_prediction":
                         mse_loss_weights = mse_loss_weights / (snr + 1)
 
-                    loss = F.mse_loss(model_pred.float(), target.float(), reduction="none")
-                    loss = loss.mean(dim=list(range(1, len(loss.shape)))) * mse_loss_weights
+                    loss = F.mse_loss(
+                        model_pred.float(), target.float(), reduction="none"
+                    )
+                    loss = (
+                        loss.mean(dim=list(range(1, len(loss.shape))))
+                        * mse_loss_weights
+                    )
                     loss = loss.mean()
 
                 accelerator.backward(loss)
@@ -284,34 +320,32 @@ def train_loop(
         if accelerator.is_main_process:
             pipeline = StableDiffusionPipeline.from_pretrained(
                 pretrained_model_name_or_path,
-                text_encoder=text_encoder,
-                vae=vae,
-                unet=model,
-                revision=config.revision,
+                text_encoder=accelerator.unwrap_model(text_encoder),
+                vae=accelerator.unwrap_model(vae),
+                unet=accelerator.unwrap_model(model),
+                tokenizer=tokenizer,
+                # revision=config.revision,
             )
+            pipeline = pipeline.to(accelerator.device)
+
+            if config.enable_xformers_memory_efficient_attention:
+                pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
-                                       epoch + 1
-                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                epoch + 1
+            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                                 epoch + 1
-                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                epoch + 1
+            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
-                class_labels = torch.randint(
-                    0,
-                    num_class,
-                    (config.train_batch_size,),
-                    device=device,
-                ).int()
                 if config.use_ema:
                     # Store the UNet parameters temporarily and load the EMA parameters to perform inference.
                     ema_unet.store(model.parameters())
                     ema_unet.copy_to(model.parameters())
-                if config.enable_xformers_memory_efficient_attention:
-                    pipeline.enable_xformers_memory_efficient_attention()
-                evaluate(config, epoch, pipeline, class_labels=class_labels)
+
+                evaluate(config, epoch, pipeline, prompt=evaluation_prompts)
                 if config.use_ema:
                     # Switch back to the original UNet parameters.
                     ema_unet.restore(model.parameters())
@@ -332,32 +366,43 @@ def train_loop(
 
     # Now we evaluate the model on the test set
     if (
-            accelerator.is_main_process
-            and config.calculate_fid
-            and test_dataloader is not None
+        accelerator.is_main_process
+        and config.calculate_fid
+        and test_dataloader is not None
     ):
+        if config.use_ema:
+            ema_unet.copy_to(model.parameters())
+
         pipeline = StableDiffusionPipeline.from_pretrained(
             pretrained_model_name_or_path,
-            text_encoder=text_encoder,
-            vae=vae,
-            unet=model,
-            revision=config.revision,
+            text_encoder=accelerator.unwrap_model(text_encoder),
+            vae=accelerator.unwrap_model(vae),
+            unet=accelerator.unwrap_model(model),
+            tokenizer=tokenizer,
+            # revision=config.revision,
         )
+        pipeline = pipeline.to(accelerator.device)
 
         if config.enable_xformers_memory_efficient_attention:
             pipeline.enable_xformers_memory_efficient_attention()
 
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
+        fid_score = calculate_fid_score(
+            config, pipeline, test_dataloader, prompt_dict=test_prompt_dict
+        )
 
         wandb_logger.log_fid_score(fid_score)
 
     if (
-            accelerator.is_main_process
-            and config.calculate_is
-            and test_dataloader is not None
+        accelerator.is_main_process
+        and config.calculate_is
+        and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
+            config,
+            pipeline,
+            test_dataloader,
+            device=accelerator.device,
+            prompt_dict=test_prompt_dict,
         )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
@@ -367,34 +412,64 @@ def deepspeed_zero_init_disabled_context_manager():
     """
     returns either a context list that includes one that will disable zero.Init or an empty context list
     """
-    deepspeed_plugin = AcceleratorState().deepspeed_plugin if accelerate.state.is_initialized() else None
+    deepspeed_plugin = (
+        AcceleratorState().deepspeed_plugin
+        if accelerate.state.is_initialized()
+        else None
+    )
     if deepspeed_plugin is None:
         return []
 
     return [deepspeed_plugin.zero3_init_context_manager(enable=False)]
 
 
-def tokenize_captions(examples, tokenizer, caption_column, is_train=True):
+def tokenize_captions(prompts, tokenizer):
     captions = []
-    for caption in examples[caption_column]:
-        if isinstance(caption, str):
-            captions.append(caption)
-        elif isinstance(caption, (list, np.ndarray)):
-            # take a random caption if there are multiple
-            captions.append(random.choice(caption) if is_train else caption[0])
-        else:
-            raise ValueError(
-                f"Caption column `{caption_column}` should contain either strings or lists of strings."
-            )
+    for caption in prompts:
+        captions.append(caption)
     inputs = tokenizer(
-        captions, max_length=tokenizer.model_max_length, padding="max_length", truncation=True,
-        return_tensors="pt"
+        captions,
+        max_length=tokenizer.model_max_length,
+        padding="max_length",
+        truncation=True,
+        return_tensors="pt",
     )
     return inputs.input_ids
 
 
 def collate_fn(examples):
-    pixel_values = torch.stack([example["pixel_values"] for example in examples])
+    pixel_values = torch.stack([example["images"] for example in examples])
     pixel_values = pixel_values.to(memory_format=torch.contiguous_format).float()
     input_ids = torch.stack([example["input_ids"] for example in examples])
-    return {"pixel_values": pixel_values, "input_ids": input_ids}
+    return {"images": pixel_values, "input_ids": input_ids}
+
+
+def load_prompts(prompt_path):
+    f = open(prompt_path, "r")
+    data = json.load(f)
+    prompts_data = defaultdict()
+    for k, v in data.items():
+        image_name = k.split(".")[0]
+        prompts_data[image_name] = v["overall_caption"]
+    return prompts_data
+
+
+def load_request_prompt(prompt_path):
+    # Get first batch_size rows prompts
+    data = pd.read_table(prompt_path, header=None)
+    data = data.iloc[1:]
+    data.columns = ["image", "prompt"]
+    data["image"] = data["image"].apply(lambda x: int(x.split(".")[0]))
+    prompt_dict = dict(zip(data["image"], data["prompt"]))
+    return prompt_dict
+
+
+if __name__ == "__main__":
+    stable_diffusion_prompt_dir: str = (
+        "../datasets/celeba_hq_stable_diffusion/captions_hq.json"
+    )
+    stable_diffusion_request_prompt_dir: str = (
+        "../datasets/celeba_hq_stable_diffusion/request_hq.txt"
+    )
+    # train_prompts = load_prompts(stable_diffusion_prompt_dir)
+    test_prompts = load_request_prompt(stable_diffusion_request_prompt_dir)
