@@ -15,9 +15,9 @@ python main.py \
     --num_epochs 1 \
     --num_train_timesteps 1000 \
     --num_inference_steps 999 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
-    --wandb_run_name liang_unet_cond_l_block_4_stable_diffusion_pndm_scaled_linear_bs16 \
+    --train_batch_size 32 \
+    --eval_batch_size 32 \
+    --wandb_run_name liang_unet_cond_l_block_4_stable_diffusion_pndm_scaled_linear_bs32 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
