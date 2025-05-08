@@ -123,7 +123,7 @@ python main.py \
     --scheduler ddim \
     --beta_schedule scaled_linear \
     --image_size 128 \
-    --num_epochs 1 \
+    --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
     --train_batch_size 16 \
@@ -133,7 +133,7 @@ python main.py \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
     --allow_tf32 \
-    --no_confirm \
-    --no_wandb
+    --no_confirm
+#    --no_wandb
 
 
