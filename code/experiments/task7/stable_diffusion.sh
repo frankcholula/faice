@@ -13,8 +13,8 @@ python main.py \
     --num_epochs 1 \
     --num_train_timesteps 100 \
     --num_inference_steps 2 \
-    --train_batch_size 8 \
-    --eval_batch_size 8 \
+    --train_batch_size 1 \
+    --eval_batch_size 1 \
     --wandb_run_name liang_unet_cond_l_block_4_stable_diffusion_pndm_scaled_linear_bs64 \
     --calculate_fid \
     --calculate_is \
