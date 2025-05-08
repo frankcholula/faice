@@ -131,9 +131,6 @@ def train_loop(
                     num_timesteps = noise_scheduler.config.num_train_timesteps
                     t, weights = sample(bs, clean_images.device, num_timesteps)
                     loss = (loss * weights).mean()
-
-                    # loss = F.mse_loss(denoised, clean_images)
-
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
