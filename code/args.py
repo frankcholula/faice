@@ -109,9 +109,15 @@ def parse_args():
     )
     training_group.add_argument(
         "--loss_type",
-        choices=["mse", "l1"],
+        choices=["mse", "l1","hybrid"],
         default="mse",
-        help="Type of loss function to use (mse, l1, lpips)",
+        help="Type of loss function to use (mse, l1, hybrid)",
+    )
+    training_group.add_argument(
+        "--hyrbid_weight",
+        type=float,
+        default=0.5,
+        help="Weight for hybrid loss (if applicable)",
     )
 
     training_group.add_argument(
@@ -261,8 +267,13 @@ def get_config_and_components():
     print(f"Prediction_type: {config.prediction_type}")
     print(f"Rescale_betas_zero_snr?: {config.rescale_betas_zero_snr}")
     print(f"Loss type: {config.loss_type}")
+    if config.loss_type == "hybrid":
+        print(f"Hybrid weight: {config.hybrid_weight}")
     print(f"Use LPIPS: {config.use_lpips}")
-    print(f"LPIPS weight: {config.lpips_weight}")
+    if config.use_lpips:
+        print(f"LPIPS net: {config.lpips_net}")
+        print(f"LPIPS weight: {config.lpips_weight}")
+
 
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:

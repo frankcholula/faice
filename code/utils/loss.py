@@ -6,6 +6,10 @@ def get_loss(pred, target, config, lpips_fn=None):
         loss = F.mse_loss(pred, target)
     elif config.loss_type == "l1":
         loss = F.l1_loss(pred, target)
+    elif config.loss_type == "hybrid":
+        mse_loss = F.mse_loss(pred, target)
+        l1_loss = F.l1_loss(pred, target)
+        loss = config.hybrid_weight * mse_loss + (1 - config.hybrid_weight) * l1_loss
     else:
         raise ValueError("Unsupported base loss type")
 

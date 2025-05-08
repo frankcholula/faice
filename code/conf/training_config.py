@@ -38,6 +38,7 @@ class BaseConfig:
     num_inference_steps: int = 1000
     
     loss_type: str = "mse"
+    hybrid_weight: float = 0.5
     use_lpips_regularization: bool = False
     lpips_weight: float = 0.1
     lpips_net: str = "alex"
