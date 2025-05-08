@@ -25,13 +25,13 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 
 
 def train_loop(
-        config,
-        model,
-        noise_scheduler,
-        optimizer,
-        train_dataloader,
-        lr_scheduler,
-        test_dataloader=None,
+    config,
+    model,
+    noise_scheduler,
+    optimizer,
+    train_dataloader,
+    lr_scheduler,
+    test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -76,7 +76,10 @@ def train_loop(
                 # kl_loss = encoded.latent_dist.kl().mean()
                 # loss = rec_loss + kl_loss * 0.0025
 
-                rec_loss = F.mse_loss(clean_images, decoded, reduction="sum") / config.train_batch_size
+                rec_loss = (
+                    F.mse_loss(clean_images, decoded, reduction="sum")
+                    / config.train_batch_size
+                )
                 kl_loss = encoded.latent_dist.kl().mean()
 
                 # loss_weight = 0.002
@@ -111,11 +114,11 @@ def train_loop(
         if accelerator.is_main_process:
 
             generate_samples = (
-                                       epoch + 1
-                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                epoch + 1
+            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                                 epoch + 1
-                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                epoch + 1
+            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
@@ -127,11 +130,14 @@ def train_loop(
                     model_path = f"{config.output_dir}/checkpoints"
                     if not os.path.exists(model_path):
                         os.makedirs(model_path)
-                    torch.save({
-                        'model_state_dict': model.state_dict(),
-                        'optimizer_state_dict': optimizer.state_dict(),
-                        'loss': loss,
-                    }, model_path + '/model_vae.pth')
+                    torch.save(
+                        {
+                            "model_state_dict": model.state_dict(),
+                            "optimizer_state_dict": optimizer.state_dict(),
+                            "loss": loss,
+                        },
+                        model_path + "/model_vae.pth",
+                    )
                     if save_to_wandb:
                         wandb_logger.save_model()
 
@@ -139,9 +145,9 @@ def train_loop(
 
     # Now we evaluate the model on the test set
     if (
-            accelerator.is_main_process
-            and config.calculate_fid
-            and test_dataloader is not None
+        accelerator.is_main_process
+        and config.calculate_fid
+        and test_dataloader is not None
     ):
         # model_path = f"{config.output_dir}/checkpoints/model_vae.pth"
         vae_inference(model, config, test_dataloader, wandb_logger)
@@ -214,9 +220,12 @@ def vae_inference(vae, config, test_dataloader, wandb_logger):
                 )
                 fake_count += 1
 
-        fid_score = calculate_clean_fid(real_dir, fake_dir, msg="Clean FID score for sampling")
-        fid_score_rec = calculate_clean_fid(real_dir, reconstruction_dir,
-                                            msg="Clean FID score for reconstruction")
+        fid_score = calculate_clean_fid(
+            real_dir, fake_dir, msg="Clean FID score for sampling"
+        )
+        fid_score_rec = calculate_clean_fid(
+            real_dir, reconstruction_dir, msg="Clean FID score for reconstruction"
+        )
         wandb_logger.log_fid_score(fid_score)
         wandb_logger.log_fid_score_rec(fid_score_rec)
 
