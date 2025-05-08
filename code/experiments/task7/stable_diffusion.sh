@@ -9,7 +9,7 @@ python main.py \
     --pipeline stable_diffusion \
     --scheduler pndm \
     --beta_schedule scaled_linear \
-    --image_size 256 \
+    --image_size 128 \
     --num_epochs 1 \
     --num_train_timesteps 100 \
     --num_inference_steps 2 \
