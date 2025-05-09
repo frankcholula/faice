@@ -317,5 +317,5 @@ python main.py \
     --wandb_run_name liang_fine_tune_pretrain_ldmp_ddim_scaled_linear_bs64 \
     --calculate_fid \
     --calculate_is \
-    --no_confirm
-#    --no_wandb
+    --no_confirm \
+    --no_wandb
