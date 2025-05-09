@@ -457,7 +457,6 @@ def load_prompts(prompt_path):
 def load_request_prompt(prompt_path):
     # Get first batch_size rows prompts
     data = pd.read_table(prompt_path, header=None)
-    data = data.iloc[1:]
     data.columns = ["image", "prompt"]
     data["image"] = data["image"].apply(lambda x: int(x.split(".")[0]))
     prompt_dict = dict(zip(data["image"], data["prompt"]))
