@@ -89,10 +89,9 @@ def train_loop(
     #                               )
 
     # Replace the output layer
-    NEW_OUT_CHANNELS = 4
-    transformer_config = model.config.transformer_layers_config
-    transformer_config["out_channels"] = NEW_OUT_CHANNELS
-    model.config.transformer_layers_config = transformer_config
+    new_out_channels = 4  # Desired number of output channels
+
+    model.config.out_channels = new_out_channels
 
     # Freeze some layers
     # frozen_layers = 3
