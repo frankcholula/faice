@@ -183,6 +183,31 @@ def train_loop(
             * accelerator.num_processes
         )
 
+    # Initialize the optimizer
+    if args.use_8bit_adam:
+        try:
+            import bitsandbytes as bnb
+        except ImportError:
+            raise ImportError(
+                "Please install bitsandbytes to use 8-bit Adam. You can do so by running `pip install bitsandbytes`"
+            )
+
+        optimizer_cls = bnb.optim.AdamW8bit
+    else:
+        optimizer_cls = torch.optim.AdamW
+
+    adam_beta1 = 0.9
+    adam_beta2 = 0.999
+    adam_weight_decay = 1e-2
+    adam_epsilon = 1e-08
+    optimizer = optimizer_cls(
+        model.parameters(),
+        lr=config.learning_rate,
+        betas=(adam_beta1, adam_beta2),
+        weight_decay=adam_weight_decay,
+        eps=adam_epsilon,
+    )
+
     train_prompts = load_prompts(config.stable_diffusion_prompt_dir)
 
     # test_prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)

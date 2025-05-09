@@ -84,10 +84,16 @@ class FaceConfig(BaseConfig):
     num_epochs: int = 1
     save_image_epochs: int = 50
     save_model_epochs: int = 50
-    train_dir: str = "datasets/celeba_hq_split/train"
-    test_dir: str = "datasets/celeba_hq_split/test"
-    stable_diffusion_train_dir: str = "datasets/celeba_hq_stable_diffusion/train_2700"
-    stable_diffusion_test_dir: str = "datasets/celeba_hq_stable_diffusion/test_300"
+
+@dataclass
+class FaceDialogConfig(BaseConfig):
+    dataset: str = "face"
+    dataset_name: str = "uos-celebahq-256x256"
+    num_epochs: int = 1
+    save_image_epochs: int = 50
+    save_model_epochs: int = 50
+    train_dir: str = "datasets/celeba_hq_stable_diffusion/train_2700"
+    test_dir: str = "datasets/celeba_hq_stable_diffusion/test_300"
     stable_diffusion_prompt_dir: str = "datasets/celeba_hq_stable_diffusion/captions_hq.json"
     stable_diffusion_request_prompt_dir: str = "datasets/celeba_hq_stable_diffusion/request_hq.txt"
     snr_gamma: float = None
@@ -96,6 +102,7 @@ class FaceConfig(BaseConfig):
 CONFIG_REGISTRY = {
     "butterfly": ButterflyConfig,
     "face": FaceConfig,
+    "face_dialog": FaceDialogConfig
 }
 
 

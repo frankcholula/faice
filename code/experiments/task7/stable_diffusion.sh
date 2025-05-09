@@ -4,7 +4,7 @@ wandb sync --clean-old-hours 1
 wandb artifact cache cleanup 0GB --remove-temp
 
 python main.py \
-    --dataset face \
+    --dataset face_dialog \
     --model unet_cond_l_block_4 \
     --pipeline stable_diffusion \
     --attention_head_dim 64 \
