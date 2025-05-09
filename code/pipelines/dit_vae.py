@@ -82,7 +82,6 @@ def train_loop(
     # model = Transformer2DModel.from_pretrained(
     #     pretrained_model_name_or_path, subfolder="transformer",
     # )
-    # model = model.to(device)
 
     model = model.from_pretrained(pretrained_model_name_or_path,  # Base model
                                   subfolder="transformer",
@@ -91,6 +90,8 @@ def train_loop(
     # Freeze some layers
     frozen_layers = 3
     freeze_layers(model, freeze_until_layer=frozen_layers)
+
+    model = model.to(device)
 
     # Create EMA for the unet.
     if config.use_ema:
