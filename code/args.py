@@ -151,6 +151,38 @@ def parse_args():
     training_group.add_argument(
         "--calculate_is", action="store_true", help="Calculate Inception score"
     )
+    training_group.add_argument(
+        "--loss_type",
+        choices=["mse", "l1","hybrid"],
+        default="mse",
+        help="Type of loss function to use (mse, l1, hybrid)",
+    )
+    training_group.add_argument(
+        "--hybrid_weight",
+        type=float,
+        default=0.5,
+        help="Weight for hybrid loss (if applicable)",
+    )
+
+    training_group.add_argument(
+        "--use_lpips",
+        action="store_true",
+        default=False,
+        help="Whether to use LPIPS regularization for more realistic images",
+    )
+
+    training_group.add_argument(
+        "--lpips_net", type=str, choices=["alex", "vgg", "squeeze"], default="alex",
+        help="Base network for LPIPS"
+    )
+
+    training_group.add_argument(
+        "--lpips_weight",
+        type=float,
+        default=0.1,
+        help="Weight for LPIPS regularization (if enabled)",
+    )
+    
     training_group.add_argument("--use_ema", action="store_true", help="Use ema")
     training_group.add_argument(
         "--foreach_ema", action="store_true", help="For each ema"
@@ -331,6 +363,14 @@ def get_config_and_components():
     print(f"center crop arr? : {config.center_crop_arr}")
     print(f"Prediction_type: {config.prediction_type}")
     print(f"Rescale_betas_zero_snr?: {config.rescale_betas_zero_snr}")
+    print(f"Loss type: {config.loss_type}")
+    if config.loss_type == "hybrid":
+        print(f"Hybrid weight: {config.hybrid_weight}")
+    print(f"Use LPIPS: {config.use_lpips}")
+    if config.use_lpips:
+        print(f"LPIPS net: {config.lpips_net}")
+        print(f"LPIPS weight: {config.lpips_weight}")
+
 
     verbose = hasattr(config, "verbose") and config.verbose
     if verbose:

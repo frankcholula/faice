@@ -3,6 +3,7 @@
 python main.py \
     --dataset face \
     --scheduler ddpm \
+    --pipeline ddpm \
     --beta_schedule linear \
     --model unet \
     --unet_variant adm \
@@ -12,7 +13,8 @@ python main.py \
     --num_train_timesteps 4000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name task4_baseline \
+    --loss_type l1 \
+    --wandb_run_name task6_l1 \
     --calculate_fid \
     --calculate_is \
     --verbose

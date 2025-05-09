@@ -13,7 +13,10 @@ from utils.metrics import calculate_fid_score, calculate_inception_score
 from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
+from utils.loss import get_loss
 from utils.model_tools import name_to_label
+
+import lpips
 
 AVAILABLE_PIPELINES = {
     "ddpm": DDPMPipeline,
@@ -51,6 +54,12 @@ def train_loop(
         model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
             model, optimizer, train_dataloader, lr_scheduler
         )
+
+    # Initialize lpips
+    lpips_fn = None
+    if config.use_lpips_regularization:
+        lpips_fn = lpips.LPIPS(net=config.lpips_net).to(config.device)
+        lpips_fn.eval()
 
     global_step = 0
 
@@ -118,8 +127,8 @@ def train_loop(
 
                 else:
                     pred = model(noisy_images, timesteps, return_dict=False)[0]
-                loss = F.mse_loss(pred, target)
 
+                loss = get_loss(pred, target, config, lpips_fn=lpips_fn)
                 accelerator.backward(loss)
                 accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()

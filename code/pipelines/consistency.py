@@ -8,7 +8,6 @@
 # Deep learning framework
 from typing import Optional
 
-import random
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -22,6 +21,9 @@ from diffusers.schedulers import CMStochasticIterativeScheduler
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
+from utils.loss import get_loss
+
+import lpips
 
 selected_pipeline = ConsistencyModelPipeline
 
@@ -54,6 +56,12 @@ def train_loop(
         model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
             model, optimizer, train_dataloader, lr_scheduler
         )
+
+    # Initialize lpips
+    lpips_fn = None
+    if config.use_lpips_regularization:
+        lpips_fn = lpips.LPIPS(net=config.lpips_net).to(config.device)
+        lpips_fn.eval()
 
     global_step = 0
 
@@ -98,6 +106,7 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
+                # TODO: refactor loss function here to use get_loss
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
@@ -123,9 +132,6 @@ def train_loop(
                     num_timesteps = noise_scheduler.config.num_train_timesteps
                     t, weights = sample(bs, clean_images.device, num_timesteps)
                     loss = (loss * weights).mean()
-
-                    # loss = F.mse_loss(denoised, clean_images)
-
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
