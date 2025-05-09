@@ -5643,6 +5643,29 @@ files = [
 ]
 
 [[package]]
+name = "xformers"
+version = "0.0.30"
+description = "XFormers: A collection of composable Transformer building blocks."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "xformers-0.0.30-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:f9c9476fb7bd5d60c396ce096e36ae3e7c3461101da7a228ab1d2b7e64fb2318"},
+    {file = "xformers-0.0.30-cp310-cp310-win_amd64.whl", hash = "sha256:9e54eed6080e65455213174ad6b26c5e361715ca2d52759fde26055188802d92"},
+    {file = "xformers-0.0.30-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:60396dff69a04071249809885962b7365afe650a7910f094d67b045b47a60388"},
+    {file = "xformers-0.0.30-cp311-cp311-win_amd64.whl", hash = "sha256:7b2e2aa615bce02ac20d58232b0e17304c62ec533ac0db2040a948df0155858d"},
+    {file = "xformers-0.0.30-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:357875986f50f105f445dc9a002c8450623cd4a6a469865c463285d0376fe77b"},
+    {file = "xformers-0.0.30-cp312-cp312-win_amd64.whl", hash = "sha256:8549ca30700d70dae904ec4407c6188cd73fd551e585f862c1d3aca3b7bc371c"},
+    {file = "xformers-0.0.30-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:37c96f8154109383c3c046d43492fa713aa2c90788a0dde2274104177cdcdddd"},
+    {file = "xformers-0.0.30-cp39-cp39-win_amd64.whl", hash = "sha256:9ce1634798cb96643f077acbced80f985e3cdab12cf468851057ed31cab0bdab"},
+    {file = "xformers-0.0.30.tar.gz", hash = "sha256:a12bf3eb39e294cdbe8a7253ac9b665f41bac61d6d98df174e34ef7bdb6f2fc4"},
+]
+
+[package.dependencies]
+numpy = "*"
+torch = "2.7.0"
+
+[[package]]
 name = "xxhash"
 version = "3.5.0"
 description = "Python binding for xxHash"
@@ -5895,4 +5918,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <4.0"
-content-hash = "0450f93611da988ce9e29040c5ea5eebdbd0a144f3eb55c73ae7e835579b4a52"
+content-hash = "1411fef36f1239140a8eb17ed5d7cd891254440d585824c919381ecee350cc10"

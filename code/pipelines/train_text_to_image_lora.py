@@ -860,7 +860,7 @@ def main():
     # We need to initialize the trackers we use, and also store our configuration.
     # The trackers initializes automatically on the main process.
     if accelerator.is_main_process:
-        accelerator.init_trackers("text2image-fine-tune", config=vars(args))
+        accelerator.init_trackers("faice", config=vars(args))
 
     # Train!
     total_batch_size = (
@@ -1093,6 +1093,7 @@ def main():
                     revision=args.revision,
                     variant=args.variant,
                     torch_dtype=weight_dtype,
+                    safety_checker=None,
                 )
                 images = log_validation(pipeline, args, accelerator, epoch)
 
@@ -1122,6 +1123,7 @@ def main():
                 revision=args.revision,
                 variant=args.variant,
                 torch_dtype=weight_dtype,
+                safety_checker=None,
             )
 
             # load attention processors
