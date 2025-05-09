@@ -86,9 +86,7 @@ def train_loop(
     )
     model = model.to(device)
 
-    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_dataloader, lr_scheduler
-    )
+
     # vqvae = vqvae_b_3(config)
     # vqvae = vqvae.to(device)
     # vqvae.load_state_dict(
@@ -111,6 +109,9 @@ def train_loop(
         )
 
     model.train()  # important! This enables embedding dropout for classifier-free guidance
+    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+        model, optimizer, train_dataloader, lr_scheduler
+    )
 
     if config.enable_xformers_memory_efficient_attention:
         if is_xformers_available():
