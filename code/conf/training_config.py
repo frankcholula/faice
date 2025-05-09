@@ -84,6 +84,8 @@ class FaceConfig(BaseConfig):
     num_epochs: int = 1
     save_image_epochs: int = 50
     save_model_epochs: int = 50
+    train_dir: str = "datasets/celeba_hq_split/train"
+    test_dir: str = "datasets/celeba_hq_split/test"
 
 @dataclass
 class FaceDialogConfig(BaseConfig):
@@ -92,6 +94,7 @@ class FaceDialogConfig(BaseConfig):
     num_epochs: int = 1
     save_image_epochs: int = 50
     save_model_epochs: int = 50
+
     train_dir: str = "datasets/celeba_hq_stable_diffusion/train_2700"
     test_dir: str = "datasets/celeba_hq_stable_diffusion/test_300"
     stable_diffusion_prompt_dir: str = "datasets/celeba_hq_stable_diffusion/captions_hq.json"
