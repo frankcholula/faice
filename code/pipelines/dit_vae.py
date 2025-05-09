@@ -86,7 +86,7 @@ def train_loop(
     model_config = dict(model.config)
     model_config.update({"out_channels": 4})
     model = Transformer2DModel.from_pretrained(
-        pretrained_model_name_or_path, subfolder="transformer", config=model_config
+        pretrained_model_name_or_path, subfolder="transformer", model_config=model_config
     )
 
     # model = model.from_pretrained(pretrained_model_name_or_path,  # Base model
