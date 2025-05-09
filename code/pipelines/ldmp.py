@@ -120,46 +120,46 @@ def train_loop(
                 "xformers is not available. Make sure it is installed correctly"
             )
 
-    if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
-        # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
-        def save_model_hook(models, weights, output_dir):
-            if accelerator.is_main_process:
-                if config.use_ema:
-                    ema_model.save_pretrained(os.path.join(output_dir, "unet_ema"))
-
-                for i, model in enumerate(models):
-                    model.save_pretrained(os.path.join(output_dir, "unet"))
-
-                    # make sure to pop weight so that corresponding model is not saved again
-                    weights.pop()
-
-        def load_model_hook(models, input_dir):
-            if config.use_ema:
-                load_model = EMAModel.from_pretrained(
-                    os.path.join(input_dir, "unet_ema"),
-                    UNet2DModel,
-                    foreach=config.foreach_ema,
-                )
-                ema_model.load_state_dict(load_model.state_dict())
-                if config.offload_ema:
-                    ema_model.pin_memory()
-                else:
-                    ema_model.to(accelerator.device)
-                del load_model
-
-            for _ in range(len(models)):
-                # pop models so that they are not loaded again
-                model = models.pop()
-
-                # load diffusers style into model
-                load_model = UNet2DModel.from_pretrained(input_dir, subfolder="unet")
-                model.register_to_config(**load_model.config)
-
-                model.load_state_dict(load_model.state_dict())
-                del load_model
-
-        accelerator.register_save_state_pre_hook(save_model_hook)
-        accelerator.register_load_state_pre_hook(load_model_hook)
+    # if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
+    #     # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
+    #     def save_model_hook(models, weights, output_dir):
+    #         if accelerator.is_main_process:
+    #             if config.use_ema:
+    #                 ema_model.save_pretrained(os.path.join(output_dir, "unet_ema"))
+    #
+    #             for i, model in enumerate(models):
+    #                 model.save_pretrained(os.path.join(output_dir, "unet"))
+    #
+    #                 # make sure to pop weight so that corresponding model is not saved again
+    #                 weights.pop()
+    #
+    #     def load_model_hook(models, input_dir):
+    #         if config.use_ema:
+    #             load_model = EMAModel.from_pretrained(
+    #                 os.path.join(input_dir, "unet_ema"),
+    #                 UNet2DModel,
+    #                 foreach=config.foreach_ema,
+    #             )
+    #             ema_model.load_state_dict(load_model.state_dict())
+    #             if config.offload_ema:
+    #                 ema_model.pin_memory()
+    #             else:
+    #                 ema_model.to(accelerator.device)
+    #             del load_model
+    #
+    #         for _ in range(len(models)):
+    #             # pop models so that they are not loaded again
+    #             model = models.pop()
+    #
+    #             # load diffusers style into model
+    #             load_model = UNet2DModel.from_pretrained(input_dir, subfolder="unet")
+    #             model.register_to_config(**load_model.config)
+    #
+    #             model.load_state_dict(load_model.state_dict())
+    #             del load_model
+    #
+    #     accelerator.register_save_state_pre_hook(save_model_hook)
+    #     accelerator.register_load_state_pre_hook(load_model_hook)
 
     # Enable TF32 for faster training on Ampere GPUs,
     # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
