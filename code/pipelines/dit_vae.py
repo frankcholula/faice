@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import numpy as np
+from torch import nn
 from copy import deepcopy
 
 import accelerate
@@ -86,6 +87,16 @@ def train_loop(
     model = model.from_pretrained(pretrained_model_name_or_path,  # Base model
                                   subfolder="transformer",
                                   )
+
+    # Replace the output layer
+    new_out_channels = 4
+    model.conv_out = nn.Conv2d(
+        in_channels=model.conv_out.in_channels,
+        out_channels=new_out_channels,
+        kernel_size=model.conv_out.kernel_size,
+        stride=model.conv_out.stride,
+        padding=model.conv_out.padding
+    )
 
     # Freeze some layers
     frozen_layers = 3
