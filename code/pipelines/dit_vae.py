@@ -89,14 +89,10 @@ def train_loop(
     #                               )
 
     # Replace the output layer
-    new_out_channels = 4
-    model.conv_out = nn.Conv2d(
-        in_channels=model.conv_out.in_channels,
-        out_channels=new_out_channels,
-        kernel_size=model.conv_out.kernel_size,
-        stride=model.conv_out.stride,
-        padding=model.conv_out.padding
-    )
+    NEW_OUT_CHANNELS = 4
+    transformer_config = model.config.transformer_layers_config
+    transformer_config["out_channels"] = NEW_OUT_CHANNELS
+    model.config.transformer_layers_config = transformer_config
 
     # Freeze some layers
     # frozen_layers = 3
