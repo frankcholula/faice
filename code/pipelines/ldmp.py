@@ -82,18 +82,17 @@ def train_loop(
     vqvae = vqvae.to(device)
     vqvae.eval().requires_grad_(False)
 
-    # model = UNet2DModel.from_pretrained(
-    #     pretrained_model_name_or_path, subfolder="unet"
-    # )
-    model = model.from_pretrained(
-        pretrained_model_name_or_path,  # Base model
-        subfolder="unet",
+    model = UNet2DModel.from_pretrained(
+        pretrained_model_name_or_path, subfolder="unet"
     )
-    model = model.to(device)
-
+    # model = model.from_pretrained(
+    #     pretrained_model_name_or_path,  # Base model
+    #     subfolder="unet",
+    # )
     # Freeze some layers
-    frozen_layers = 3
-    freeze_layers(model, freeze_until_layer=frozen_layers)
+    # frozen_layers = 3
+    # freeze_layers(model, freeze_until_layer=frozen_layers)
+    model = model.to(device)
 
     optimizer_cls = torch.optim.AdamW
 
@@ -304,8 +303,8 @@ def train_loop(
                     ema_model.copy_to(model.parameters())
                 if config.enable_xformers_memory_efficient_attention:
                     pipeline.enable_xformers_memory_efficient_attention()
-
-                evaluate(config, epoch, pipeline)
+                with torch.no_grad():
+                    evaluate(config, epoch, pipeline)
 
                 if config.use_ema:
                     # Switch back to the original UNet parameters.
@@ -322,6 +321,7 @@ def train_loop(
 
             progress_bar.close()
 
+    model.eval()
     # Now we evaluate the model on the test set
     if (
             accelerator.is_main_process
@@ -342,7 +342,8 @@ def train_loop(
         if config.enable_xformers_memory_efficient_attention:
             pipeline.enable_xformers_memory_efficient_attention()
 
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        with torch.no_grad():
+            fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -351,8 +352,9 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
-        inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device
-        )
+        with torch.no_grad():
+            inception_score = calculate_inception_score(
+                config, pipeline, test_dataloader, device=accelerator.device
+            )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()

@@ -342,7 +342,8 @@ def train_loop(
             (config.train_batch_size,),
             device=device,
         ).int()
-        fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
+        with torch.no_grad():
+            fid_score = calculate_fid_score(config, pipeline, test_dataloader, class_labels=class_labels)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -351,8 +352,9 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
-        inception_score = calculate_inception_score(
-            config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
-        )
+        with torch.no_grad():
+            inception_score = calculate_inception_score(
+                config, pipeline, test_dataloader, device=accelerator.device, class_labels=class_labels
+            )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
