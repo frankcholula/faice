@@ -39,18 +39,18 @@ vqmodel_path = (
 # vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-
 # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
 pretrained_model_name_or_path = 'CompVis/ldm-celebahq-256'
 
+
 def train_loop(
-    config,
-    model,
-    noise_scheduler,
-    optimizer,
-    train_dataloader,
-    lr_scheduler,
-    test_dataloader=None,
+        config,
+        model,
+        noise_scheduler,
+        optimizer,
+        train_dataloader,
+        lr_scheduler,
+        test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -61,16 +61,16 @@ def train_loop(
 
     # Prepare everything
     # There is no specific order to remember, you just need to unpack the objects in the same order you gave them to the prepare method.
-    # if test_dataloader is not None:
-    #     model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
-    #         accelerator.prepare(
-    #             model, optimizer, train_dataloader, lr_scheduler, test_dataloader
-    #         )
-    #     )
-    # else:
-    #     model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-    #         model, optimizer, train_dataloader, lr_scheduler
-    #     )
+    if test_dataloader is not None:
+        model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
+            accelerator.prepare(
+                model, optimizer, train_dataloader, lr_scheduler, test_dataloader
+            )
+        )
+    else:
+        model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+            model, optimizer, train_dataloader, lr_scheduler
+        )
 
     global_step = 0
 
@@ -86,17 +86,23 @@ def train_loop(
     )
     model = model.to(device)
 
-    if test_dataloader is not None:
-        model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
-            accelerator.prepare(
-                model, optimizer, train_dataloader, lr_scheduler, test_dataloader
-            )
-        )
-    else:
-        model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-            model, optimizer, train_dataloader, lr_scheduler
-        )
+    optimizer_cls = torch.optim.AdamW
 
+    adam_beta1 = 0.9
+    adam_beta2 = 0.999
+    adam_weight_decay = 1e-2
+    adam_epsilon = 1e-08
+    optimizer = optimizer_cls(
+        model.parameters(),
+        lr=config.learning_rate,
+        betas=(adam_beta1, adam_beta2),
+        weight_decay=adam_weight_decay,
+        eps=adam_epsilon,
+    )
+
+    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+        model, optimizer, train_dataloader, lr_scheduler
+    )
 
     # vqvae = vqvae_b_3(config)
     # vqvae = vqvae.to(device)
@@ -276,11 +282,11 @@ def train_loop(
                 pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
-                epoch + 1
-            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                                       epoch + 1
+                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                epoch + 1
-            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                                 epoch + 1
+                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
 
             if generate_samples:
                 if config.use_ema:
@@ -309,9 +315,9 @@ def train_loop(
 
     # Now we evaluate the model on the test set
     if (
-        accelerator.is_main_process
-        and config.calculate_fid
-        and test_dataloader is not None
+            accelerator.is_main_process
+            and config.calculate_fid
+            and test_dataloader is not None
     ):
         if config.use_ema:
             ema_model.copy_to(model.parameters())
@@ -332,9 +338,9 @@ def train_loop(
         wandb_logger.log_fid_score(fid_score)
 
     if (
-        accelerator.is_main_process
-        and config.calculate_is
-        and test_dataloader is not None
+            accelerator.is_main_process
+            and config.calculate_is
+            and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
             config, pipeline, test_dataloader, device=accelerator.device
