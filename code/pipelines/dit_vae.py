@@ -7,7 +7,7 @@ import numpy as np
 from copy import deepcopy
 
 import accelerate
-from diffusers import DiTPipeline, DiTTransformer2DModel
+from diffusers import DiTPipeline, DiTTransformer2DModel, Transformer2DModel
 from diffusers.training_utils import EMAModel
 from diffusers.utils.import_utils import is_xformers_available
 from packaging import version
@@ -30,6 +30,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 num_class = 2
 
 selected_pipeline = DiTPipeline
+pretrained_model_name_or_path = 'facebook/DiT-XL-2-256'
 
 
 def train_loop(
@@ -77,6 +78,10 @@ def train_loop(
     vae = vae.to(device)
     vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
+
+    model = Transformer2DModel.from_pretrained(
+        pretrained_model_name_or_path, subfolder="transformer",
+    )
 
     # Create EMA for the unet.
     if config.use_ema:
