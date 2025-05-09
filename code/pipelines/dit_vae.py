@@ -7,7 +7,7 @@ import numpy as np
 from copy import deepcopy
 
 import accelerate
-from diffusers import DiTPipeline, DiTTransformer2DModel, Transformer2DModel
+from diffusers import DiTPipeline, DiTTransformer2DModel, Transformer2DModel, AutoencoderKL
 from diffusers.training_utils import EMAModel
 from diffusers.utils.import_utils import is_xformers_available
 from packaging import version
@@ -68,16 +68,16 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    # vae = AutoencoderKL.from_pretrained("facebook/DiT-XL-2-256", subfolder="vae")
-    # vae = vae.to(device)
-    # vae.eval().requires_grad_(False)
+    vae = AutoencoderKL.from_pretrained(pretrained_model_name_or_path, subfolder="vae")
+    vae = vae.to(device)
+    vae.eval().requires_grad_(False)
 
     # vae = vae_b_4(config)
-    vae = vae_l_4(config)
+    # vae = vae_l_4(config)
     # vae = vae_b_16(config)
-    vae = vae.to(device)
-    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
-    vae.eval().requires_grad_(False)
+    # vae = vae.to(device)
+    # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+    # vae.eval().requires_grad_(False)
 
     model = Transformer2DModel.from_pretrained(
         pretrained_model_name_or_path, subfolder="transformer",

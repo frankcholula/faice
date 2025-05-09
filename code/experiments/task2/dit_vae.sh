@@ -146,7 +146,7 @@ python main.py \
     --pipeline dit_vae \
     --scheduler ddim \
     --beta_schedule scaled_linear \
-    --image_size 128 \
+    --image_size 256 \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
