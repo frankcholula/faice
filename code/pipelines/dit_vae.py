@@ -80,13 +80,12 @@ def train_loop(
     vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
 
-    model = Transformer2DModel.from_pretrained(
-        pretrained_model_name_or_path, subfolder="transformer"
-    )
+    # model = Transformer2DModel.from_pretrained(
+    #     pretrained_model_name_or_path, subfolder="transformer"
+    # )
+    # model = model.to(device)
 
     latent_channels = 4
-
-    model = model.to(device)
 
     # Create EMA for the unet.
     if config.use_ema:
