@@ -41,7 +41,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 
 
 # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
-
+pretrained_model_name_or_path = 'CompVis/ldm-celebahq-256'
 
 def train_loop(
     config,
@@ -77,16 +77,21 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
-    # vqvae = vqvae.to(device)
-    # vqvae.eval().requires_grad_
-
-    vqvae = vqvae_b_3(config)
+    vqvae = VQModel.from_pretrained(pretrained_model_name_or_path, subfolder="vqvae")
     vqvae = vqvae.to(device)
-    vqvae.load_state_dict(
-        torch.load(vqmodel_path, map_location=device)["model_state_dict"]
-    )
     vqvae.eval().requires_grad_(False)
+
+    model = UNet2DModel.from_pretrained(
+        pretrained_model_name_or_path, subfolder="unet"
+    )
+    model = model.to(device)
+
+    # vqvae = vqvae_b_3(config)
+    # vqvae = vqvae.to(device)
+    # vqvae.load_state_dict(
+    #     torch.load(vqmodel_path, map_location=device)["model_state_dict"]
+    # )
+    # vqvae.eval().requires_grad_(False)
 
     # vae = vae_l_4(config)
     # vae = vae.to(device)
