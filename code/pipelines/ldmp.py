@@ -86,6 +86,9 @@ def train_loop(
     )
     model = model.to(device)
 
+    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+        model, optimizer, train_dataloader, lr_scheduler
+    )
     # vqvae = vqvae_b_3(config)
     # vqvae = vqvae.to(device)
     # vqvae.load_state_dict(
