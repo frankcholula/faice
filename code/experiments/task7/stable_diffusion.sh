@@ -7,6 +7,7 @@ python main.py \
     --dataset face \
     --model unet_cond_l_block_4 \
     --pipeline stable_diffusion \
+    --attention_head_dim 64 \
     --scheduler pndm \
     --beta_schedule scaled_linear \
     --RHFlip \
