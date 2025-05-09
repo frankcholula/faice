@@ -142,6 +142,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 python main.py \
     --dataset face \
     --model DiT_B_2_vae_channels_4\
+    --attention_head_dim 64 \
     --pipeline dit_vae \
     --scheduler ddim \
     --beta_schedule scaled_linear \
