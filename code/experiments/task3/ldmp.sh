@@ -239,23 +239,23 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --no_confirm
 #    --no_wandb
 
-python main.py \
-    --dataset face \
-    --model unet_l_block_5_head_dim_64 \
-    --pipeline ldmp \
-    --scheduler ddim \
-    --attention_head_dim 64 \
-    --beta_schedule scaled_linear \
-    --image_size 128 \
-    --num_epochs 500 \
-    --num_train_timesteps 2000 \
-    --num_inference_steps 2000 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
-    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_timesteps_2000_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
-    --calculate_fid \
-    --calculate_is \
-    --no_confirm
+#python main.py \
+#    --dataset face \
+#    --model unet_l_block_5_head_dim_64 \
+#    --pipeline ldmp \
+#    --scheduler ddim \
+#    --attention_head_dim 64 \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 2000 \
+#    --num_inference_steps 2000 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_timesteps_2000_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
+#    --calculate_fid \
+#    --calculate_is \
+#    --no_confirm
 #    --no_wandb
 
 #python main.py \
