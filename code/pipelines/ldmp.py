@@ -61,16 +61,16 @@ def train_loop(
 
     # Prepare everything
     # There is no specific order to remember, you just need to unpack the objects in the same order you gave them to the prepare method.
-    if test_dataloader is not None:
-        model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
-            accelerator.prepare(
-                model, optimizer, train_dataloader, lr_scheduler, test_dataloader
-            )
-        )
-    else:
-        model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-            model, optimizer, train_dataloader, lr_scheduler
-        )
+    # if test_dataloader is not None:
+    #     model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
+    #         accelerator.prepare(
+    #             model, optimizer, train_dataloader, lr_scheduler, test_dataloader
+    #         )
+    #     )
+    # else:
+    #     model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+    #         model, optimizer, train_dataloader, lr_scheduler
+    #     )
 
     global_step = 0
 
@@ -85,6 +85,17 @@ def train_loop(
         pretrained_model_name_or_path, subfolder="unet"
     )
     model = model.to(device)
+
+    if test_dataloader is not None:
+        model, optimizer, train_dataloader, lr_scheduler, test_dataloader = (
+            accelerator.prepare(
+                model, optimizer, train_dataloader, lr_scheduler, test_dataloader
+            )
+        )
+    else:
+        model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+            model, optimizer, train_dataloader, lr_scheduler
+        )
 
 
     # vqvae = vqvae_b_3(config)
@@ -109,9 +120,6 @@ def train_loop(
         )
 
     model.train()  # important! This enables embedding dropout for classifier-free guidance
-    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_dataloader, lr_scheduler
-    )
 
     if config.enable_xformers_memory_efficient_attention:
         if is_xformers_available():
