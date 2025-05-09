@@ -15,7 +15,7 @@ python main.py \
     --num_train_timesteps 4000 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
-    --wandb_run_name task4_ddim_cos_eta0.5_v_0snr \
+    --wandb_run_name task4_ddim_cos_eta0.5_v \
     --calculate_fid \
     --calculate_is \
     --verbose
