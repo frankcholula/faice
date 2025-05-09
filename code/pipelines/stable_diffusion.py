@@ -184,7 +184,7 @@ def train_loop(
         )
 
     # Initialize the optimizer
-    if args.use_8bit_adam:
+    if config.use_8bit_adam:
         try:
             import bitsandbytes as bnb
         except ImportError:

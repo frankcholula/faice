@@ -203,6 +203,11 @@ def parse_args():
         help="Use gradient checkpointing",
     )
     training_group.add_argument(
+        "--use_8bit_adam",
+        action="store_true",
+        help="Whether or not to use 8-bit Adam from bitsandbytes.",
+    )
+    training_group.add_argument(
         "--scale_lr", action="store_true", help="Scale learning rate"
     )
     training_group.add_argument(
