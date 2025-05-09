@@ -14,3 +14,4 @@ accelerate launch --mixed_precision="bf16" pipelines/train_text_to_image_lora.py
   --output_dir="test_lora-model" \
   --validation_prompt="I like big butts and I cannot lie. My brother likes small butts and cannot tell the truth. We each guard a door, one leads to the biggest of butts, the other to certain death. SOLVE YE NOW THE DILEMMA OF MIX-A-LOT." --report_to="wandb" \
   --num_validation_images=10
+  
