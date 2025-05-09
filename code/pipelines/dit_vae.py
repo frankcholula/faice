@@ -80,10 +80,11 @@ def train_loop(
     vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     vae.eval().requires_grad_(False)
 
-    model_config = model.parameters()
     model = Transformer2DModel.from_pretrained(
-        pretrained_model_name_or_path, subfolder="transformer", config=model_config
+        pretrained_model_name_or_path, subfolder="transformer"
     )
+    model_config = model.config
+    model_config.update({"out_channels": 4})
 
     # model = model.from_pretrained(pretrained_model_name_or_path,  # Base model
     #                               subfolder="transformer",
