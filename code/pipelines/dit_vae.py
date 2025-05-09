@@ -29,6 +29,7 @@ vae_path = "runs/vae_l_4-vae-ddpm-face-500-0.05-16/checkpoints/model_vae.pth"
 # vae_path = "runs/vae_b_4-vae-ddpm-face-500-0.05/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 num_class = 2
+latent_channels = 4
 
 selected_pipeline = DiTPipeline
 pretrained_model_name_or_path = 'facebook/DiT-XL-2-256'
