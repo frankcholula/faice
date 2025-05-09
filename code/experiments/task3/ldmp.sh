@@ -244,6 +244,7 @@ python main.py \
     --model unet_l_block_5_head_dim_64 \
     --pipeline ldmp \
     --scheduler ddim \
+    --attention_head_dim 64 \
     --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 500 \
