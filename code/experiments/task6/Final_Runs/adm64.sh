@@ -21,7 +21,7 @@ python main.py \
     --use_lpips \
     --lpips_net alex \
     --lpips_weight 0.05 \
-    --wandb_run_name fruns_adm_bs64_ddim_0.5_v_mse_lpips_alex_0.05 \
+    --wandb_run_name frun_adm_bs64_ddim_0.5_v_mse_lpips_alex_0.05 \
     --calculate_fid \
     --calculate_is \
     --verbose
