@@ -9,7 +9,7 @@ from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
 from cleanfid import fid
-from diffusers import DiTPipeline, DDPMPipeline, DDIMPipeline, StableDiffusionPipeline
+from diffusers import DiTPipeline, DDPMPipeline, DDIMPipeline, StableDiffusionPipeline, LDMPipeline
 from pipelines.ccddpm_pipeline import CCDDPMPipeline
 from pipelines.custom_pipelines import CustomTransformer2DPipeline
 
@@ -56,7 +56,7 @@ def pipeline_inference(
             num_inference_steps=config.num_inference_steps,
             output_type=output_type,
         ).images
-    elif isinstance(pipeline, DDIMPipeline):
+    elif isinstance(pipeline, DDIMPipeline) or isinstance(pipeline, LDMPipeline):
         images = pipeline(
             batch_size=batch_size,
             generator=generator,
