@@ -83,15 +83,8 @@ def train_loop(
     model = Transformer2DModel.from_pretrained(
         pretrained_model_name_or_path, subfolder="transformer"
     )
-    model_config = dict(model.config)
-    model_config.update({"out_channels": 4})
-    model = Transformer2DModel.from_pretrained(
-        pretrained_model_name_or_path, subfolder="transformer", model_config=model_config
-    )
 
-    # model = model.from_pretrained(pretrained_model_name_or_path,  # Base model
-    #                               subfolder="transformer",
-    #                               )
+    latent_channels = 4
 
     model = model.to(device)
 
@@ -214,6 +207,12 @@ def train_loop(
                                    class_labels=class_labels,
                                    return_dict=False)[0]
 
+                # learned sigma
+                if model.config.out_channels // 2 == latent_channels:
+                    model_output, _ = torch.split(noise_pred, latent_channels, dim=1)
+                else:
+                    model_output = noise_pred
+
                 if noise_scheduler.config.prediction_type == "epsilon":
                     target = noise
                 elif noise_scheduler.config.prediction_type == "v_prediction":
@@ -221,7 +220,7 @@ def train_loop(
                 else:
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
-                loss = F.mse_loss(noise_pred, target)
+                loss = F.mse_loss(model_output, target)
                 # loss = F.l1_loss(noise_pred, target)
                 accelerator.backward(loss)
 
