@@ -45,7 +45,22 @@ class WandBLogger:
                 "seed": self.config.seed,
                 "dataset": self.config.dataset_name,
                 "model": self.config.model,
+                "unet_variant": self.config.unet_variant,
+                "layers_per_block": self.config.layers_per_block,
+                "base_channels": self.config.base_channels,
+                "multi_res": self.config.multi_res,
+                "attention_head_dim": self.config.attention_head_dim,
+                "upsample_type": self.config.upsample_type,
+                "downsample_type": self.config.downsample_type,
                 "scheduler": self.config.scheduler,
+                "eta": self.config.eta,
+                "pipeline": self.config.pipeline,
+                "model": self.config.model,
+                "prediction_type": self.config.prediction_type,
+                "rescale_betaas_zero_snr": self.config.rescale_betas_zero_snr,
+                "loss_type": self.config.loss_type,
+                "use_lpips": self.config.use_lpips,
+                "condition_on": self.config.condition_on,
             },
         )
         if model is not None and self.config.wandb_watch_model:
@@ -103,7 +118,7 @@ class WandBLogger:
                 "beta_schedule": self.config.beta_schedule,
             },
         )
-        try: 
+        try:
             artifact.add_file(
                 os.path.join(
                     self.config.output_dir,
@@ -134,7 +149,7 @@ class WandBLogger:
 
 
 @contextmanager
-def timer(msg='all tasks'):
+def timer(msg="all tasks"):
     """
     Calculate the time of running
     @return:
@@ -143,4 +158,4 @@ def timer(msg='all tasks'):
     yield
     endTime = time.time()
     # print(f'The time cost for {msg}：{round(1000.0 * (endTime - startTime), 2)}, ms')
-    print(f'The time cost for {msg}：', round((endTime - startTime)/60, 2), 'minutes')
+    print(f"The time cost for {msg}：", round((endTime - startTime) / 60, 2), "minutes")
