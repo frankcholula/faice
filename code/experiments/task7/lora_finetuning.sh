@@ -1,22 +1,16 @@
-export MODEL_NAME="runwayml/stable-diffusion-v1-5"
-export INSTANCE_DIR="path-to-instance-images"
-export OUTPUT_DIR="path-to-save-model"
+export MODEL_NAME="CompVis/stable-diffusion-v1-4"
+export DATASET_NAME="code/datasets/celeba_hq_stable_diffusion"
 
-accelerate launch train_dreambooth_lora.py \
-  --pretrained_model_name_or_path=$MODEL_NAME  \
-  --instance_data_dir=$INSTANCE_DIR \
-  --output_dir=$OUTPUT_DIR \
-  --instance_prompt="a photo of sks dog" \
-  --resolution=512 \
+accelerate launch --mixed_precision="fp16" train_text_to_image_lora.py \
+  --pretrained_model_name_or_path=$MODEL_NAME \
+  --dataset_name=$DATASET_NAME --caption_column="text" \
+  --resolution=512 --random_flip \
   --train_batch_size=1 \
-  --gradient_accumulation_steps=1 \
-  --checkpointing_steps=100 \
-  --learning_rate=1e-4 \
-  --report_to="wandb" \
-  --lr_scheduler="constant" \
-  --lr_warmup_steps=0 \
-  --max_train_steps=500 \
-  --validation_prompt="A photo of sks dog in a bucket" \
-  --validation_epochs=50 \
-  --seed="0" \
-  --push_to_hub
+  --num_train_epochs=100 --checkpointing_steps=5000 \
+  --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 \
+  --seed=42 \
+  --output_dir="test_lora-model" \
+  --validation_prompt="sexy woman with big jugs" --report_to="wandb" \
+  --use_peft \
+  --lora_r=4 --lora_alpha=32 \
+  --lora_text_encoder_r=4 --lora_text_encoder_alpha=32
