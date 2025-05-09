@@ -82,16 +82,16 @@ def train_loop(
     vqvae = vqvae.to(device)
     vqvae.eval().requires_grad_(False)
 
-    model = UNet2DModel.from_pretrained(
-        pretrained_model_name_or_path, subfolder="unet"
-    )
-    # model = model.from_pretrained(
-    #     pretrained_model_name_or_path,  # Base model
-    #     subfolder="unet",
+    # model = UNet2DModel.from_pretrained(
+    #     pretrained_model_name_or_path, subfolder="unet"
     # )
+    model = model.from_pretrained(
+        pretrained_model_name_or_path,  # Base model
+        subfolder="unet",
+    )
     # Freeze some layers
-    # frozen_layers = 3
-    # freeze_layers(model, freeze_until_layer=frozen_layers)
+    frozen_layers = 3
+    freeze_layers(model, freeze_until_layer=frozen_layers)
     model = model.to(device)
 
     optimizer_cls = torch.optim.AdamW
