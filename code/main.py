@@ -7,7 +7,7 @@ from PIL import Image
 from args import get_config_and_components
 from models.unet import ClassConditionedUNet
 from diffusers.optimization import get_cosine_schedule_with_warmup
-from conf.training_config import FaceConfig, ButterflyConfig
+from conf.training_config import FaceConfig, ButterflyConfig, FaceDialogConfig
 from utils.transforms import build_transforms
 from utils.loggers import timer
 
@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="diffusers")
 def setup_dataset(config):
     transform_train, transform_test = build_transforms(config)
 
-    if isinstance(config, FaceConfig):
+    if isinstance(config, FaceConfig) or isinstance(config, FaceDialogConfig):
         from torch.utils.data import Dataset, DataLoader
 
         class CelebaAHQDataset(Dataset):
