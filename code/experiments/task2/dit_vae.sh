@@ -150,8 +150,8 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
+    --train_batch_size 32 \
+    --eval_batch_size 32 \
     --wandb_run_name liang_pre_train_vae_channels_4_ddim_scaled_linear_bs64_vae_l_4_0.05 \
     --calculate_fid \
     --calculate_is \
