@@ -62,6 +62,7 @@ def pipeline_inference(
             generator=generator,
             num_inference_steps=config.num_inference_steps,
             eta=config.eta,
+            output_type=output_type,
         ).images
     elif isinstance(pipeline, CCDDPMPipeline):
         label_id = 1 if config.condition_on == "male" else 0
@@ -126,7 +127,7 @@ def preprocess_image(image, img_src, device):
     if img_src == "loaded":
         return image
     elif img_src == "generated":
-        # image = torch.tensor(image, device=device)
+        image = torch.tensor(image, device=device)
         image = image.permute(0, 3, 1, 2)
         return image
 
