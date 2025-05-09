@@ -85,7 +85,23 @@ def train_loop(
     )
     model = model.to(device)
 
-    latent_channels = 4
+    optimizer_cls = torch.optim.AdamW
+
+    adam_beta1 = 0.9
+    adam_beta2 = 0.999
+    adam_weight_decay = 1e-2
+    adam_epsilon = 1e-08
+    optimizer = optimizer_cls(
+        model.parameters(),
+        lr=config.learning_rate,
+        betas=(adam_beta1, adam_beta2),
+        weight_decay=adam_weight_decay,
+        eps=adam_epsilon,
+    )
+
+    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+        model, optimizer, train_dataloader, lr_scheduler
+    )
 
     # Create EMA for the unet.
     if config.use_ema:
