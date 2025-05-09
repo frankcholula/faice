@@ -8,7 +8,6 @@
 # Deep learning framework
 from typing import Optional
 
-import random
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -27,6 +26,8 @@ from utils.loss import get_loss
 import lpips
 
 selected_pipeline = ConsistencyModelPipeline
+
+
 def train_loop(
     config,
     model,
@@ -105,6 +106,7 @@ def train_loop(
 
             with accelerator.accumulate(model):
                 # Predict the noise residual
+                # TODO: refactor loss function here to use get_loss
                 if isinstance(noise_scheduler, CMStochasticIterativeScheduler):
                     sigma = convert_sigma(noise_scheduler, noisy_images, init_timesteps)
                     model_kwargs = {"return_dict": False}
@@ -130,9 +132,6 @@ def train_loop(
                     num_timesteps = noise_scheduler.config.num_train_timesteps
                     t, weights = sample(bs, clean_images.device, num_timesteps)
                     loss = (loss * weights).mean()
-
-                    # loss = F.mse_loss(denoised, clean_images)
-
                 else:
                     noise_pred = model(noisy_images, timesteps, return_dict=False)[0]
                     loss = F.mse_loss(noise_pred, noise)
