@@ -90,12 +90,9 @@ def train_loop(
 
     # Replace the output layer
     new_out_channels = 4  # Desired number of output channels
-
-    model.config.out_channels = new_out_channels
-
-    # Freeze some layers
-    # frozen_layers = 3
-    # freeze_layers(model, freeze_until_layer=frozen_layers)
+    for param in model.parameters():
+        # param.requires_grad = False
+        param.out_channels = new_out_channels
 
     model = model.to(device)
 
