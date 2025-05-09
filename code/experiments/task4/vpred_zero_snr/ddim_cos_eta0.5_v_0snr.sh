@@ -19,4 +19,4 @@ python main.py \
     --wandb_run_name task4_ddim_cos_eta0.5_v_0snr \
     --calculate_fid \
     --calculate_is \
-    --verbose
+    --no_confirm

@@ -361,6 +361,7 @@ def get_config_and_components():
     print(f"Gaussian Blur? : {config.gblur}")
     print(f"Random Horizontal Flip? : {config.RHFlip}")
     print(f"center crop arr? : {config.center_crop_arr}")
+    print(f"eta: {config.eta}")
     print(f"Prediction_type: {config.prediction_type}")
     print(f"Rescale_betas_zero_snr?: {config.rescale_betas_zero_snr}")
     print(f"Loss type: {config.loss_type}")
