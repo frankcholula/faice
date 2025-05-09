@@ -78,46 +78,46 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    vqvae = VQModel.from_pretrained(pretrained_model_name_or_path, subfolder="vqvae")
-    vqvae = vqvae.to(device)
-    vqvae.eval().requires_grad_(False)
-
-    # model = UNet2DModel.from_pretrained(
-    #     pretrained_model_name_or_path, subfolder="unet"
-    # )
-    model = model.from_pretrained(
-        pretrained_model_name_or_path,  # Base model
-        subfolder="unet",
-    )
-    # Freeze some layers
-    frozen_layers = 3
-    freeze_layers(model, freeze_until_layer=frozen_layers)
-    model = model.to(device)
-
-    optimizer_cls = torch.optim.AdamW
-
-    adam_beta1 = 0.9
-    adam_beta2 = 0.999
-    adam_weight_decay = 1e-2
-    adam_epsilon = 1e-08
-    optimizer = optimizer_cls(
-        model.parameters(),
-        lr=config.learning_rate,
-        betas=(adam_beta1, adam_beta2),
-        weight_decay=adam_weight_decay,
-        eps=adam_epsilon,
-    )
-
-    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_dataloader, lr_scheduler
-    )
-
-    # vqvae = vqvae_b_3(config)
+    # vqvae = VQModel.from_pretrained(pretrained_model_name_or_path, subfolder="vqvae")
     # vqvae = vqvae.to(device)
-    # vqvae.load_state_dict(
-    #     torch.load(vqmodel_path, map_location=device)["model_state_dict"]
-    # )
     # vqvae.eval().requires_grad_(False)
+    #
+    # # model = UNet2DModel.from_pretrained(
+    # #     pretrained_model_name_or_path, subfolder="unet"
+    # # )
+    # model = model.from_pretrained(
+    #     pretrained_model_name_or_path,  # Base model
+    #     subfolder="unet",
+    # )
+    # # Freeze some layers
+    # frozen_layers = 3
+    # freeze_layers(model, freeze_until_layer=frozen_layers)
+    # model = model.to(device)
+    #
+    # optimizer_cls = torch.optim.AdamW
+    #
+    # adam_beta1 = 0.9
+    # adam_beta2 = 0.999
+    # adam_weight_decay = 1e-2
+    # adam_epsilon = 1e-08
+    # optimizer = optimizer_cls(
+    #     model.parameters(),
+    #     lr=config.learning_rate,
+    #     betas=(adam_beta1, adam_beta2),
+    #     weight_decay=adam_weight_decay,
+    #     eps=adam_epsilon,
+    # )
+    #
+    # model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+    #     model, optimizer, train_dataloader, lr_scheduler
+    # )
+
+    vqvae = vqvae_b_3(config)
+    vqvae = vqvae.to(device)
+    vqvae.load_state_dict(
+        torch.load(vqmodel_path, map_location=device)["model_state_dict"]
+    )
+    vqvae.eval().requires_grad_(False)
 
     # vae = vae_l_4(config)
     # vae = vae.to(device)
@@ -303,8 +303,8 @@ def train_loop(
                     ema_model.copy_to(model.parameters())
                 if config.enable_xformers_memory_efficient_attention:
                     pipeline.enable_xformers_memory_efficient_attention()
-                with torch.no_grad():
-                    evaluate(config, epoch, pipeline)
+
+                evaluate(config, epoch, pipeline)
 
                 if config.use_ema:
                     # Switch back to the original UNet parameters.
@@ -342,8 +342,7 @@ def train_loop(
         if config.enable_xformers_memory_efficient_attention:
             pipeline.enable_xformers_memory_efficient_attention()
 
-        with torch.no_grad():
-            fid_score = calculate_fid_score(config, pipeline, test_dataloader)
+        fid_score = calculate_fid_score(config, pipeline, test_dataloader)
 
         wandb_logger.log_fid_score(fid_score)
 
@@ -352,9 +351,8 @@ def train_loop(
             and config.calculate_is
             and test_dataloader is not None
     ):
-        with torch.no_grad():
-            inception_score = calculate_inception_score(
-                config, pipeline, test_dataloader, device=accelerator.device
-            )
+        inception_score = calculate_inception_score(
+            config, pipeline, test_dataloader, device=accelerator.device
+        )
         wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
