@@ -18,7 +18,7 @@ from utils.metrics import evaluate
 from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
-from utils.model_tools import name_to_label, update_ema, requires_grad
+from utils.model_tools import name_to_label, freeze_layers
 
 # vae_path = "runs/vae-vae-ddpm-face-500-16/checkpoints/model_vae.pth"
 # vae_path = "runs/vae_xl-vae-ddpm-face-500-4/checkpoints/model_vae.pth"
@@ -68,21 +68,29 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    vae = AutoencoderKL.from_pretrained(pretrained_model_name_or_path, subfolder="vae")
-    vae = vae.to(device)
-    vae.eval().requires_grad_(False)
-
-    # vae = vae_b_4(config)
-    # vae = vae_l_4(config)
-    # vae = vae_b_16(config)
+    # vae = AutoencoderKL.from_pretrained(pretrained_model_name_or_path, subfolder="vae")
     # vae = vae.to(device)
-    # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
     # vae.eval().requires_grad_(False)
 
-    model = Transformer2DModel.from_pretrained(
-        pretrained_model_name_or_path, subfolder="transformer",
-    )
-    model = model.to(device)
+    # vae = vae_b_4(config)
+    vae = vae_l_4(config)
+    # vae = vae_b_16(config)
+    vae = vae.to(device)
+    vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
+    vae.eval().requires_grad_(False)
+
+    # model = Transformer2DModel.from_pretrained(
+    #     pretrained_model_name_or_path, subfolder="transformer",
+    # )
+    # model = model.to(device)
+
+    model = model.from_pretrained(pretrained_model_name_or_path,  # Base model
+                                  subfolder="transformer",
+                                  )
+
+    # Freeze some layers
+    frozen_layers = 3
+    freeze_layers(model, freeze_until_layer=frozen_layers)
 
     # Create EMA for the unet.
     if config.use_ema:

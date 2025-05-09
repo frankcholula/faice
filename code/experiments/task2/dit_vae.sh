@@ -146,7 +146,6 @@ python main.py \
     --pipeline dit_vae \
     --scheduler ddim \
     --beta_schedule scaled_linear \
-    --prediction_type v_prediction\
     --image_size 256 \
     --num_epochs 500 \
     --num_train_timesteps 1000 \

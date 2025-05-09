@@ -7,6 +7,8 @@
 """
 from diffusers import UNet2DConditionModel
 
+from utils.model_tools import freeze_layers
+
 
 class BaseUNetCondition(object):
     def __init__(
@@ -86,26 +88,4 @@ def unet_cond_l_block_4(config):
     return BaseUNetCondition(config, compress_rate=_compress_rate).unet_cond_l()
 
 
-def freeze_layers(model, freeze_until_layer):
-    """
-    Freeze layers until the specified layer index.
-    """
-    layers = 0
-    for name, param in model.named_parameters():
-        # Split the parameter name by '.'
-        parts = name.split(".")
 
-        # Check if the second part is a digit (e.g., '0', '1')
-        if len(parts) > 1 and parts[1].isdigit():
-            layer_index = int(parts[1])
-            layers += 1
-            if layer_index < freeze_until_layer:
-                param.requires_grad = False
-            else:
-                param.requires_grad = True
-        else:
-            # Skip parameters that do not match the expected format
-            continue
-    print(
-        f"The model has {layers} layers and freeze the front {freeze_until_layer} layers"
-    )
