@@ -7,6 +7,7 @@
 """
 # Deep learning framework
 import os
+from packaging import version
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
@@ -16,7 +17,7 @@ import accelerate
 from diffusers import LDMPipeline, VQModel, UNet2DModel
 from diffusers.training_utils import EMAModel
 from diffusers.utils.import_utils import is_xformers_available
-from packaging import version
+import lpips
 
 # Configuration
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
@@ -25,6 +26,7 @@ from utils.training import setup_accelerator
 from models.vqmodel import vqvae_b_3, vqvae_b_16, vqvae_b_32, vqvae_b_64
 from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
 from utils.model_tools import freeze_layers
+from utils.loss import get_loss
 
 selected_pipeline = LDMPipeline
 
@@ -75,6 +77,12 @@ def train_loop(
         model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
             model, optimizer, train_dataloader, lr_scheduler
         )
+
+    # Initialize lpips
+    lpips_fn = None
+    if config.use_lpips_regularization:
+        lpips_fn = lpips.LPIPS(net=config.lpips_net).to(config.device)
+        lpips_fn.eval()
 
     global_step = 0
 
@@ -257,7 +265,8 @@ def train_loop(
                         f"Unknown prediction type {noise_scheduler.config.prediction_type}"
                     )
 
-                loss = F.mse_loss(noise_pred, target)
+                loss = get_loss(noise_pred, target, config, lpips_fn=lpips_fn)
+                # loss = F.mse_loss(noise_pred, target)
                 # loss = F.l1_loss(noise_pred, target)
                 accelerator.backward(loss)
 
