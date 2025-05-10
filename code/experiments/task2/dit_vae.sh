@@ -219,9 +219,9 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 32 \
-    --eval_batch_size 32 \
-    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_scaled_linear_bs32_vae_l_4_0.05_ag \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
+    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_scaled_linear_bs64_vae_l_4_0.05_ag \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
