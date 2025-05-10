@@ -254,15 +254,15 @@ python main.py \
     --center_crop_arr \
     --image_size 128 \
     --num_epochs 500 \
-    --num_train_timesteps 4000 \
-    --num_inference_steps 4000 \
+    --num_train_timesteps 1000 \
+    --num_inference_steps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --loss_type mse \
     --use_lpips \
     --lpips_net alex \
     --lpips_weight 0.05 \
-    --wandb_run_name liang_unet_l_block_5_head_dim_64_RHFlip_center_crop_arr_eta0.5_4000_ldmp_ddim_scaled_linear_lpips_0.05vqvae3_loss_weight0.4_ag_bs16_bs64 \
+    --wandb_run_name liang_unet_l_block_5_head_dim_64_RHFlip_center_crop_arr_eta0.5_1000_ldmp_ddim_scaled_linear_lpips_0.05vqvae3_loss_weight0.4_ag_bs16_bs64 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \

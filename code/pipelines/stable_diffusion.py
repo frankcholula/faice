@@ -506,5 +506,9 @@ if __name__ == "__main__":
     stable_diffusion_request_prompt_dir: str = (
         "../datasets/celeba_hq_stable_diffusion/request_hq.txt"
     )
-    # train_prompts = load_prompts(stable_diffusion_prompt_dir)
-    test_prompts = load_request_prompt(stable_diffusion_request_prompt_dir)
+    train_prompts = load_prompts(stable_diffusion_prompt_dir)
+    # test_prompts = load_request_prompt(stable_diffusion_request_prompt_dir)
+
+    t_prompts = [train_prompts[str(x)] for x in range(2700, 2716)]
+    for p in t_prompts:
+        print(p)
