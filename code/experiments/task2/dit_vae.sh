@@ -220,8 +220,8 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 4000 \
     --num_inference_steps 4000 \
-    --train_batch_size 32 \
-    --eval_batch_size 32 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
     --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_scaled_linear_eta0.5_4000_bs32_vae_l_4_0.05_ag \
     --calculate_fid \
     --calculate_is \
