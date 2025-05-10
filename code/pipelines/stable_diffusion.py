@@ -212,20 +212,20 @@ def train_loop(
         model, optimizer, train_dataloader, lr_scheduler
     )
 
-    train_prompts = load_prompts(config.stable_diffusion_prompt_dir)
+    all_prompts = load_prompts(config.stable_diffusion_prompt_dir)
 
     # test_prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
-    # test_prompts = []
-    # for t_batch in tqdm(test_dataloader):
-    #     image_names = t_batch["image_names"]
-    #     t_prompts = [test_prompt_dict[int(x)] for x in image_names]
-    #     test_prompts.extend(t_prompts)
-    #
-    # # For evaluation
-    # evaluate_batch_size = 16
-    # evaluation_prompts = test_prompts[:evaluate_batch_size]
+    test_prompts = []
+    for t_batch in tqdm(test_dataloader):
+        image_names = t_batch["image_names"]
+        t_prompts = [all_prompts[int(x)] for x in image_names]
+        test_prompts.extend(t_prompts)
 
-    evaluation_prompts = load_request_prompt(config.stable_diffusion_request_prompt_dir)
+    # For evaluation
+    evaluate_batch_size = 16
+    evaluation_prompts = test_prompts[:evaluate_batch_size]
+
+    # evaluation_prompts = load_request_prompt(config.stable_diffusion_request_prompt_dir)
 
     if config.use_ema:
         if config.offload_ema:
@@ -250,7 +250,7 @@ def train_loop(
             bs = clean_images.shape[0]
 
             image_names = batch["image_names"]
-            batch_prompts = [train_prompts[x] for x in image_names]
+            batch_prompts = [all_prompts[x] for x in image_names]
             batch["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
             batch["input_ids"] = batch["input_ids"].to(accelerator.device)
 
@@ -398,46 +398,46 @@ def train_loop(
     # do any sampling/FID calculation/etc. with ema (or model) in eval mode ...
 
     # Now we evaluate the model on the test set
-    # if (
-    #     accelerator.is_main_process
-    #     and config.calculate_fid
-    #     and test_dataloader is not None
-    # ):
-    #     if config.use_ema:
-    #         ema_unet.copy_to(model.parameters())
-    #
-    #     pipeline = StableDiffusionPipeline.from_pretrained(
-    #         pretrained_model_name_or_path,
-    #         text_encoder=accelerator.unwrap_model(text_encoder),
-    #         vae=accelerator.unwrap_model(vae),
-    #         unet=accelerator.unwrap_model(model),
-    #         tokenizer=tokenizer,
-    #         # revision=config.revision,
-    #     )
-    #     pipeline = pipeline.to(accelerator.device)
-    #
-    #     if config.enable_xformers_memory_efficient_attention:
-    #         pipeline.enable_xformers_memory_efficient_attention()
-    #
-    #     fid_score = calculate_fid_score(
-    #         config, pipeline, test_dataloader, prompt_dict=test_prompt_dict
-    #     )
-    #
-    #     wandb_logger.log_fid_score(fid_score)
-    #
-    # if (
-    #     accelerator.is_main_process
-    #     and config.calculate_is
-    #     and test_dataloader is not None
-    # ):
-    #     inception_score = calculate_inception_score(
-    #         config,
-    #         pipeline,
-    #         test_dataloader,
-    #         device=accelerator.device,
-    #         prompt_dict=test_prompt_dict,
-    #     )
-    #     wandb_logger.log_inception_score(inception_score)
+    if (
+        accelerator.is_main_process
+        and config.calculate_fid
+        and test_dataloader is not None
+    ):
+        if config.use_ema:
+            ema_unet.copy_to(model.parameters())
+
+        pipeline = StableDiffusionPipeline.from_pretrained(
+            pretrained_model_name_or_path,
+            text_encoder=accelerator.unwrap_model(text_encoder),
+            vae=accelerator.unwrap_model(vae),
+            unet=accelerator.unwrap_model(model),
+            tokenizer=tokenizer,
+            # revision=config.revision,
+        )
+        pipeline = pipeline.to(accelerator.device)
+
+        if config.enable_xformers_memory_efficient_attention:
+            pipeline.enable_xformers_memory_efficient_attention()
+
+        fid_score = calculate_fid_score(
+            config, pipeline, test_dataloader, prompts=test_prompts
+        )
+
+        wandb_logger.log_fid_score(fid_score)
+
+    if (
+        accelerator.is_main_process
+        and config.calculate_is
+        and test_dataloader is not None
+    ):
+        inception_score = calculate_inception_score(
+            config,
+            pipeline,
+            test_dataloader,
+            device=accelerator.device,
+            prompts=test_prompts,
+        )
+        wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
 
 

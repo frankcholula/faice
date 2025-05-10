@@ -133,7 +133,7 @@ def preprocess_image(image, img_src, device):
 
 
 def calculate_inception_score(
-        config, pipeline, test_dataloader, device=None, class_labels=[], prompt_dict={}
+        config, pipeline, test_dataloader, device=None, class_labels=[], prompts=[]
 ):
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -172,10 +172,11 @@ def calculate_inception_score(
                 )
                 generator = torch.manual_seed(config.seed + batch)
 
-                if prompt_dict:
-                    batch_data = test_dataloader.dataset
-                    prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
-                               i in range(batch, batch + batch_size)]
+                if prompts:
+                    # batch_data = test_dataloader.dataset
+                    # prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
+                    #            i in range(batch, batch + batch_size)]
+                    prompts = prompts
                 else:
                     prompts = []
 
@@ -201,7 +202,7 @@ def calculate_inception_score(
 
 def calculate_fid_score(
         config, pipeline, test_dataloader, device=None, save=True, class_labels=[],
-        prompt_dict={}
+        prompts=[]
 ):
     """Calculate FID score between generated images and test dataset"""
     if device is None:
@@ -246,10 +247,11 @@ def calculate_fid_score(
             )
             generator = torch.manual_seed(config.seed + batch)
 
-            if prompt_dict:
-                batch_data = test_dataloader.dataset
-                prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
-                           i in range(batch, batch + batch_size)]
+            if prompts:
+                prompts = prompts
+                # batch_data = test_dataloader.dataset
+                # prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
+                #            i in range(batch, batch + batch_size)]
             else:
                 prompts = []
             output = pipeline_inference(
