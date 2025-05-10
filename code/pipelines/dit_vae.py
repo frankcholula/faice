@@ -1,5 +1,6 @@
 # Deep learning framework
 import os
+from packaging import version
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
@@ -11,7 +12,7 @@ import accelerate
 from diffusers import DiTPipeline, DiTTransformer2DModel, Transformer2DModel, AutoencoderKL
 from diffusers.training_utils import EMAModel
 from diffusers.utils.import_utils import is_xformers_available
-from packaging import version
+import lpips
 
 # Configuration
 from utils.metrics import calculate_fid_score, calculate_inception_score
@@ -20,6 +21,7 @@ from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
 from utils.model_tools import name_to_label, freeze_layers
+from utils.loss import get_loss
 
 # vae_path = "runs/vae-vae-ddpm-face-500-16/checkpoints/model_vae.pth"
 # vae_path = "runs/vae_xl-vae-ddpm-face-500-4/checkpoints/model_vae.pth"
@@ -65,6 +67,12 @@ def train_loop(
         model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
             model, optimizer, train_dataloader, lr_scheduler
         )
+
+    # Initialize lpips
+    lpips_fn = None
+    if config.use_lpips_regularization:
+        lpips_fn = lpips.LPIPS(net=config.lpips_net).to(config.device)
+        lpips_fn.eval()
 
     global_step = 0
 
@@ -238,7 +246,8 @@ def train_loop(
                 else:
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
-                loss = F.mse_loss(model_output, target)
+                loss = get_loss(model_output, target, config, lpips_fn=lpips_fn)
+                # loss = F.mse_loss(model_output, target)
                 # loss = F.l1_loss(noise_pred, target)
                 accelerator.backward(loss)
 
