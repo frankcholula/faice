@@ -89,9 +89,9 @@ def train_loop(
         # vae.load_state_dict(torch.load(vae_path, map_location=device)['model_state_dict'])
         # vae.eval().requires_grad_(False)
 
-    model = UNet2DConditionModel.from_pretrained(
-        pretrained_model_name_or_path, subfolder="unet",
-    )
+    # model = UNet2DConditionModel.from_pretrained(
+    #     pretrained_model_name_or_path, subfolder="unet",
+    # )
 
     tokenizer = CLIPTokenizer.from_pretrained(
         pretrained_model_name_or_path, subfolder="tokenizer"
@@ -184,33 +184,33 @@ def train_loop(
         )
 
     # Initialize the optimizer
-    if config.use_8bit_adam:
-        try:
-            import bitsandbytes as bnb
-        except ImportError:
-            raise ImportError(
-                "Please install bitsandbytes to use 8-bit Adam. You can do so by running `pip install bitsandbytes`"
-            )
+    # if config.use_8bit_adam:
+    #     try:
+    #         import bitsandbytes as bnb
+    #     except ImportError:
+    #         raise ImportError(
+    #             "Please install bitsandbytes to use 8-bit Adam. You can do so by running `pip install bitsandbytes`"
+    #         )
+    #
+    #     optimizer_cls = bnb.optim.AdamW8bit
+    # else:
+    #     optimizer_cls = torch.optim.AdamW
 
-        optimizer_cls = bnb.optim.AdamW8bit
-    else:
-        optimizer_cls = torch.optim.AdamW
-
-    adam_beta1 = 0.9
-    adam_beta2 = 0.999
-    adam_weight_decay = 1e-2
-    adam_epsilon = 1e-08
-    optimizer = optimizer_cls(
-        model.parameters(),
-        lr=config.learning_rate,
-        betas=(adam_beta1, adam_beta2),
-        weight_decay=adam_weight_decay,
-        eps=adam_epsilon,
-    )
-
-    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-        model, optimizer, train_dataloader, lr_scheduler
-    )
+    # adam_beta1 = 0.9
+    # adam_beta2 = 0.999
+    # adam_weight_decay = 1e-2
+    # adam_epsilon = 1e-08
+    # optimizer = optimizer_cls(
+    #     model.parameters(),
+    #     lr=config.learning_rate,
+    #     betas=(adam_beta1, adam_beta2),
+    #     weight_decay=adam_weight_decay,
+    #     eps=adam_epsilon,
+    # )
+    #
+    # model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+    #     model, optimizer, train_dataloader, lr_scheduler
+    # )
 
     all_prompts = load_prompts(config.stable_diffusion_prompt_dir)
 
@@ -398,46 +398,46 @@ def train_loop(
     # do any sampling/FID calculation/etc. with ema (or model) in eval mode ...
 
     # Now we evaluate the model on the test set
-    if (
-        accelerator.is_main_process
-        and config.calculate_fid
-        and test_dataloader is not None
-    ):
-        if config.use_ema:
-            ema_unet.copy_to(model.parameters())
-
-        pipeline = StableDiffusionPipeline.from_pretrained(
-            pretrained_model_name_or_path,
-            text_encoder=accelerator.unwrap_model(text_encoder),
-            vae=accelerator.unwrap_model(vae),
-            unet=accelerator.unwrap_model(model),
-            tokenizer=tokenizer,
-            # revision=config.revision,
-        )
-        pipeline = pipeline.to(accelerator.device)
-
-        if config.enable_xformers_memory_efficient_attention:
-            pipeline.enable_xformers_memory_efficient_attention()
-
-        fid_score = calculate_fid_score(
-            config, pipeline, test_dataloader, prompts=test_prompts
-        )
-
-        wandb_logger.log_fid_score(fid_score)
-
-    if (
-        accelerator.is_main_process
-        and config.calculate_is
-        and test_dataloader is not None
-    ):
-        inception_score = calculate_inception_score(
-            config,
-            pipeline,
-            test_dataloader,
-            device=accelerator.device,
-            prompts=test_prompts,
-        )
-        wandb_logger.log_inception_score(inception_score)
+    # if (
+    #     accelerator.is_main_process
+    #     and config.calculate_fid
+    #     and test_dataloader is not None
+    # ):
+    #     if config.use_ema:
+    #         ema_unet.copy_to(model.parameters())
+    #
+    #     pipeline = StableDiffusionPipeline.from_pretrained(
+    #         pretrained_model_name_or_path,
+    #         text_encoder=accelerator.unwrap_model(text_encoder),
+    #         vae=accelerator.unwrap_model(vae),
+    #         unet=accelerator.unwrap_model(model),
+    #         tokenizer=tokenizer,
+    #         # revision=config.revision,
+    #     )
+    #     pipeline = pipeline.to(accelerator.device)
+    #
+    #     if config.enable_xformers_memory_efficient_attention:
+    #         pipeline.enable_xformers_memory_efficient_attention()
+    #
+    #     fid_score = calculate_fid_score(
+    #         config, pipeline, test_dataloader, prompts=test_prompts
+    #     )
+    #
+    #     wandb_logger.log_fid_score(fid_score)
+    #
+    # if (
+    #     accelerator.is_main_process
+    #     and config.calculate_is
+    #     and test_dataloader is not None
+    # ):
+    #     inception_score = calculate_inception_score(
+    #         config,
+    #         pipeline,
+    #         test_dataloader,
+    #         device=accelerator.device,
+    #         prompts=test_prompts,
+    #     )
+    #     wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
 
 

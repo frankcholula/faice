@@ -160,6 +160,29 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --no_confirm
 #    --no_wandb
 
+#python main.py \
+#    --dataset face \
+#    --model DiT_B_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --beta_schedule scaled_linear \
+#    --RHFlip \
+#    --center_crop_arr \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_pretain_Transformer2DModel_ddim_scaled_linear_bs32_vae_l_4_0.05_RHFlip_center_crop \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
 python main.py \
     --dataset face \
     --model DiT_B_2_vae_channels_4\
@@ -180,6 +203,7 @@ python main.py \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
     --allow_tf32 \
+    --use_ema \
     --no_confirm
 #    --no_wandb
 
