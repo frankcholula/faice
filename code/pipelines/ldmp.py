@@ -33,8 +33,11 @@ selected_pipeline = LDMPipeline
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.1/checkpoints/model_vqvae.pth"
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.1-bs22/checkpoints/model_vqvae.pth"
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.25/checkpoints/model_vqvae.pth"
+# vqmodel_path = (
+#     "runs/vqvae_channel_3-vqvae-ddpm-face-500-0.4-16/checkpoints/model_vqvae.pth"
+# )
 vqmodel_path = (
-    "runs/vqvae_channel_3-vqvae-ddpm-face-500-0.4-16/checkpoints/model_vqvae.pth"
+    "runs/vqvae_channel_3-vqvae-ddpm-face-500-0.4-RHFlip-center_crop/checkpoints/model_vqvae.pth"
 )
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.5/checkpoints/model_vqvae.pth"
 # vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
@@ -78,9 +81,9 @@ def train_loop(
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    vqvae = VQModel.from_pretrained(pretrained_model_name_or_path, subfolder="vqvae")
-    vqvae = vqvae.to(device)
-    vqvae.eval().requires_grad_(False)
+    # vqvae = VQModel.from_pretrained(pretrained_model_name_or_path, subfolder="vqvae")
+    # vqvae = vqvae.to(device)
+    # vqvae.eval().requires_grad_(False)
     #
     # # model = UNet2DModel.from_pretrained(
     # #     pretrained_model_name_or_path, subfolder="unet"
@@ -112,12 +115,12 @@ def train_loop(
     #     model, optimizer, train_dataloader, lr_scheduler
     # )
 
-    # vqvae = vqvae_b_3(config)
-    # vqvae = vqvae.to(device)
-    # vqvae.load_state_dict(
-    #     torch.load(vqmodel_path, map_location=device)["model_state_dict"]
-    # )
-    # vqvae.eval().requires_grad_(False)
+    vqvae = vqvae_b_3(config)
+    vqvae = vqvae.to(device)
+    vqvae.load_state_dict(
+        torch.load(vqmodel_path, map_location=device)["model_state_dict"]
+    )
+    vqvae.eval().requires_grad_(False)
 
     # vae = vae_l_4(config)
     # vae = vae.to(device)

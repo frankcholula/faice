@@ -223,6 +223,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --pipeline ldmp \
 #    --scheduler ddim \
 #    --beta_schedule scaled_linear \
+#    --eta 0.5 \
 #    --RHFlip \
 #    --center_crop_arr \
 #    --image_size 128 \
@@ -231,12 +232,33 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --num_inference_steps 1000 \
 #    --train_batch_size 64 \
 #    --eval_batch_size 64 \
-#    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_RHFlip_center_crop_arr_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
+#    --wandb_run_name liang_unet_l_block_5_head_dim_64_RHFlip_center_crop_arr_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4_ag_bs16_bs64 \
 #    --calculate_fid \
 #    --calculate_is \
 #    --enable_xformers_memory_efficient_attention \
 #    --allow_tf32 \
 #    --no_confirm
+#    --no_wandb
+
+python main.py \
+    --dataset face \
+    --model unet_l_block_5_head_dim_64 \
+    --pipeline ldmp \
+    --scheduler ddim \
+    --beta_schedule scaled_linear \
+    --eta 0.5 \
+    --image_size 128 \
+    --num_epochs 500 \
+    --num_train_timesteps 4000 \
+    --num_inference_steps 4000 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
+    --wandb_run_name liang_unet_l_block_5_head_dim_64_ldmp_ddim_scaled_linear_eta0.5_timesteps4000_vqvae3_loss_weight0.4_ag_bs16_bs64 \
+    --calculate_fid \
+    --calculate_is \
+    --enable_xformers_memory_efficient_attention \
+    --allow_tf32 \
+    --no_confirm
 #    --no_wandb
 
 #python main.py \
@@ -289,7 +311,7 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --image_size 128 \
 #    --num_epochs 500 \
 #    --num_train_timesteps 4000 \
-#    --num_inference_steps 1000 \
+#    --num_inference_steps 4000 \
 #    --train_batch_size 64 \
 #    --eval_batch_size 64 \
 #    --wandb_run_name liang_adm_ddim_scaled_linear_train_steps4000_vqvae3_loss_weight0.4bs16_bs64 \
@@ -301,22 +323,22 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --no_wandb
 
 
-python main.py \
-    --dataset face \
-    --model unet_l_block_5_head_dim_64 \
-    --pipeline ldmp \
-    --scheduler ddim \
-    --eta 0.5 \
-    --attention_head_dim 64 \
-    --beta_schedule scaled_linear \
-    --image_size 128 \
-    --num_epochs 500 \
-    --num_train_timesteps 1000 \
-    --num_inference_steps 1000 \
-    --train_batch_size 64 \
-    --eval_batch_size 64 \
-    --wandb_run_name liang_ldmp_ddim_scaled_linear_pretrain_vqvae_bs64 \
-    --calculate_fid \
-    --calculate_is \
-    --no_confirm
+#python main.py \
+#    --dataset face \
+#    --model unet_l_block_5_head_dim_64 \
+#    --pipeline ldmp \
+#    --scheduler ddim \
+#    --eta 0.5 \
+#    --attention_head_dim 64 \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_ldmp_ddim_scaled_linear_pretrain_vqvae_bs64 \
+#    --calculate_fid \
+#    --calculate_is \
+#    --no_confirm
 #    --no_wandb
