@@ -44,13 +44,13 @@ selected_pipeline = StableDiffusionPipeline
 
 
 def train_loop(
-    config,
-    model,
-    noise_scheduler,
-    optimizer,
-    train_dataloader,
-    lr_scheduler,
-    test_dataloader=None,
+        config,
+        model,
+        noise_scheduler,
+        optimizer,
+        train_dataloader,
+        lr_scheduler,
+        test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -177,10 +177,10 @@ def train_loop(
 
     if config.scale_lr:
         config.learning_rate = (
-            config.learning_rate
-            * config.gradient_accumulation_steps
-            * config.train_batch_size
-            * accelerator.num_processes
+                config.learning_rate
+                * config.gradient_accumulation_steps
+                * config.train_batch_size
+                * accelerator.num_processes
         )
 
     # Initialize the optimizer
@@ -224,6 +224,24 @@ def train_loop(
     # For evaluation
     evaluate_batch_size = 16
     evaluation_prompts = test_prompts[:evaluate_batch_size]
+    print('>'*9, evaluation_prompts)
+    evaluation_prompts = [
+        'This female has a very mild smile, and extremely long bangs that almost covers all of her forehead. This female is in the middle age. This woman is not wearing any eyeglasses.',
+        'She has no smile. This person is in her thirties and has no bangs, and no glasses.',
+        'She has no bangs, no smile, and no glasses. She is in her thirties.',
+        'This young adult has a face that is beamed with happiness, no glasses, and no fringe.',
+        'This person in his thirties has stubble covering the cheeks and chin, no eyeglasses, no bangs, and no smile.',
+        'There is not any glasses on the face and has no fringe, and no smile. This person is in her thirties.',
+        'This young adult has no eyeglasses, long bangs that almost covers this full forehead, and a very mild smile.',
+        'This guy has no mustache at all, no eyeglasses, a big smile with the mouth a bit open, and no fringe. This gentleman is in the thirties.',
+        'This young girl has no smile, no bangs, and no eyeglasses.',
+        "This lady doesn't have any fringe and the forehead is visible and has a smile with her teeth visible. She is a young adult. This female is not wearing any glasses.",
+        'She has no glasses. This woman is in the thirties and has no fringe. She has a beaming face.',
+        'He has a very mild smile, no fringe, and no mustache. This gentleman is a young adult. There is not any eyeglasses on his face.',
+        'There is not any eyeglasses on the face and has a smile with the teeth visible, and fringe of medium length that leaves half of the forehead visible. This woman is in the forties.',
+        'This person has no smile, no eyeglasses, and no bangs. This female is a young adult.',
+        "This person has no glasses, and no smile. This lady is in the thirties. This woman doesn't have any fringe and the forehead is visible.",
+        "This guy doesn't have any beard and has extremely long bangs that almost covers all of the forehead, and no eyeglasses. He is a teen and has no smile."]
 
     # evaluation_prompts = load_request_prompt(config.stable_diffusion_request_prompt_dir)
 
@@ -322,8 +340,8 @@ def train_loop(
                         model_pred.float(), target.float(), reduction="none"
                     )
                     loss = (
-                        loss.mean(dim=list(range(1, len(loss.shape))))
-                        * mse_loss_weights
+                            loss.mean(dim=list(range(1, len(loss.shape))))
+                            * mse_loss_weights
                     )
                     loss = loss.mean()
 
@@ -365,11 +383,11 @@ def train_loop(
                 pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
-                epoch + 1
-            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                                       epoch + 1
+                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                epoch + 1
-            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                                 epoch + 1
+                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
@@ -510,5 +528,6 @@ if __name__ == "__main__":
     # test_prompts = load_request_prompt(stable_diffusion_request_prompt_dir)
 
     t_prompts = [train_prompts[str(x)] for x in range(2700, 2716)]
-    for p in t_prompts:
-        print(p)
+    print(t_prompts)
+    # for p in t_prompts:
+    #     print(p)

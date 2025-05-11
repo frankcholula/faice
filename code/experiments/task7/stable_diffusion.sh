@@ -49,5 +49,5 @@ python main.py \
     --enable_xformers_memory_efficient_attention \
     --allow_tf32 \
     --use_ema \
-    --no_confirm
-#    --no_wandb
+    --no_confirm \
+    --no_wandb
