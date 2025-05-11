@@ -287,7 +287,7 @@ python main.py \
     --use_lpips \
     --lpips_net alex \
     --lpips_weight 0.05 \
-    --wandb_run_name liang_unet_l_block_5_head_dim_64_ldmp_ddim_scaled_linear_eta0.5_timesteps1000_100_vqvae3_loss_weight0.4_ag_bs16_bs64 \
+    --wandb_run_name liang_unet_l_block_5_head_dim_64_ldmp_ddim_scaled_linear_eta0.5_timesteps1000_100_lpips_0.05_vqvae3_loss_weight0.4_ag_bs16_bs64 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
