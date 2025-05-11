@@ -290,6 +290,8 @@ python main.py \
     --pipeline dit_vae \
     --scheduler ddim \
     --eta 0.5 \
+    --RHFlip \
+    --center_crop_arr \
     --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 500 \
@@ -300,7 +302,7 @@ python main.py \
     --use_lpips \
     --lpips_net alex \
     --lpips_weight 0.05 \
-    --wandb_run_name liang_DiT_L_2_vae_channels_4_ddim_scaled_linear_eta0.5_train_timesteps_4000_100_bs64_vae_l_4_ag_0.05_ag \
+    --wandb_run_name liang_DiT_L_2_vae_channels_4_ddim_scaled_linear_eta0.5_RHFlip_center_crop_arr_train_timesteps_4000_100_bs64_vae_l_4_ag_0.05_ag \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
