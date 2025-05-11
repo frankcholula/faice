@@ -317,7 +317,7 @@ python main.py \
     --attention_head_dim 64 \
     --pipeline dit_vae \
     --scheduler ddim \
-    --eta 0.0 \
+    --eta 0.5 \
     --RHFlip \
     --center_crop_arr \
     --beta_schedule scaled_linear \
