@@ -225,23 +225,6 @@ def train_loop(
     evaluate_batch_size = 16
     evaluation_prompts = test_prompts[:evaluate_batch_size]
     print('>'*9, evaluation_prompts)
-    evaluation_prompts = [
-        'This female has a very mild smile, and extremely long bangs that almost covers all of her forehead. This female is in the middle age. This woman is not wearing any eyeglasses.',
-        'She has no smile. This person is in her thirties and has no bangs, and no glasses.',
-        'She has no bangs, no smile, and no glasses. She is in her thirties.',
-        'This young adult has a face that is beamed with happiness, no glasses, and no fringe.',
-        'This person in his thirties has stubble covering the cheeks and chin, no eyeglasses, no bangs, and no smile.',
-        'There is not any glasses on the face and has no fringe, and no smile. This person is in her thirties.',
-        'This young adult has no eyeglasses, long bangs that almost covers this full forehead, and a very mild smile.',
-        'This guy has no mustache at all, no eyeglasses, a big smile with the mouth a bit open, and no fringe. This gentleman is in the thirties.',
-        'This young girl has no smile, no bangs, and no eyeglasses.',
-        "This lady doesn't have any fringe and the forehead is visible and has a smile with her teeth visible. She is a young adult. This female is not wearing any glasses.",
-        'She has no glasses. This woman is in the thirties and has no fringe. She has a beaming face.',
-        'He has a very mild smile, no fringe, and no mustache. This gentleman is a young adult. There is not any eyeglasses on his face.',
-        'There is not any eyeglasses on the face and has a smile with the teeth visible, and fringe of medium length that leaves half of the forehead visible. This woman is in the forties.',
-        'This person has no smile, no eyeglasses, and no bangs. This female is a young adult.',
-        "This person has no glasses, and no smile. This lady is in the thirties. This woman doesn't have any fringe and the forehead is visible.",
-        "This guy doesn't have any beard and has extremely long bangs that almost covers all of the forehead, and no eyeglasses. He is a teen and has no smile."]
 
     # evaluation_prompts = load_request_prompt(config.stable_diffusion_request_prompt_dir)
 
