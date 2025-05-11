@@ -283,13 +283,41 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --no_wandb
 
 
+#python main.py \
+#    --dataset face \
+#    --model DiT_L_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --eta 0.5 \
+#    --RHFlip \
+#    --center_crop_arr \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 4000 \
+#    --num_inference_steps 100 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --use_lpips \
+#    --lpips_net alex \
+#    --lpips_weight 0.05 \
+#    --wandb_run_name liang_DiT_L_2_vae_channels_4_ddim_scaled_linear_eta0.5_RHFlip_center_crop_arr_train_timesteps_4000_100_bs64_vae_l_4_ag_0.05_ag \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
+
 python main.py \
     --dataset face \
     --model DiT_L_2_vae_channels_4\
     --attention_head_dim 64 \
     --pipeline dit_vae \
     --scheduler ddim \
-    --eta 0.5 \
+    --eta 0.0 \
     --RHFlip \
     --center_crop_arr \
     --beta_schedule scaled_linear \
@@ -302,7 +330,7 @@ python main.py \
     --use_lpips \
     --lpips_net alex \
     --lpips_weight 0.05 \
-    --wandb_run_name liang_DiT_L_2_vae_channels_4_ddim_scaled_linear_eta0.5_RHFlip_center_crop_arr_train_timesteps_4000_100_bs64_vae_l_4_ag_0.05_ag \
+    --wandb_run_name liang_DiT_L_2_pretrain_ddim_scaled_linear_eta0.5_RHFlip_center_crop_arr_train_timesteps_4000_100_bs64 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
