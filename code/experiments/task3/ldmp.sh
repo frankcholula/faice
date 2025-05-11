@@ -255,7 +255,7 @@ python main.py \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
-    --num_inference_steps 1000 \
+    --num_inference_steps 100 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
     --loss_type mse \
@@ -280,11 +280,11 @@ python main.py \
 #    --eta 0.5 \
 #    --image_size 128 \
 #    --num_epochs 500 \
-#    --num_train_timesteps 4000 \
-#    --num_inference_steps 4000 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 100 \
 #    --train_batch_size 64 \
 #    --eval_batch_size 64 \
-#    --wandb_run_name liang_unet_l_block_5_head_dim_64_ldmp_ddim_scaled_linear_eta0.5_timesteps4000_vqvae3_loss_weight0.4_ag_bs16_bs64 \
+#    --wandb_run_name liang_unet_l_block_5_head_dim_64_ldmp_ddim_scaled_linear_eta0.5_timesteps4000_100_vqvae3_loss_weight0.4_ag_bs16_bs64 \
 #    --calculate_fid \
 #    --calculate_is \
 #    --enable_xformers_memory_efficient_attention \
@@ -292,23 +292,23 @@ python main.py \
 #    --no_confirm
 #    --no_wandb
 
-#python main.py \
-#    --dataset face \
-#    --model unet_l_block_5_head_dim_64 \
-#    --pipeline ldmp \
-#    --scheduler ddim \
-#    --attention_head_dim 64 \
-#    --beta_schedule scaled_linear \
-#    --image_size 128 \
-#    --num_epochs 500 \
-#    --num_train_timesteps 2000 \
-#    --num_inference_steps 2000 \
-#    --train_batch_size 64 \
-#    --eval_batch_size 64 \
-#    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_timesteps_2000_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
-#    --calculate_fid \
-#    --calculate_is \
-#    --no_confirm
+python main.py \
+    --dataset face \
+    --model unet_l_block_5_head_dim_64 \
+    --pipeline ldmp \
+    --scheduler ddim \
+    --attention_head_dim 64 \
+    --beta_schedule scaled_linear \
+    --image_size 128 \
+    --num_epochs 500 \
+    --num_train_timesteps 4000 \
+    --num_inference_steps 100 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
+    --wandb_run_name liang_unet_l_block_5_head_dim_64_train_timesteps_4000_100_ldmp_ddim_scaled_linear_vqvae3_loss_weight0.4_ag_bs16_bs64 \
+    --calculate_fid \
+    --calculate_is \
+    --no_confirm
 #    --no_wandb
 
 #python main.py \
@@ -320,7 +320,7 @@ python main.py \
 #    --image_size 128 \
 #    --num_epochs 500 \
 #    --num_train_timesteps 1000 \
-#    --num_inference_steps 1000 \
+#    --num_inference_steps 50 \
 #    --train_batch_size 64 \
 #    --eval_batch_size 64 \
 #    --wandb_run_name liang_unet_l_block_5_head_dim_64_pndm_scaled_linear_vqvae3_loss_weight0.4bs16_bs64 \
