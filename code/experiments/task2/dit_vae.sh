@@ -217,11 +217,11 @@ python main.py \
     --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 500 \
-    --num_train_timesteps 1000 \
-    --num_inference_steps 1000 \
+    --num_train_timesteps 4000 \
+    --num_inference_steps 100 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --wandb_run_name liang_DiT_L_2_vae_channels_4_ddim_scaled_linear_bs64_vae_l_4_0.05_ag \
+    --wandb_run_name liang_DiT_L_2_vae_channels_4_ddim_scaled_linear_train_timesteps_4000_100_bs64_vae_l_4_ag_0.05_ag \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
