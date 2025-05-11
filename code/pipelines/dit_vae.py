@@ -78,6 +78,7 @@ def train_loop(
 
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
     vae = AutoencoderKL.from_single_file(url)
+    vae = vae.to(device)
     vae.eval().requires_grad_(False)
 
     # vae = AutoencoderKL.from_pretrained(pretrained_model_name_or_path, subfolder="vae")
