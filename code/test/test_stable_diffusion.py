@@ -22,6 +22,7 @@ pipe = pipe.to("cuda")
 
 
 class Config():
+    use_wandb = False
     num_inference_steps = 999
     seed = 0
     output_dir = "runs/stable_diffusion_inference"
