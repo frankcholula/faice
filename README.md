@@ -186,6 +186,7 @@ code/datasets
 
 ## 🚨 Credentials
  **DO NOT COMMIT THE CREDENTIALS**
+
 Please use the provided API key and entity in the `.env` file in order to store the runs on Weights & Biases.
 ```bash
 # sample .env file
