@@ -330,7 +330,7 @@ python main.py \
     --use_lpips \
     --lpips_net alex \
     --lpips_weight 0.05 \
-    --wandb_run_name liang_DiT_L_2_pretrain_ddim_scaled_linear_eta0.5_RHFlip_center_crop_arr_train_timesteps_1000_100_bs64 \
+    --wandb_run_name liang_DiT_L_2_ddim_scaled_linear_eta0.5_RHFlip_center_crop_arr_train_timesteps_1000_100_pretrain_vae_bs64 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
