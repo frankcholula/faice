@@ -60,7 +60,18 @@ For **unconditional generation**, please download the attached dataset `celeba_h
 
 For **conditional generation**, please download the dataset sent in the WhatsApp group. The layout of your dataset should be as follows:
 ```bash
-
+code/datasets
+├── celeba_hq_split
+│   ├── test
+│   ├── train
+│   ├── celebaAHQ_test.xlsx
+│   └── celebaAHQ_train.xlsx
+└── celeba_hq_stable_diffusion
+    ├── captions_hq.json
+    ├── request_hq.txt
+    ├── test_300
+    └── train_2700
+```
 
 
 ## Credentials
