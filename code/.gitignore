@@ -185,3 +185,6 @@ wandb/
 # Notebook
 .ipynb_checkpoints
 .idea
+
+# finetuning
+finetuned_lora-model/

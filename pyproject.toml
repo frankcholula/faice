@@ -35,6 +35,8 @@ clean-fid = "^0.1.35"
 transformers = "4.49.0"
 aiohttp = "^3.11.18"
 lpips = "^0.1.4"
+peft = "^0.15.2"
+xformers = "^0.0.30"
 
 
 [tool.poetry.group.dev.dependencies]
