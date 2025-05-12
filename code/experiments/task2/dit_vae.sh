@@ -102,23 +102,219 @@ wandb artifact cache cleanup 0GB --remove-temp
 #    --model DiT_B_2_vae_channels_4\
 #    --pipeline dit_vae \
 #    --scheduler ddim \
-#    --beta_schedule linear \
+#    --beta_schedule scaled_linear \
 #    --image_size 128 \
-#    --num_epochs 1 \
+#    --num_epochs 500 \
 #    --num_train_timesteps 1000 \
 #    --num_inference_steps 1000 \
 #    --train_batch_size 64 \
 #    --eval_batch_size 64 \
-#    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_linear_bs64_vae0.1 \
+#    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_scaled_linear_bs64_vae_l_4_0.05 \
 #    --calculate_fid \
 #    --calculate_is \
-#    --no_confirm \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
+
+#python main.py \
+#    --dataset face \
+#    --model DiT_B_2_vae_channels_4_compress_4\
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 16 \
+#    --eval_batch_size 16 \
+#    --wandb_run_name liang_DiT_B_2_vae_channels_4_compress_4_ddim_scaled_linear_bs16_vae0.05 \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
+
+#python main.py \
+#    --dataset face \
+#    --model DiT_B_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 32 \
+#    --eval_batch_size 32 \
+#    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_scaled_linear_bs32_vae_l_4_0.05 \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
+#python main.py \
+#    --dataset face \
+#    --model DiT_B_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --beta_schedule scaled_linear \
+#    --RHFlip \
+#    --center_crop_arr \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_pretain_Transformer2DModel_ddim_scaled_linear_bs32_vae_l_4_0.05_RHFlip_center_crop \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
+#python main.py \
+#    --dataset face \
+#    --model DiT_B_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --beta_schedule scaled_linear \
+#    --RHFlip \
+#    --center_crop_arr \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 1000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_pretain_Transformer2DModel_ema_ddim_scaled_linear_bs32_vae_l_4_0.05_RHFlip_center_crop \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --use_ema \
+#    --no_confirm
+#    --no_wandb
+
+
+#python main.py \
+#    --dataset face \
+#    --model DiT_L_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 4000 \
+#    --num_inference_steps 100 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_DiT_L_2_vae_channels_4_ddim_scaled_linear_train_timesteps_4000_100_bs64_vae_l_4_ag_0.05_ag \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
+#python main.py \
+#    --dataset face \
+#    --model DiT_B_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --eta 0.5 \
+#    --RHFlip \
+#    --center_crop_arr \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 4000 \
+#    --num_inference_steps 4000 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_scaled_linear_eta0.5_4000_RHFlip_center_crop_bs32_vae_l_4_0.05_ag \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
+
+#python main.py \
+#    --dataset face \
+#    --model DiT_B_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --eta 0.5 \
+#    --RHFlip \
+#    --center_crop_arr \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 4000 \
+#    --num_inference_steps 1000 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --loss_type mse \
+#    --use_lpips \
+#    --lpips_net alex \
+#    --lpips_weight 0.05 \
+#    --wandb_run_name liang_DiT_B_2_vae_channels_4_ddim_scaled_linear_eta0.5_4000_RHFlip_center_crop_bs32_vae_l_4_0.05_ag_use_lpips \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
+#    --no_wandb
+
+
+#python main.py \
+#    --dataset face \
+#    --model DiT_L_2_vae_channels_4\
+#    --attention_head_dim 64 \
+#    --pipeline dit_vae \
+#    --scheduler ddim \
+#    --eta 0.5 \
+#    --RHFlip \
+#    --center_crop_arr \
+#    --beta_schedule scaled_linear \
+#    --image_size 128 \
+#    --num_epochs 500 \
+#    --num_train_timesteps 4000 \
+#    --num_inference_steps 100 \
+#    --train_batch_size 64 \
+#    --eval_batch_size 64 \
+#    --use_lpips \
+#    --lpips_net alex \
+#    --lpips_weight 0.05 \
+#    --wandb_run_name liang_DiT_L_2_vae_channels_4_ddim_scaled_linear_eta0.5_RHFlip_center_crop_arr_train_timesteps_4000_100_bs64_vae_l_4_ag_0.05_ag \
+#    --calculate_fid \
+#    --calculate_is \
+#    --enable_xformers_memory_efficient_attention \
+#    --allow_tf32 \
+#    --no_confirm
 #    --no_wandb
 
 
 python main.py \
     --dataset face \
-    --model DiT_B_2_vae_channels_4_compress_4\
+    --model DiT_L_2_vae_channels_4\
+    --attention_head_dim 64 \
     --pipeline dit_vae \
     --scheduler ddim \
     --beta_schedule scaled_linear \
@@ -126,14 +322,13 @@ python main.py \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
     --num_inference_steps 1000 \
-    --train_batch_size 16 \
-    --eval_batch_size 16 \
-    --wandb_run_name liang_DiT_B_2_vae_channels_4_compress_4_ddim_scaled_linear_bs16_vae0.05 \
+    --train_batch_size 64 \
+    --eval_batch_size 64 \
+    --wandb_run_name liang_DiT_L_2_ddim_scaled_linear_train_timesteps_1000_1000_pretrain_vae_bs64 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
     --allow_tf32 \
     --no_confirm
 #    --no_wandb
-
 

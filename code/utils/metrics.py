@@ -9,7 +9,7 @@ from PIL import Image
 from tqdm.auto import tqdm
 from huggingface_hub import whoami, HfFolder
 from cleanfid import fid
-from diffusers import DiTPipeline, DDPMPipeline, DDIMPipeline, StableDiffusionPipeline
+from diffusers import DiTPipeline, DDPMPipeline, DDIMPipeline, StableDiffusionPipeline, LDMPipeline
 from pipelines.ccddpm_pipeline import CCDDPMPipeline
 from pipelines.custom_pipelines import CustomTransformer2DPipeline
 
@@ -56,12 +56,13 @@ def pipeline_inference(
             num_inference_steps=config.num_inference_steps,
             output_type=output_type,
         ).images
-    elif isinstance(pipeline, DDIMPipeline):
+    elif isinstance(pipeline, DDIMPipeline) or isinstance(pipeline, LDMPipeline):
         images = pipeline(
             batch_size=batch_size,
             generator=generator,
             num_inference_steps=config.num_inference_steps,
             eta=config.eta,
+            output_type=output_type,
         ).images
     elif isinstance(pipeline, CCDDPMPipeline):
         label_id = 1 if config.condition_on == "male" else 0
@@ -132,7 +133,7 @@ def preprocess_image(image, img_src, device):
 
 
 def calculate_inception_score(
-        config, pipeline, test_dataloader, device=None, class_labels=[], prompt_dict={}
+        config, pipeline, test_dataloader, device=None, class_labels=[], prompts=[]
 ):
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -171,10 +172,11 @@ def calculate_inception_score(
                 )
                 generator = torch.manual_seed(config.seed + batch)
 
-                if prompt_dict:
-                    batch_data = test_dataloader.dataset
-                    prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
-                               i in range(batch, batch + batch_size)]
+                if prompts:
+                    # batch_data = test_dataloader.dataset
+                    # prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
+                    #            i in range(batch, batch + batch_size)]
+                    prompts = prompts
                 else:
                     prompts = []
 
@@ -200,7 +202,7 @@ def calculate_inception_score(
 
 def calculate_fid_score(
         config, pipeline, test_dataloader, device=None, save=True, class_labels=[],
-        prompt_dict={}
+        prompts=[]
 ):
     """Calculate FID score between generated images and test dataset"""
     if device is None:
@@ -245,10 +247,11 @@ def calculate_fid_score(
             )
             generator = torch.manual_seed(config.seed + batch)
 
-            if prompt_dict:
-                batch_data = test_dataloader.dataset
-                prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
-                           i in range(batch, batch + batch_size)]
+            if prompts:
+                prompts = prompts
+                # batch_data = test_dataloader.dataset
+                # prompts = [prompt_dict[int(x['image_names'])] for i, x in enumerate(batch_data) if
+                #            i in range(batch, batch + batch_size)]
             else:
                 prompts = []
             output = pipeline_inference(

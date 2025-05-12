@@ -21,11 +21,13 @@ python main.py \
     --dataset face \
     --model vqvae_channel_3 \
     --pipeline vqvae \
+    --RHFlip \
+    --center_crop_arr \
     --image_size 128 \
     --num_epochs 500 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
-    --wandb_run_name liang_vqvae_latent_loss_weight_0.35_channels3_batch_size_16 \
+    --wandb_run_name liang_vqvae_latent_loss_weight_0.4_RHFlip_center_crop_channels3_batch_size_16 \
     --calculate_fid \
     --no_confirm
 #    --no_wandb

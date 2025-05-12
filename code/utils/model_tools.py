@@ -37,3 +37,28 @@ def requires_grad(model, flag=True):
     """
     for p in model.parameters():
         p.requires_grad = flag
+
+
+def freeze_layers(model, freeze_until_layer):
+    """
+    Freeze layers until the specified layer index.
+    """
+    layers = 0
+    for name, param in model.named_parameters():
+        # Split the parameter name by '.'
+        parts = name.split(".")
+
+        # Check if the second part is a digit (e.g., '0', '1')
+        if len(parts) > 1 and parts[1].isdigit():
+            layer_index = int(parts[1])
+            layers += 1
+            if layer_index < freeze_until_layer:
+                param.requires_grad = False
+            else:
+                param.requires_grad = True
+        else:
+            # Skip parameters that do not match the expected format
+            continue
+    print(
+        f"The model has {layers} layers and freeze the front {freeze_until_layer} layers"
+    )

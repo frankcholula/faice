@@ -44,13 +44,13 @@ selected_pipeline = StableDiffusionPipeline
 
 
 def train_loop(
-    config,
-    model,
-    noise_scheduler,
-    optimizer,
-    train_dataloader,
-    lr_scheduler,
-    test_dataloader=None,
+        config,
+        model,
+        noise_scheduler,
+        optimizer,
+        train_dataloader,
+        lr_scheduler,
+        test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -177,24 +177,56 @@ def train_loop(
 
     if config.scale_lr:
         config.learning_rate = (
-            config.learning_rate
-            * config.gradient_accumulation_steps
-            * config.train_batch_size
-            * accelerator.num_processes
+                config.learning_rate
+                * config.gradient_accumulation_steps
+                * config.train_batch_size
+                * accelerator.num_processes
         )
 
-    train_prompts = load_prompts(config.stable_diffusion_prompt_dir)
+    # Initialize the optimizer
+    # if config.use_8bit_adam:
+    #     try:
+    #         import bitsandbytes as bnb
+    #     except ImportError:
+    #         raise ImportError(
+    #             "Please install bitsandbytes to use 8-bit Adam. You can do so by running `pip install bitsandbytes`"
+    #         )
+    #
+    #     optimizer_cls = bnb.optim.AdamW8bit
+    # else:
+    #     optimizer_cls = torch.optim.AdamW
 
-    test_prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
+    # adam_beta1 = 0.9
+    # adam_beta2 = 0.999
+    # adam_weight_decay = 1e-2
+    # adam_epsilon = 1e-08
+    # optimizer = optimizer_cls(
+    #     model.parameters(),
+    #     lr=config.learning_rate,
+    #     betas=(adam_beta1, adam_beta2),
+    #     weight_decay=adam_weight_decay,
+    #     eps=adam_epsilon,
+    # )
+    #
+    # model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+    #     model, optimizer, train_dataloader, lr_scheduler
+    # )
+
+    all_prompts = load_prompts(config.stable_diffusion_prompt_dir)
+
+    # test_prompt_dict = load_request_prompt(config.stable_diffusion_request_prompt_dir)
     test_prompts = []
     for t_batch in tqdm(test_dataloader):
         image_names = t_batch["image_names"]
-        t_prompts = [test_prompt_dict[int(x)] for x in image_names]
+        t_prompts = [all_prompts[x] for x in image_names]
         test_prompts.extend(t_prompts)
 
     # For evaluation
     evaluate_batch_size = 16
     evaluation_prompts = test_prompts[:evaluate_batch_size]
+    print('>'*9, evaluation_prompts)
+
+    # evaluation_prompts = load_request_prompt(config.stable_diffusion_request_prompt_dir)
 
     if config.use_ema:
         if config.offload_ema:
@@ -219,7 +251,7 @@ def train_loop(
             bs = clean_images.shape[0]
 
             image_names = batch["image_names"]
-            batch_prompts = [train_prompts[x] for x in image_names]
+            batch_prompts = [all_prompts[x] for x in image_names]
             batch["input_ids"] = tokenize_captions(batch_prompts, tokenizer)
             batch["input_ids"] = batch["input_ids"].to(accelerator.device)
 
@@ -291,14 +323,16 @@ def train_loop(
                         model_pred.float(), target.float(), reduction="none"
                     )
                     loss = (
-                        loss.mean(dim=list(range(1, len(loss.shape))))
-                        * mse_loss_weights
+                            loss.mean(dim=list(range(1, len(loss.shape))))
+                            * mse_loss_weights
                     )
                     loss = loss.mean()
 
                 accelerator.backward(loss)
 
-                accelerator.clip_grad_norm_(model.parameters(), 1.0)
+                # accelerator.clip_grad_norm_(model.parameters(), 1.0)
+                if accelerator.sync_gradients:
+                    accelerator.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
@@ -332,11 +366,11 @@ def train_loop(
                 pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
-                epoch + 1
-            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                                       epoch + 1
+                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                epoch + 1
-            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                                 epoch + 1
+                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
             save_to_wandb = epoch == config.num_epochs - 1
 
             if generate_samples:
@@ -365,46 +399,46 @@ def train_loop(
     # do any sampling/FID calculation/etc. with ema (or model) in eval mode ...
 
     # Now we evaluate the model on the test set
-    if (
-        accelerator.is_main_process
-        and config.calculate_fid
-        and test_dataloader is not None
-    ):
-        if config.use_ema:
-            ema_unet.copy_to(model.parameters())
-
-        pipeline = StableDiffusionPipeline.from_pretrained(
-            pretrained_model_name_or_path,
-            text_encoder=accelerator.unwrap_model(text_encoder),
-            vae=accelerator.unwrap_model(vae),
-            unet=accelerator.unwrap_model(model),
-            tokenizer=tokenizer,
-            # revision=config.revision,
-        )
-        pipeline = pipeline.to(accelerator.device)
-
-        if config.enable_xformers_memory_efficient_attention:
-            pipeline.enable_xformers_memory_efficient_attention()
-
-        fid_score = calculate_fid_score(
-            config, pipeline, test_dataloader, prompt_dict=test_prompt_dict
-        )
-
-        wandb_logger.log_fid_score(fid_score)
-
-    if (
-        accelerator.is_main_process
-        and config.calculate_is
-        and test_dataloader is not None
-    ):
-        inception_score = calculate_inception_score(
-            config,
-            pipeline,
-            test_dataloader,
-            device=accelerator.device,
-            prompt_dict=test_prompt_dict,
-        )
-        wandb_logger.log_inception_score(inception_score)
+    # if (
+    #     accelerator.is_main_process
+    #     and config.calculate_fid
+    #     and test_dataloader is not None
+    # ):
+    #     if config.use_ema:
+    #         ema_unet.copy_to(model.parameters())
+    #
+    #     pipeline = StableDiffusionPipeline.from_pretrained(
+    #         pretrained_model_name_or_path,
+    #         text_encoder=accelerator.unwrap_model(text_encoder),
+    #         vae=accelerator.unwrap_model(vae),
+    #         unet=accelerator.unwrap_model(model),
+    #         tokenizer=tokenizer,
+    #         # revision=config.revision,
+    #     )
+    #     pipeline = pipeline.to(accelerator.device)
+    #
+    #     if config.enable_xformers_memory_efficient_attention:
+    #         pipeline.enable_xformers_memory_efficient_attention()
+    #
+    #     fid_score = calculate_fid_score(
+    #         config, pipeline, test_dataloader, prompts=test_prompts
+    #     )
+    #
+    #     wandb_logger.log_fid_score(fid_score)
+    #
+    # if (
+    #     accelerator.is_main_process
+    #     and config.calculate_is
+    #     and test_dataloader is not None
+    # ):
+    #     inception_score = calculate_inception_score(
+    #         config,
+    #         pipeline,
+    #         test_dataloader,
+    #         device=accelerator.device,
+    #         prompts=test_prompts,
+    #     )
+    #     wandb_logger.log_inception_score(inception_score)
     wandb_logger.finish()
 
 
@@ -457,11 +491,13 @@ def load_prompts(prompt_path):
 def load_request_prompt(prompt_path):
     # Get first batch_size rows prompts
     data = pd.read_table(prompt_path, header=None)
-    data = data.iloc[1:]
-    data.columns = ["image", "prompt"]
-    data["image"] = data["image"].apply(lambda x: int(x.split(".")[0]))
-    prompt_dict = dict(zip(data["image"], data["prompt"]))
-    return prompt_dict
+    data.columns = ["prompt"]
+    prompts = data["prompt"].tolist()
+    # data.columns = ["image", "prompt"]
+    # data["image"] = data["image"].apply(lambda x: int(x.split(".")[0]))
+    # prompt_dict = dict(zip(data["image"], data["prompt"]))
+    # return prompt_dict
+    return prompts
 
 
 if __name__ == "__main__":
@@ -471,5 +507,10 @@ if __name__ == "__main__":
     stable_diffusion_request_prompt_dir: str = (
         "../datasets/celeba_hq_stable_diffusion/request_hq.txt"
     )
-    # train_prompts = load_prompts(stable_diffusion_prompt_dir)
-    test_prompts = load_request_prompt(stable_diffusion_request_prompt_dir)
+    train_prompts = load_prompts(stable_diffusion_prompt_dir)
+    # test_prompts = load_request_prompt(stable_diffusion_request_prompt_dir)
+
+    t_prompts = [train_prompts[str(x)] for x in range(2700, 2716)]
+    print(t_prompts)
+    # for p in t_prompts:
+    #     print(p)

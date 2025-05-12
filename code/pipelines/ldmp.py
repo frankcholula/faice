@@ -7,6 +7,7 @@
 """
 # Deep learning framework
 import os
+from packaging import version
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
@@ -16,7 +17,7 @@ import accelerate
 from diffusers import LDMPipeline, VQModel, UNet2DModel
 from diffusers.training_utils import EMAModel
 from diffusers.utils.import_utils import is_xformers_available
-from packaging import version
+import lpips
 
 # Configuration
 from utils.metrics import evaluate, calculate_fid_score, calculate_inception_score
@@ -24,6 +25,8 @@ from utils.loggers import WandBLogger
 from utils.training import setup_accelerator
 from models.vqmodel import vqvae_b_3, vqvae_b_16, vqvae_b_32, vqvae_b_64
 from models.vae import vae_b_4, vae_b_16, vae_l_4, vae_l_16
+from utils.model_tools import freeze_layers
+from utils.loss import get_loss
 
 selected_pipeline = LDMPipeline
 
@@ -32,25 +35,28 @@ selected_pipeline = LDMPipeline
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.1/checkpoints/model_vqvae.pth"
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.1-bs22/checkpoints/model_vqvae.pth"
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.25/checkpoints/model_vqvae.pth"
+# vqmodel_path = (
+#     "runs/vqvae_channel_3-vqvae-ddpm-face-500-0.4-16/checkpoints/model_vqvae.pth"
+# )
 vqmodel_path = (
-    "runs/vqvae_channel_3-vqvae-ddpm-face-500-0.4-16/checkpoints/model_vqvae.pth"
+    "runs/vqvae_channel_3-vqvae-ddpm-face-500-0.4-RHFlip-center_crop/checkpoints/model_vqvae.pth"
 )
 # vqmodel_path = "runs/vqvae-vqvae-ddpm-face-500-3-0.5/checkpoints/model_vqvae.pth"
 # vae_path = "runs/vae-vae-ddpm-face-500/checkpoints/model_vae.pth"
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-
 # url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
+pretrained_model_name_or_path = 'CompVis/ldm-celebahq-256'
 
 
 def train_loop(
-    config,
-    model,
-    noise_scheduler,
-    optimizer,
-    train_dataloader,
-    lr_scheduler,
-    test_dataloader=None,
+        config,
+        model,
+        noise_scheduler,
+        optimizer,
+        train_dataloader,
+        lr_scheduler,
+        test_dataloader=None,
 ):
     accelerator, repo = setup_accelerator(config)
 
@@ -72,14 +78,50 @@ def train_loop(
             model, optimizer, train_dataloader, lr_scheduler
         )
 
+    # Initialize lpips
+    lpips_fn = None
+    if config.use_lpips_regularization:
+        lpips_fn = lpips.LPIPS(net=config.lpips_net).to(config.device)
+        lpips_fn.eval()
+
     global_step = 0
 
     # vae = AutoencoderKL.from_single_file(url)
     # vae.eval().requires_grad_(False)
 
-    # vqvae = VQModel.from_pretrained("CompVis/ldm-celebahq-256", subfolder="vqvae")
+    # vqvae = VQModel.from_pretrained(pretrained_model_name_or_path, subfolder="vqvae")
     # vqvae = vqvae.to(device)
-    # vqvae.eval().requires_grad_
+    # vqvae.eval().requires_grad_(False)
+    #
+    # # model = UNet2DModel.from_pretrained(
+    # #     pretrained_model_name_or_path, subfolder="unet"
+    # # )
+    # model = model.from_pretrained(
+    #     pretrained_model_name_or_path,  # Base model
+    #     subfolder="unet",
+    # )
+    # # Freeze some layers
+    # frozen_layers = 3
+    # freeze_layers(model, freeze_until_layer=frozen_layers)
+    # model = model.to(device)
+    #
+    # optimizer_cls = torch.optim.AdamW
+    #
+    # adam_beta1 = 0.9
+    # adam_beta2 = 0.999
+    # adam_weight_decay = 1e-2
+    # adam_epsilon = 1e-08
+    # optimizer = optimizer_cls(
+    #     model.parameters(),
+    #     lr=config.learning_rate,
+    #     betas=(adam_beta1, adam_beta2),
+    #     weight_decay=adam_weight_decay,
+    #     eps=adam_epsilon,
+    # )
+    #
+    # model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+    #     model, optimizer, train_dataloader, lr_scheduler
+    # )
 
     vqvae = vqvae_b_3(config)
     vqvae = vqvae.to(device)
@@ -120,46 +162,46 @@ def train_loop(
                 "xformers is not available. Make sure it is installed correctly"
             )
 
-    if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
-        # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
-        def save_model_hook(models, weights, output_dir):
-            if accelerator.is_main_process:
-                if config.use_ema:
-                    ema_model.save_pretrained(os.path.join(output_dir, "unet_ema"))
-
-                for i, model in enumerate(models):
-                    model.save_pretrained(os.path.join(output_dir, "unet"))
-
-                    # make sure to pop weight so that corresponding model is not saved again
-                    weights.pop()
-
-        def load_model_hook(models, input_dir):
-            if config.use_ema:
-                load_model = EMAModel.from_pretrained(
-                    os.path.join(input_dir, "unet_ema"),
-                    UNet2DModel,
-                    foreach=config.foreach_ema,
-                )
-                ema_model.load_state_dict(load_model.state_dict())
-                if config.offload_ema:
-                    ema_model.pin_memory()
-                else:
-                    ema_model.to(accelerator.device)
-                del load_model
-
-            for _ in range(len(models)):
-                # pop models so that they are not loaded again
-                model = models.pop()
-
-                # load diffusers style into model
-                load_model = UNet2DModel.from_pretrained(input_dir, subfolder="unet")
-                model.register_to_config(**load_model.config)
-
-                model.load_state_dict(load_model.state_dict())
-                del load_model
-
-        accelerator.register_save_state_pre_hook(save_model_hook)
-        accelerator.register_load_state_pre_hook(load_model_hook)
+    # if version.parse(accelerate.__version__) >= version.parse("0.16.0"):
+    #     # create custom saving & loading hooks so that `accelerator.save_state(...)` serializes in a nice format
+    #     def save_model_hook(models, weights, output_dir):
+    #         if accelerator.is_main_process:
+    #             if config.use_ema:
+    #                 ema_model.save_pretrained(os.path.join(output_dir, "unet_ema"))
+    #
+    #             for i, model in enumerate(models):
+    #                 model.save_pretrained(os.path.join(output_dir, "unet"))
+    #
+    #                 # make sure to pop weight so that corresponding model is not saved again
+    #                 weights.pop()
+    #
+    #     def load_model_hook(models, input_dir):
+    #         if config.use_ema:
+    #             load_model = EMAModel.from_pretrained(
+    #                 os.path.join(input_dir, "unet_ema"),
+    #                 UNet2DModel,
+    #                 foreach=config.foreach_ema,
+    #             )
+    #             ema_model.load_state_dict(load_model.state_dict())
+    #             if config.offload_ema:
+    #                 ema_model.pin_memory()
+    #             else:
+    #                 ema_model.to(accelerator.device)
+    #             del load_model
+    #
+    #         for _ in range(len(models)):
+    #             # pop models so that they are not loaded again
+    #             model = models.pop()
+    #
+    #             # load diffusers style into model
+    #             load_model = UNet2DModel.from_pretrained(input_dir, subfolder="unet")
+    #             model.register_to_config(**load_model.config)
+    #
+    #             model.load_state_dict(load_model.state_dict())
+    #             del load_model
+    #
+    #     accelerator.register_save_state_pre_hook(save_model_hook)
+    #     accelerator.register_load_state_pre_hook(load_model_hook)
 
     # Enable TF32 for faster training on Ampere GPUs,
     # cf https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices
@@ -223,7 +265,8 @@ def train_loop(
                         f"Unknown prediction type {noise_scheduler.config.prediction_type}"
                     )
 
-                loss = F.mse_loss(noise_pred, target)
+                loss = get_loss(noise_pred, target, config, lpips_fn=lpips_fn)
+                # loss = F.mse_loss(noise_pred, target)
                 # loss = F.l1_loss(noise_pred, target)
                 accelerator.backward(loss)
 
@@ -259,11 +302,11 @@ def train_loop(
                 pipeline.enable_xformers_memory_efficient_attention()
 
             generate_samples = (
-                epoch + 1
-            ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
+                                       epoch + 1
+                               ) % config.save_image_epochs == 0 or epoch == config.num_epochs - 1
             save_model = (
-                epoch + 1
-            ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
+                                 epoch + 1
+                         ) % config.save_model_epochs == 0 or epoch == config.num_epochs - 1
 
             if generate_samples:
                 if config.use_ema:
@@ -290,11 +333,12 @@ def train_loop(
 
             progress_bar.close()
 
+    model.eval()
     # Now we evaluate the model on the test set
     if (
-        accelerator.is_main_process
-        and config.calculate_fid
-        and test_dataloader is not None
+            accelerator.is_main_process
+            and config.calculate_fid
+            and test_dataloader is not None
     ):
         if config.use_ema:
             ema_model.copy_to(model.parameters())
@@ -315,9 +359,9 @@ def train_loop(
         wandb_logger.log_fid_score(fid_score)
 
     if (
-        accelerator.is_main_process
-        and config.calculate_is
-        and test_dataloader is not None
+            accelerator.is_main_process
+            and config.calculate_is
+            and test_dataloader is not None
     ):
         inception_score = calculate_inception_score(
             config, pipeline, test_dataloader, device=accelerator.device

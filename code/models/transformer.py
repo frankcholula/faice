@@ -10,15 +10,16 @@ from diffusers import DiTTransformer2DModel, Transformer2DModel
 
 class DiT(object):
     def __init__(
-        self,
-        config,
-        depth=28,
-        hidden_size=1152,
-        patch_size=2,
-        num_heads=16,
-        compress_rate=4,
-        channels=4,
-        attention_type="default",
+            self,
+            config,
+            depth=28,
+            hidden_size=1152,
+            patch_size=2,
+            num_heads=16,
+            compress_rate=4,
+            channels=4,
+            attention_type="default",
+            learn_sigma=True,
     ):
         self.sample_size = int(config.image_size / compress_rate)
         self.num_layers = depth
@@ -27,12 +28,13 @@ class DiT(object):
         self.patch_size = patch_size
         self.channels = channels
         self.attention_type = attention_type
+        self.out_channels = self.channels * 2 if learn_sigma else self.channels
 
     def create_dit(self):
         dit = DiTTransformer2DModel(
             sample_size=self.sample_size,
             in_channels=self.channels,
-            out_channels=self.channels,
+            out_channels=self.out_channels,
             activation_fn="gelu-approximate",
             attention_bias=True,
             attention_head_dim=self.attention_head_dim,
@@ -49,7 +51,7 @@ class DiT(object):
         dit = Transformer2DModel(
             sample_size=self.sample_size,
             in_channels=self.channels,
-            out_channels=self.channels,
+            out_channels=self.out_channels,
             activation_fn="gelu-approximate",
             attention_bias=True,
             attention_head_dim=self.attention_head_dim,
