@@ -1,7 +1,7 @@
 # fAIce 🫥
 EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation with Diffusion Models. The project's model runs are available on Weights & Biases [here](https://wandb.ai/frankcholula/faice?nw=nwusertsufanglus). Project planning documentation can be accessed [here](https://frankcholula.notion.site/faice?pvs=4), and a webpage of the final paper is available [here](https://frankcholula.notion.site/diffusion-paper?pvs=4) and in pdf form [here](code/papers/difusion_paper.pdf).
 
-![Will Smith](code/assets/will_smith.png)
+![alt text](assets/finetuned_stable_diffusion.png)
 ## 📚 Literature Review
 
 For diffusion literature references, please consult the Zotero-synced Notion table [here](https://frankcholula.notion.site/diffusion-literature?v=1e03b40fbcd5806da3c9000c8c33c842&pvs=4).
