@@ -1,5 +1,5 @@
 # Human Faces Generation with Diffusion Models 🫥
-**EEEM068 Spring 2025 Applied Machine Learning Project**: Human Faces Generation with Diffusion Models. The project's model runs are available on Weights & Biases [here](https://wandb.ai/frankcholula/faice). Project planning documentation can be accessed [here](https://frankcholula.notion.site/faice?pvs=4), and a webpage of the final paper is available [here](https://frankcholula.notion.site/diffusion-paper?pvs=4) and in pdf form [here](code/papers/difusion_paper.pdf).
+EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation with Diffusion Models. The project's model runs are available on Weights & Biases [here](https://wandb.ai/frankcholula/faice). Project planning documentation can be accessed [here](https://frankcholula.notion.site/faice?pvs=4), and a webpage of the final paper is available [here](https://frankcholula.notion.site/diffusion-paper?pvs=4) and in pdf form [here](code/papers/difusion_paper.pdf).
 
 ![alt text](assets/finetuned_stable_diffusion.png)
 ## 📚 Literature Review
@@ -193,7 +193,7 @@ WANDB_ENTITY=<your_wandb_entity>
 WANDB_API_KEY=<your_wandb_api_key>
 ```
 
-## License
+## 👉 License
 This project is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) (GPL-3.0). This means:
 1.	**Attribution**: You must give appropriate credit to the original author (me, [Frank Lu](https://frankcholula.notion.site/)) if you use or modify this project.
 2.	**Non-Proprietary**: Any derivative works or modifications must also be shared under the same license. This project cannot be used in proprietary or closed-source software.
