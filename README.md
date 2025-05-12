@@ -138,7 +138,7 @@ faice/code
 ```
 
 ## 🧪 Running the Experiments
-⚠️ **Please first request for cluster access to `Eureka2` and `Babbage` from the CSEE department. Otherwise, there's an `Otter Setup` documentation [here](https://frankcholula.notion.site/otter-setup?pvs=4).**
+⚠️ **Please first request for cluster access to `Eureka2` and `Babbage` from the CSEE department. Otherwise, I have wrriten an `Otter Setup` documentation [here](https://frankcholula.notion.site/otter-setup?pvs=4).**
 
 You should design the experiments according to your tasks and put them in the  `experiments` folder. You have the option to use the `Makefile` as well. 
 ```bash
