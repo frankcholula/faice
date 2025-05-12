@@ -317,20 +317,14 @@ python main.py \
     --attention_head_dim 64 \
     --pipeline dit_vae \
     --scheduler ddim \
-    --eta 0.5 \
-    --RHFlip \
-    --center_crop_arr \
     --beta_schedule scaled_linear \
     --image_size 128 \
     --num_epochs 500 \
     --num_train_timesteps 1000 \
-    --num_inference_steps 100 \
+    --num_inference_steps 1000 \
     --train_batch_size 64 \
     --eval_batch_size 64 \
-    --use_lpips \
-    --lpips_net alex \
-    --lpips_weight 0.05 \
-    --wandb_run_name liang_DiT_L_2_ddim_scaled_linear_eta0.5_RHFlip_center_crop_arr_train_timesteps_1000_100_pretrain_vae_bs64 \
+    --wandb_run_name liang_DiT_L_2_ddim_scaled_linear_train_timesteps_1000_1000_pretrain_vae_bs64 \
     --calculate_fid \
     --calculate_is \
     --enable_xformers_memory_efficient_attention \
