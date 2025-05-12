@@ -2,10 +2,86 @@
 EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation with Diffusion Models. The project's model runs are available on Weights & Biases [here](https://wandb.ai/frankcholula/faice?nw=nwusertsufanglus). Project planning documentation can be accessed [here](https://frankcholula.notion.site/faice?pvs=4), and a webpage of the final paper is available [here](https://frankcholula.notion.site/diffusion-paper?pvs=4) and in pdf form [here](code/papers/difusion_paper.pdf).
 
 ![Will Smith](code/assets/will_smith.png)
-## Literature Review
-Please consult the Zotero-sync Notion table [here](https://frankcholula.notion.site/diffusion-literature?v=1e03b40fbcd5806da3c9000c8c33c842&pvs=4).
+## 📚 Literature Review
 
-## Code Layout
+For diffusion literature references, please consult the Zotero-synced Notion table [here](https://frankcholula.notion.site/diffusion-literature?v=1e03b40fbcd5806da3c9000c8c33c842&pvs=4).
+```mermaid
+---
+config:
+  theme: default
+  layout: elk
+---
+graph LR;
+  A["Score-Based Generative Modeling through Stochastic Differential Equations"]
+	B["Denoising Diffusion Probabilistic Models"];
+	C["Denoising Diffusion Implicit Models"];
+	D["Improved Denoising Diffusion Probabilistic Models"];
+	E["Diffusion Models Beat GANs on Image Synthesis"];
+	F["Generative Modeling by Estimating Gradients of the Data Distribution"];
+	G["Deep Unsupervised Learning using Nonequilibrium Thermodynamics"];
+	H["Scalable Diffusion Models with Transformers"];
+	I["High-Resolution Image Synthesis with Latent Diffusion Models"];
+	J["Pseudo Numerical Methods for Diffusion Models on Manifolds"];
+	K["Common Diffusion Noise Schedules and Sample Steps are Flawed"];
+	L["Progressive Distillation for Fast Sampling of Diffusion Models"];
+	M["GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models"]
+	N["Classifier-Free Guidance"]
+	O["The Unreasonable Effectiveness of Deep Features as a Perceptual Metric"]
+	P["GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium"]
+	Q["Improved Techniques for Training GANs"]
+  %% R["U-Net: Convolutional Networks for Biomedical Image Segmentation"]
+  %% S["Auto-Encoding Variational Bayes"]
+  %% T["An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"]
+  U["Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding"]
+  %% V["Generating Diverse High-Fidelity Images with VQ-VAE-2"]
+  W["On Aliased Resizing and Surprising Subtleties in GAN Evaluation"]
+  %% X["Learning Transferable Visual Models From Natural Language Supervision"]
+  %% Y["Scaling Vision Transformers"]
+  %% Z["BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"]
+  %% AA["Attention Is All You Need"]
+	subgraph "Foundation"
+		G --> F --> A --> B;
+	end
+	subgraph "Architecture"
+		B --> D --> E --> I;
+		%% YX --> I;
+		%% AA --> Z --> I;
+		%% AA --> Y --> H;
+		E --> H;
+		%% T --> H;
+		%% R;
+			%% subgraph "VAE"
+			%%   V;
+			%%   S;
+		  %% end
+	end
+	subgraph "Sampling"
+		A --> C;
+		A --> J;
+	end
+	subgraph "Guidance"
+		M --> N --> U;
+	end 
+	subgraph "Parameterization"
+		L--> K;
+	end
+	subgraph "Loss Function"
+		O
+	end
+	subgraph "Evaluation"
+			P --> Q;
+			P --> W
+	end
+  A --> K;
+  %% R --> B;
+  D --> O;
+	E --> N;
+	F --> P;
+	%% V --> I;
+	%% S --> H;
+
+```
+## 💻 Code Layout
 ```bash
 faice/code
 ├── args.py
@@ -61,7 +137,7 @@ faice/code
     └── transforms.py
 ```
 
-## Running the Experiments
+## 🧪 Running the Experiments
 ⚠️ **Please first request for cluster access to `Eureka2` and `Otter` from the CSEE department. Otherwise, there's an `Otter Setup` documentation [here](https://frankcholula.notion.site/otter-setup?pvs=4).**
 
 Please design the experiments according to your tasks and put them in the  `experiments` folder accordingly. You have the option to use the `Makefile` as well. 
@@ -89,7 +165,7 @@ Given that runs are computationally expensive, I recommend using the `--verbose`
 
 After you've run the experiments, please documen the results in the Notion [page](https://frankcholula.notion.site/faice?pvs=4).
 
-## Dataset Preparation
+## 🧑‍🍳 Dataset Preparation
 For **unconditional generation**, please download the attached dataset `celeba_hq_split.zip` from the email and extract it into the `datasets` folder in order to run the code.
 
 For **conditional generation**, please download the dataset sent in the WhatsApp group. The layout of your dataset should be as follows:
@@ -108,7 +184,7 @@ code/datasets
 ```
 
 
-## Credentials
+## ㊙️ Credentials
 🚨 **DO NOT COMMIT THE CREDENTIALS**
 Please use the provided API key and entity in the `.env` file in order to store the runs on Weights & Biases.
 ```bash
