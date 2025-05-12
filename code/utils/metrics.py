@@ -61,7 +61,7 @@ def pipeline_inference(
             batch_size=batch_size,
             generator=generator,
             num_inference_steps=config.num_inference_steps,
-            eta=config.eta,
+            # eta=config.eta,
             output_type=output_type,
         ).images
     elif isinstance(pipeline, CCDDPMPipeline):
