@@ -6,25 +6,57 @@ EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation wit
 ## Code Layout
 ```bash
 faice/code
-├── code
-│   ├── args.py
-│   ├── conf
-│   ├── datasets
-│   ├── eda
-│   ├── experiments
-│   ├── main.py
-│   ├── Makefile
-│   ├── models
-│   ├── pipelines
-│   ├── runs
-│   └── utils
-├── docs
-├── environment.yml
-├── LICENSE
-├── poetry.lock
-├── pyproject.toml
-├── README.md
-└── Surrey_CSEE_Thesis_Template
+├── args.py
+├── assets
+├── conf
+│   └── training_config.py
+├── datasets
+│   ├── celeba_hq_split
+│   └── celeba_hq_stable_diffusion
+├── eda
+│   └── Training_Diffusion_Models.ipynb
+├── experiments
+│   ├── task1
+│   ├── task2
+│   ├── task3
+│   ├── task4
+│   ├── task5
+│   ├── task6
+│   └── task7
+├── main.py
+├── Makefile
+├── models
+│   ├── transformer.py
+│   ├── unet_resnet.py
+│   ├── unet_with_pretrain.py
+│   ├── unet.py
+│   ├── vae.py
+│   └── vqmodel.py
+├── pipelines
+│   ├── base_pipeline.py
+│   ├── ccddpm_pipeline.py
+│   ├── consistency.py
+│   ├── custom_pipelines.py
+│   ├── dit_vae.py
+│   ├── dit.py
+│   ├── ldmp.py
+│   ├── lora_inference.py
+│   ├── stable_diffusion.py
+│   ├── train_text_to_image_lora.py
+│   ├── vae_train.py
+│   └── vqvae_train.py
+├── test
+│   ├── test_stable_diffusion.py
+│   ├── test_vae.py
+│   └── test_vqvae.py
+└── utils
+    ├── loggers.py
+    ├── loss.py
+    ├── metrics.py
+    ├── model_tools.py
+    ├── plot.py
+    ├── training.py
+    └── transforms.py
 ```
 
 ## Running the Experiments
