@@ -2,6 +2,8 @@
 EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation with Diffusion Models. All model runs can be found at the Weights & Biases link [here](https://wandb.ai/frankcholula/faice?nw=nwusertsufanglus). Planning documentation can be found [here](https://frankcholula.notion.site/faice?pvs=4) along with a web version of the final paper [here](https://frankcholula.notion.site/diffusion-paper?pvs=4).
 
 ![Will Smith](code/assets/will_smith.png)
+## Literature Review
+Please consult the Zotero-sync Notion table [here](https://frankcholula.notion.site/diffusion-literature?v=1e03b40fbcd5806da3c9000c8c33c842&pvs=4).
 
 ## Code Layout
 ```bash
@@ -82,7 +84,7 @@ python main.py \
 Given that runs are computationally expensive, I recommend using the `--verbose` flag to check your parameters before running the experiments.
 
 ⚠️ **Unless you're running hyperparameter tuning, please make sure yoru experiement batch size is consistent for the ablation study**
-1. If you're running the experiments on `Otter`, please lock the batch size to `24` for memory reasons. 
+1. If you're running the experiments on `Otter`, please lock the batch size to `24` or `16` for memory reasons. 
 2. If you're running the experiments on `Eureka2`, please set the batch size to `64` for faster training.
 
 After you've run the experiments, please documen the results in the Notion [page](https://frankcholula.notion.site/faice?pvs=4).
