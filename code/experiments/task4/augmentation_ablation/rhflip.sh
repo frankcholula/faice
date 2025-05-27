@@ -8,13 +8,11 @@ python main.py \
     --unet_variant adm \
     --attention_head_dim 64 \
     --RHFlip \
-    --upsample_type conv \
-    --downsample_type conv \
     --image_size 128 \
     --num_epochs 500 \
-    --train_batch_size 48 \
-    --eval_batch_size 48 \
-    --wandb_run_name task4_ablation_rhflip_v2 \
+    --train_batch_size 16 \
+    --eval_batch_size 16 \
+    --wandb_run_name task4_ablation_rhflip_v3 \
     --calculate_fid \
     --calculate_is \
     --verbose

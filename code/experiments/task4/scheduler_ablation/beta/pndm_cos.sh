@@ -2,10 +2,9 @@
 
 python main.py \
     --dataset face \
-    --scheduler ddim \
-    --pipeline ddim \
-    --eta 0.2 \
-    --num_inference_steps 100 \
+    --scheduler pndm \
+    --pipeline pndm \
+    --num_inference_steps 50 \
     --beta_schedule squaredcos_cap_v2 \
     --model unet \
     --unet_variant adm \
@@ -17,7 +16,7 @@ python main.py \
     --num_train_timesteps 4000 \
     --train_batch_size 16 \
     --eval_batch_size 16 \
-    --wandb_run_name task4_ddim_0.2eta_v3 \
+    --wandb_run_name task4_pndm_50_v3 \
     --calculate_fid \
     --calculate_is \
     --verbose
