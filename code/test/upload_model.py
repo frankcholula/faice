@@ -15,7 +15,7 @@ class Config():
     use_wandb = False
     num_inference_steps = 100
     seed = 0
-    output_dir = "runs/faice_stable_diffusion_inference"
+    output_dir = "runs/unet_cond_l_block_4-stable_diffusion-pndm-face_dialog-200"
 
 
 config = Config()
