@@ -19,9 +19,10 @@ class Config():
 
 
 config = Config()
+token = os.environ.get("HUGGINGFACE_TOKEN")
 
 model_name = Path(config.output_dir).name
-repo_name = get_full_repo_name(model_name)
+repo_name = get_full_repo_name(model_name, token=token)
 repo = Repository(config.output_dir, clone_from=repo_name)
 
 repo.push_to_hub(commit_message=f"upload model: {model_name}", blocking=True)
