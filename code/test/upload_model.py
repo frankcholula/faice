@@ -15,7 +15,7 @@ class Config():
     use_wandb = False
     num_inference_steps = 100
     seed = 0
-    output_dir = "runs/stable_diffusion_inference"
+    output_dir = "runs/faice_stable_diffusion_inference"
 
 
 config = Config()
