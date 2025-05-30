@@ -6,7 +6,7 @@
 @Project : code
 """
 import os
-from huggingface_hub import HfApi
+from huggingface_hub import HfApi, create_repo
 
 api = HfApi()
 
@@ -31,10 +31,17 @@ def upload_model(repo_id, local_dir, token):
 
 
 class Config():
-    output_dir = "runs/unet_cond_l_block_4-stable_diffusion-pndm-face_dialog-200"
+    # output_dir = "runs/unet_cond_l_block_4-stable_diffusion-pndm-face_dialog-200"
+    # output_dir = "runs/class_guidance_model"
+    output_dir = "runs/unconditional_diffusion_unet_model"
 
 
 config = Config()
 token = os.environ.get("HUGGINGFACE_TOKEN")
 
-upload_model(repo_id="Ngene787/Faice_text2face", local_dir=config.output_dir, token=token)
+# repo_id = "Ngene787/Faice_text2face"
+# repo_id = "Ngene787/Faice_class_guidance"
+repo_id = "Ngene787/Faice_unconditional_diffusion"
+
+repo_id = create_repo(repo_id).repo_id
+upload_model(repo_id=repo_id, local_dir=config.output_dir, token=token)
