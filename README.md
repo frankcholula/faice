@@ -1,7 +1,7 @@
 # Human Faces Generation with Diffusion Models 🫥
 EEEM068 Spring 2025 Applied Machine Learning Project: Human Faces Generation with Diffusion Models. The project's model runs are available on Weights & Biases [here](https://wandb.ai/frankcholula/faice). Project planning documentation can be accessed [here](https://frankcholula.notion.site/faice?pvs=4), and a webpage of the final paper is available [here](https://frankcholula.notion.site/diffusion-paper?pvs=4) and in pdf form [here](code/papers/difusion_paper.pdf).
 
-You can find a demo [here](https://huggingface.co/spaces/Ngene787/Faice_text2face/tree/main) maintained by 
+You can find a demo [here](https://huggingface.co/spaces/Ngene787/Faice_text2face/tree/main) maintained by @liangxg787.
 
 ![alt text](assets/finetuned_stable_diffusion.png)
 ## 📚 Literature Review
